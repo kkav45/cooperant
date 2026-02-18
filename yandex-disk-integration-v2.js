@@ -390,11 +390,13 @@ async function createYandexSubfolders(parentFolderId) {
                 }
             });
 
-            Logger.info(`Подпапка ${subfolder} создана`);
+            Logger.success(`Подпапка ${subfolder} создана`);
         } catch (error) {
             Logger.error(`Ошибка создания подпапки ${subfolder}`, error);
         }
     }
+    
+    Logger.success('Структура папок создана: КООПЕРАНТ/Data, Applications, Certificates, Protocols, Documents, Backup, Reports, Exports');
 }
 
 // ============================================
@@ -784,13 +786,33 @@ function startAutoSaveYandex() {
     }
 
     autoSaveTimer = setInterval(async () => {
-        if (!isSyncing && cooperativFolderId) {
-            Logger.info('Автосохранение в Яндекс Диск...');
-            await saveAllDataToYandex();
+        if (!isSyncing && cooperativFolderId && yandexDiskToken) {
+            Logger.info('🔄 Автосохранение в Яндекс Диск...');
+            
+            try {
+                const result = await saveAllDataToYandex();
+                
+                if (result) {
+                    Logger.success('✅ Автосохранение выполнено успешно');
+                    
+                    // Показываем уведомление (если функция доступна)
+                    if (typeof window.showToast === 'function') {
+                        window.showToast({
+                            type: 'success',
+                            message: `Данные сохранены в ${new Date().toLocaleTimeString()}`,
+                            duration: 2000
+                        });
+                    }
+                } else {
+                    Logger.warn('⚠️ Автосохранение выполнено с ошибками');
+                }
+            } catch (error) {
+                Logger.error('❌ Ошибка автосохранения:', error);
+            }
         }
     }, YANDEX_DISK_CONFIG.AUTO_SAVE_INTERVAL);
 
-    Logger.info(`Автосохранение запущено (интервал: ${YANDEX_DISK_CONFIG.AUTO_SAVE_INTERVAL / 1000} сек)`);
+    Logger.success(`⏰ Автосохранение запущено (интервал: ${YANDEX_DISK_CONFIG.AUTO_SAVE_INTERVAL / 1000} сек)`);
 }
 
 /**
@@ -1091,9 +1113,186 @@ async function initYandexDiskIntegration() {
 }
 
 // ============================================
+// CRUD ОПЕРАЦИИ (CREATE, READ, UPDATE, DELETE)
+// ============================================
+
+/**
+ * Получить все данные из файла
+ * @param {string} dataType - тип данных (members, payments, etc.)
+ * @returns {Promise<Array>}
+ */
+async function getData(dataType) {
+    try {
+        const fileName = `coop_${dataType}.json`;
+        const data = await loadFileFromYandex(fileName, 'Data');
+        return data || [];
+    } catch (error) {
+        Logger.error(`Ошибка получения ${dataType}`, error);
+        return [];
+    }
+}
+
+/**
+ * Сохранить все данные в файл
+ * @param {string} dataType - тип данных
+ * @param {Array} data - данные для сохранения
+ * @returns {Promise<boolean>}
+ */
+async function saveData(dataType, data) {
+    try {
+        const fileName = `coop_${dataType}.json`;
+        const result = await saveFileToYandex(fileName, data, 'Data');
+        
+        if (result) {
+            Logger.success(`${dataType} сохранены`);
+            
+            // Обновляем localStorage
+            localStorage.setItem(`coop_${dataType}`, JSON.stringify(data));
+        }
+        
+        return result;
+    } catch (error) {
+        Logger.error(`Ошибка сохранения ${dataType}`, error);
+        return false;
+    }
+}
+
+/**
+ * Добавить запись
+ * @param {string} dataType - тип данных
+ * @param {Object} item - запись для добавления
+ * @returns {Promise<Object|null>}
+ */
+async function createItem(dataType, item) {
+    try {
+        const data = await getData(dataType);
+        
+        // Генерируем ID
+        const maxId = data.length > 0 ? Math.max(...data.map(i => i.id)) : 0;
+        item.id = maxId + 1;
+        item.createdAt = new Date().toISOString();
+        
+        data.push(item);
+        
+        const saved = await saveData(dataType, data);
+        
+        if (saved) {
+            Logger.success(`Запись #${item.id} добавлена в ${dataType}`);
+            return item;
+        }
+        
+        return null;
+    } catch (error) {
+        Logger.error(`Ошибка создания записи в ${dataType}`, error);
+        return null;
+    }
+}
+
+/**
+ * Обновить запись
+ * @param {string} dataType - тип данных
+ * @param {number} id - ID записи
+ * @param {Object} updates - обновляемые поля
+ * @returns {Promise<Object|null>}
+ */
+async function updateItem(dataType, id, updates) {
+    try {
+        const data = await getData(dataType);
+        const index = data.findIndex(i => i.id === id);
+        
+        if (index === -1) {
+            Logger.warn(`Запись #${id} не найдена в ${dataType}`);
+            return null;
+        }
+        
+        // Обновляем запись
+        data[index] = { 
+            ...data[index], 
+            ...updates,
+            updatedAt: new Date().toISOString()
+        };
+        
+        const saved = await saveData(dataType, data);
+        
+        if (saved) {
+            Logger.success(`Запись #${id} обновлена в ${dataType}`);
+            return data[index];
+        }
+        
+        return null;
+    } catch (error) {
+        Logger.error(`Ошибка обновления записи #${id} в ${dataType}`, error);
+        return null;
+    }
+}
+
+/**
+ * Удалить запись
+ * @param {string} dataType - тип данных
+ * @param {number} id - ID записи
+ * @returns {Promise<boolean>}
+ */
+async function deleteItem(dataType, id) {
+    try {
+        const data = await getData(dataType);
+        const filtered = data.filter(i => i.id !== id);
+        
+        if (filtered.length === data.length) {
+            Logger.warn(`Запись #${id} не найдена в ${dataType}`);
+            return false;
+        }
+        
+        const saved = await saveData(dataType, filtered);
+        
+        if (saved) {
+            Logger.success(`Запись #${id} удалена из ${dataType}`);
+            return true;
+        }
+        
+        return false;
+    } catch (error) {
+        Logger.error(`Ошибка удаления записи #${id} из ${dataType}`, error);
+        return false;
+    }
+}
+
+/**
+ * Найти запись по ID
+ * @param {string} dataType - тип данных
+ * @param {number} id - ID записи
+ * @returns {Promise<Object|null>}
+ */
+async function findItemById(dataType, id) {
+    try {
+        const data = await getData(dataType);
+        return data.find(i => i.id === id) || null;
+    } catch (error) {
+        Logger.error(`Ошибка поиска записи #${id} в ${dataType}`, error);
+        return null;
+    }
+}
+
+/**
+ * Найти записи по фильтру
+ * @param {string} dataType - тип данных
+ * @param {Function} filterFn - функция фильтрации
+ * @returns {Promise<Array>}
+ */
+async function findItems(dataType, filterFn) {
+    try {
+        const data = await getData(dataType);
+        return data.filter(filterFn);
+    } catch (error) {
+        Logger.error(`Ошибка поиска в ${dataType}`, error);
+        return [];
+    }
+}
+
+// ============================================
 // ЭКСПОРТ ФУНКЦИЙ
 // ============================================
 
+// Основные функции
 window.connectYandexDisk = connectYandexDisk;
 window.useLocalStorage = useLocalStorage;
 window.logoutYandexDisk = logoutYandexDisk;
@@ -1101,11 +1300,28 @@ window.saveAllDataToYandex = saveAllDataToYandex;
 window.loadAllDataFromYandex = loadAllDataFromYandex;
 window.handleYandexToken = handleYandexToken;
 window.initYandexDiskIntegration = initYandexDiskIntegration;
+
+// Синхронизация
 window.forceSyncYandex = forceSyncYandex;
 window.startAutoSaveYandex = startAutoSaveYandex;
 window.stopAutoSaveYandex = stopAutoSaveYandex;
 window.createBackupYandex = createBackupYandex;
 window.syncFileToYandex = syncFileToYandex;
+
+// CRUD операции
+window.getData = getData;
+window.saveData = saveData;
+window.createItem = createItem;
+window.updateItem = updateItem;
+window.deleteItem = deleteItem;
+window.findItemById = findItemById;
+window.findItems = findItems;
+
+// Утилиты
+window.getYandexSyncStatus = getYandexSyncStatus;
+window.updateYandexStatusUI = updateYandexStatusUI;
+window.validateTelegramInitData = validateTelegramInitData;
+window.getTelegramUserInfo = getTelegramUserInfo;
 window.getYandexSyncStatus = getYandexSyncStatus;
 window.updateYandexStatusUI = updateYandexStatusUI;
 window.validateTelegramInitData = validateTelegramInitData;
