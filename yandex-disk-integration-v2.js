@@ -7,15 +7,14 @@
 // Дата: 18 февраля 2026
 
 // ============================================
-// LOGGER
+// LOGGER - Создаём ВСЕГДА с полным наборком методов
 // ============================================
-if (typeof Logger === 'undefined') {
-    window.Logger = {
+
+// Создаём новый Logger или дополняем существующий
+(function() {
+    const fullLogger = {
         info: function(msg, data) {
             console.log('[Yandex] ' + msg, data || '');
-            if (window.TelegramMiniApp) {
-                console.log('[TG Theme]', window.TelegramMiniApp.getColorScheme());
-            }
         },
         error: function(msg, error) {
             console.error('[Yandex] ' + msg, error || '');
@@ -25,32 +24,32 @@ if (typeof Logger === 'undefined') {
         },
         success: function(msg) {
             console.log('%c[Yandex] ' + msg, 'color: #4caf50; font-weight: bold;');
+        },
+        debug: function(msg, data) {
+            if (window.YANDEX_DEBUG) {
+                console.log('[Yandex Debug] ' + msg, data || '');
+            }
         }
     };
-} else {
-    // Logger уже определён (например, в messenger-app-v2.js)
-    // Добавляем только недостающие методы
-    if (!Logger.success) {
-        Logger.success = function(msg) {
-            console.log('%c[Yandex] ' + msg, 'color: #4caf50; font-weight: bold;');
-        };
+    
+    // Если Logger не существует - создаём
+    if (typeof window.Logger === 'undefined') {
+        window.Logger = fullLogger;
+    } else {
+        // Если существует - добавляем недостающие методы
+        Object.keys(fullLogger).forEach(key => {
+            if (!window.Logger[key]) {
+                window.Logger[key] = fullLogger[key];
+            }
+        });
     }
-    if (!Logger.info) {
-        Logger.info = function(msg, data) {
-            console.log('[Yandex] ' + msg, data || '');
-        };
-    }
-    if (!Logger.error) {
-        Logger.error = function(msg, error) {
-            console.error('[Yandex] ' + msg, error || '');
-        };
-    }
-    if (!Logger.warn) {
-        Logger.warn = function(msg, data) {
-            console.warn('[Yandex] ' + msg, data || '');
-        };
-    }
-}
+    
+    // Создаём локальную ссылку для использования внутри модуля
+    window.YandexLogger = window.Logger;
+})();
+
+// Теперь используем YandexLogger вместо Logger
+const Logger = window.YandexLogger;
 
 // ============================================
 // КОНФИГУРАЦИЯ
