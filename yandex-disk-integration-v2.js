@@ -568,7 +568,7 @@ async function createBackupYandex() {
     try {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const backupFileName = `backup_${timestamp}.json`;
-        
+
         // Собираем все данные
         const allData = {
             timestamp: timestamp,
@@ -581,15 +581,23 @@ async function createBackupYandex() {
             certificates: JSON.parse(localStorage.getItem('certificates') || '[]'),
             settings: JSON.parse(localStorage.getItem('coopSettings') || '{}')
         };
-        
+
         // Сохраняем в Backup
-        await saveFileToYandex(backupFileName, allData, 'Backup');
+        const saved = await saveFileToYandex(backupFileName, allData, 'Backup');
         
-        // Удаляем старые резервные копии
-        await cleanupOldBackups();
-        
-        Logger.success(`Резервная копия создана: ${backupFileName}`);
-        
+        if (!saved) {
+            Logger.warn('⚠️ Резервная копия не сохранена (возможно файл уже существует)');
+        }
+
+        // Удаляем старые резервные копии (игнорируем ошибки)
+        try {
+            await cleanupOldBackups();
+        } catch (cleanupError) {
+            Logger.warn('Очистка старых копий:', cleanupError);
+        }
+
+        Logger.success(`✅ Резервная копия создана: ${backupFileName}`);
+
         if (typeof window.showToast === 'function') {
             window.showToast({
                 type: 'success',
@@ -597,16 +605,16 @@ async function createBackupYandex() {
                 duration: 2000
             });
         }
-        
+
         // Тактильный отклик
         if (window.TelegramMiniApp) {
             window.TelegramMiniApp.hapticFeedback('success');
         }
-        
+
         return true;
-        
+
     } catch (error) {
-        Logger.error('Ошибка создания резервной копии', error);
+        Logger.error('❌ Ошибка создания резервной копии', error);
         return false;
     }
 }
