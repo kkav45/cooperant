@@ -2128,7 +2128,7 @@
                     PanelManager.close('sidebarMenu');
                 });
             }
-            
+
             // Бургер меню
             const burgerBtn = document.getElementById('burgerBtn');
             if (burgerBtn) {
@@ -2136,6 +2136,71 @@
                     PanelManager.open('sidebarMenu');
                 });
             }
+            
+            // ============================================
+            // ФУНКЦИИ ОБРАБОТКИ МЕНЮ
+            // ============================================
+            
+            // Открытие отчёта по имени
+            function openReportByName(reportName) {
+                Logger.info('📊 Открытие отчёта:', reportName);
+                
+                if (typeof window.showToast === 'function') {
+                    window.showToast({
+                        type: 'info',
+                        message: 'Отчёт "' + reportName + '" в разработке',
+                        duration: 3000
+                    });
+                }
+            }
+            
+            // Обработка действий меню
+            function handleMenuAction(actionName) {
+                Logger.info('⚙️ Действие меню:', actionName);
+                
+                if (typeof window.showToast === 'function') {
+                    window.showToast({
+                        type: 'info',
+                        message: 'Действие "' + actionName + '" в разработке',
+                        duration: 3000
+                    });
+                }
+            }
+            
+            // ============================================
+            // ОБРАБОТЧИКИ КНОПОК МЕНЮ
+            // ============================================
+            const menuItems = document.querySelectorAll('.menu-item[data-panel], .menu-item[data-report], .menu-item[data-action]');
+            
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const panel = this.dataset.panel;
+                    const report = this.dataset.report;
+                    const action = this.dataset.action;
+                    
+                    // Тактильный отклик
+                    if (tg.HapticFeedback) {
+                        tg.HapticFeedback.impactOccurred('light');
+                    }
+                    
+                    if (panel) {
+                        // Открытие панели
+                        PanelManager.open(panel);
+                        Logger.info('Открыта панель:', panel);
+                    } else if (report) {
+                        // Открытие отчёта
+                        openReportByName(report);
+                    } else if (action) {
+                        // Выполнение действия
+                        handleMenuAction(action);
+                    }
+                    
+                    // Закрыть меню
+                    PanelManager.close('sidebarMenu');
+                });
+            });
+            
+            Logger.info('Обработчики кнопок меню настроены:', menuItems.length, 'кнопок');
         });
         
         console.log('🚀 Telegram Mini App запущен');
