@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестирование PDF с кириллицей</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <h1>Тестирование PDF с кириллическим текстом</h1>
+    <button onclick="testPDF()">Создать тестовый PDF</button>
+    <button onclick="testExportFunction()">Тестировать функцию экспорта</button>
+
+    <script>
+        // Глобальные переменные для тестирования
+        window.certificates = [
+            {
+                id: 1,
+                memberId: 1,
+                certificateNumber: '001',
+                issueDate: '2023-01-15',
+                status: 'active'
+            }
+        ];
+        
+        window.members = [
+            {
+                id: 1,
+                name: 'Иванов Иван Иванович',
+                birthDate: '1980-05-20',
+                residenceAddress: 'г. Москва, ул. Тестовая, д. 1',
+                phone: '+7 (123) 456-78-90',
+                joinDate: '2023-01-10',
+                status: 'active'
+            }
+        ];
+        
+        window.meetings = [
+            {
+                id: 1,
+                type: 'general',
+                date: '2023-02-01',
+                topic: 'Общее собрание членов кооператива',
+                status: 'completed',
+                attendees: [
+                    {name: 'Иванов И.И.', position: 'Председатель'},
+                    {name: 'Петров П.П.', position: 'Член правления'}
+                ],
+                decisions: [
+                    {title: 'Утверждение бюджета', content: 'Утвердить бюджет на 2023 год', deadline: '2023-02-15'}
+                ]
+            }
+        ];
+        
+        window.applications = [
+            {
+                id: 1,
+                applicantName: 'Сидоров Петр Александрович',
+                applicantContact: '+7 (987) 654-32-10',
+                birthDate: '1990-03-15',
+                passport: '1234 567890',
+                registrationAddress: 'г. Санкт-Петербург, пр. Невский, д. 10',
+                residenceAddress: 'г. Санкт-Петербург, ул. Ленина, д. 5',
+                occupation: 'Инженер',
+                income: '50000 руб.',
+                desiredShareAmount: 10000,
+                paymentMethod: 'cash',
+                propertyDescription: 'Автомобиль ВАЗ-2114',
+                additionalInfo: 'Дополнительная информация',
+                submissionDate: '2023-01-20',
+                status: 'pending'
+            }
+        ];
+
+        // Функция для получения текста типа собрания
+        function getMeetingTypeText(type) {
+            const types = {
+                'general': 'Общее собрание',
+                'board': 'Собрание правления',
+                'emergency': 'Чрезвычайное собрание'
+            };
+            return types[type] || type;
+        }
+
+        // Функция для получения текста статуса собрания
+        function getMeetingStatusText(status) {
+            const statuses = {
+                'planned': 'Запланировано',
+                'in_progress': 'В процессе',
+                'completed': 'Завершено',
+                'cancelled': 'Отмено'
+            };
+            return statuses[status] || status;
+        }
+
+        // Функция для получения текста статуса участника
+        function getStatusText(status) {
+            const statuses = {
+                'active': 'Активный',
+                'inactive': 'Неактивный',
+                'pending': 'Ожидает подтверждения'
+            };
+            return statuses[status] || status;
+        }
+
+        // Функция для получения текста способа оплаты
+        function getApplicationPaymentMethodText(method) {
+            const methods = {
+                'cash': 'Наличными',
+                'bank_transfer': 'Банковским переводом',
+                'online': 'Онлайн'
+            };
+            return methods[method] || method;
+        }
+
+        // Функция для получения текста статуса заявления
+        function getApplicationStatusText(status) {
+            const statuses = {
+                'pending': 'На рассмотрении',
+                'approved': 'Одобрено',
+                'rejected': 'Отклонено',
+                'processed': 'Обработано'
+            };
+            return statuses[status] || status;
+        }
+
+        async function testPDF() {
+            // Создаем тестовый PDF с кириллическим текстом
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Загружаем шрифт с поддержкой кириллицы
+            // Загружаем файл шрифта
+            const fontResponse = await fetch('./fonts/roboto-cyrillic-normal.js');
+            const fontScript = await fontResponse.text();
+            eval(fontScript);
+
+            // Добавляем шрифт к документу
+            doc.addFont('./fonts/roboto-cyrillic-normal.js', 'Roboto', 'normal');
+            doc.setFont('Roboto');
+            
+            doc.setFontSize(16);
+            
+            // Добавляем тестовый текст на русском языке
+            doc.text('Тестовый PDF с кириллическим текстом', 105, 20, null, null, 'center');
+            doc.setFontSize(12);
+            doc.text('Это тестовая страница для проверки отображения русского текста в PDF', 20, 40);
+            
+            doc.text('ФИО: Иванов Иван Иванович', 20, 60);
+            doc.text('Адрес: г. Москва, ул. Тестовая, д. 1', 20, 70);
+            doc.text('Дата рождения: 20.05.1980', 20, 80);
+            
+            // Сохраняем PDF
+            doc.save('test_kirillica.pdf');
+            
+            alert('Тестовый PDF создан успешно!');
+        }
+
+        async function testExportFunction() {
+            // Загружаем наш файл с функциями экспорта
+            const script = document.createElement('script');
+            script.src = './pdf_export.js';
+            document.head.appendChild(script);
+
+            // Ждем немного времени для загрузки скрипта
+            setTimeout(() => {
+                if (typeof exportCertificateAsPDF === 'function') {
+                    // Вызываем функцию экспорта удостоверения
+                    exportCertificateAsPDF(1);
+                    alert('Функция экспорта удостоверения вызвана успешно!');
+                } else {
+                    alert('Функция экспорта не найдена');
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

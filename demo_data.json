@@ -1,0 +1,270 @@
+{
+  "members": [
+    {
+      "id": "demo_member_1",
+      "name": "Иванов Иван Иванович",
+      "status": "active",
+      "joinDate": "2023-01-15",
+      "contact": "+7 (123) 456-78-90",
+      "address": "г. Москва, ул. Примерная, д. 1",
+      "notes": "Активный участник кооператива",
+      "createdAt": "2023-01-15T10:00:00.000Z"
+    },
+    {
+      "id": "demo_member_2",
+      "name": "Петрова Мария Сергеевна",
+      "status": "active",
+      "joinDate": "2023-02-20",
+      "contact": "+7 (987) 654-32-10",
+      "address": "г. Санкт-Петербург, пр. Образцовый, д. 5",
+      "notes": "Предприниматель, внес двойной паевой взнос",
+      "createdAt": "2023-02-20T11:30:00.000Z"
+    },
+    {
+      "id": "demo_member_3",
+      "name": "Сидоров Алексей Петрович",
+      "status": "suspended",
+      "joinDate": "2023-03-10",
+      "contact": "+7 (555) 123-45-67",
+      "address": "г. Новосибирск, ул. Тестовая, д. 10",
+      "notes": "Имеет задолженность по членским взносам",
+      "createdAt": "2023-03-10T09:15:00.000Z"
+    }
+  ],
+  "payments": [
+    {
+      "id": "demo_payment_1",
+      "memberId": "demo_member_1",
+      "type": "entrance",
+      "amount": 5000,
+      "date": "2023-01-15",
+      "description": "Вступительный взнос",
+      "paid": true,
+      "createdAt": "2023-01-15T10:00:00.000Z"
+    },
+    {
+      "id": "demo_payment_2",
+      "memberId": "demo_member_1",
+      "type": "share",
+      "amount": 10000,
+      "date": "2023-01-15",
+      "description": "Обязательный паевой взнос",
+      "paid": true,
+      "createdAt": "2023-01-15T10:05:00.000Z"
+    },
+    {
+      "id": "demo_payment_3",
+      "memberId": "demo_member_2",
+      "type": "entrance",
+      "amount": 5000,
+      "date": "2023-02-20",
+      "description": "Вступительный взнос",
+      "paid": true,
+      "createdAt": "2023-02-20T11:30:00.000Z"
+    },
+    {
+      "id": "demo_payment_4",
+      "memberId": "demo_member_2",
+      "type": "share",
+      "amount": 20000,
+      "date": "2023-02-20",
+      "description": "Двойной паевой взнос",
+      "paid": true,
+      "createdAt": "2023-02-20T11:35:00.000Z"
+    },
+    {
+      "id": "demo_payment_5",
+      "memberId": "demo_member_3",
+      "type": "entrance",
+      "amount": 5000,
+      "date": "2023-03-10",
+      "description": "Вступительный взнос",
+      "paid": true,
+      "createdAt": "2023-03-10T09:15:00.000Z"
+    },
+    {
+      "id": "demo_payment_6",
+      "memberId": "demo_member_3",
+      "type": "membership",
+      "amount": 1000,
+      "date": "2023-03-10",
+      "description": "Членский взнос за март",
+      "paid": false,
+      "createdAt": "2023-03-10T09:20:00.000Z"
+    },
+    {
+      "id": "demo_payment_7",
+      "memberId": "demo_member_3",
+      "type": "membership",
+      "amount": 1000,
+      "date": "2023-04-01",
+      "description": "Членский взнос за апрель",
+      "paid": false,
+      "createdAt": "2023-04-01T10:00:00.000Z"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "demo_transaction_1",
+      "date": "2023-01-15",
+      "amount": 15000,
+      "debitAccount": "51",
+      "creditAccount": "86-1",
+      "description": "Паевой взнос от Иванова И.И. (Паевой фонд)",
+      "fundType": "паевой",
+      "createdAt": "2023-01-15T10:10:00.000Z"
+    },
+    {
+      "id": "demo_transaction_2",
+      "date": "2023-02-20",
+      "amount": 25000,
+      "debitAccount": "51",
+      "creditAccount": "86-1",
+      "description": "Паевой взнос от Петровой М.С. (Паевой фонд)",
+      "fundType": "паевой",
+      "createdAt": "2023-02-20T11:40:00.000Z"
+    },
+    {
+      "id": "demo_transaction_3",
+      "date": "2023-03-10",
+      "amount": 5000,
+      "debitAccount": "51",
+      "creditAccount": "86-2",
+      "description": "Вступительный взнос от Сидорова А.А. (Неделимый фонд)",
+      "fundType": "неделимый",
+      "createdAt": "2023-03-10T09:00:00.000Z"
+    },
+    {
+      "id": "demo_transaction_4",
+      "date": "2023-03-15",
+      "amount": 10000,
+      "debitAccount": "51",
+      "creditAccount": "76-5",
+      "description": "Членский взнос от Ивановой К.К. (ожидает распределения)",
+      "fundType": "членский_взнос",
+      "createdAt": "2023-03-15T14:30:00.000Z"
+    },
+    {
+      "id": "demo_transaction_5",
+      "date": "2023-03-20",
+      "amount": 120000,
+      "debitAccount": "08",
+      "creditAccount": "60",
+      "description": "Приобретение основных средств",
+      "createdAt": "2023-03-20T14:30:00.000Z"
+    }
+  ],
+  "documents": [
+    {
+      "id": "demo_document_1",
+      "name": "Устав кооператива",
+      "type": "contract",
+      "description": "Устав потребительского кооператива",
+      "date": "2023-01-01",
+      "size": 156789,
+      "fileName": "ustav.pdf",
+      "mimeType": "application/pdf",
+      "content": null
+    },
+    {
+      "id": "demo_document_2",
+      "name": "Протокол общего собрания",
+      "type": "report",
+      "description": "Протокол внеочередного общего собрания членов кооператива",
+      "date": "2023-02-15",
+      "size": 87654,
+      "fileName": "protocol.docx",
+      "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "content": null
+    }
+  ],
+  "applications": [
+    {
+      "id": "demo_app_1",
+      "applicantName": "Козлов Дмитрий Владимирович",
+      "applicantContact": "+7 (999) 111-22-33",
+      "birthDate": "1985-05-15",
+      "passport": "4500 123456, выдан ОВД района Арбат 10.05.2000",
+      "registrationAddress": "г. Москва, ул. Арбат, д. 10, кв. 5",
+      "residenceAddress": "г. Москва, ул. Арбат, д. 10, кв. 5",
+      "occupation": "Предприниматель",
+      "income": "500000 ₽/месяц",
+      "desiredShareAmount": 50000,
+      "paymentMethod": "non_cash",
+      "propertyDescription": "",
+      "cooperativePlot": "Северный",
+      "additionalInfo": "Планирую участвовать в совместных проектах",
+      "submissionDate": "2023-04-01",
+      "status": "pending",
+      "createdAt": "2023-04-01T10:00:00.000Z"
+    },
+    {
+      "id": "demo_app_2",
+      "applicantName": "Новикова Елена Александровна",
+      "applicantContact": "+7 (999) 222-33-44",
+      "birthDate": "1990-08-20",
+      "passport": "4500 654321, выдан ОВД района Хамовники 15.08.2010",
+      "registrationAddress": "г. Москва, ул. Остоженка, д. 20, кв. 15",
+      "residenceAddress": "г. Москва, ул. Остоженка, д. 20, кв. 15",
+      "occupation": "Юрист",
+      "income": "300000 ₽/месяц",
+      "desiredShareAmount": 30000,
+      "paymentMethod": "cash",
+      "propertyDescription": "",
+      "cooperativePlot": "Южный",
+      "additionalInfo": "Хочу развивать кооперативное движение",
+      "submissionDate": "2023-03-25",
+      "status": "approved",
+      "createdAt": "2023-03-25T14:00:00.000Z"
+    }
+  ],
+  "meetings": [
+    {
+      "id": "demo_meeting_1",
+      "date": "2023-02-15",
+      "type": "Общее собрание",
+      "topic": "Утверждение устава и избрание органов управления",
+      "status": "completed",
+      "location": "г. Москва, ул. Примерная, д. 1, офис 101",
+      "startTime": "10:00",
+      "endTime": "12:00",
+      "attendees": ["demo_member_1", "demo_member_2"],
+      "protocol": "Протокол №1 от 15.02.2023",
+      "createdAt": "2023-02-01T09:00:00.000Z"
+    },
+    {
+      "id": "demo_meeting_2",
+      "date": "2023-04-20",
+      "type": "Заседание правления",
+      "topic": "Рассмотрение заявлений на вступление",
+      "status": "pending",
+      "location": "г. Москва, ул. Примерная, д. 1, офис 102",
+      "startTime": "14:00",
+      "endTime": "16:00",
+      "attendees": [],
+      "protocol": "",
+      "createdAt": "2023-04-01T10:00:00.000Z"
+    }
+  ],
+  "certificates": [
+    {
+      "id": "demo_cert_1",
+      "memberId": "demo_member_1",
+      "memberName": "Иванов Иван Иванович",
+      "certificateNumber": "001",
+      "issueDate": "2023-01-15",
+      "shareAmount": 10000,
+      "status": "active"
+    },
+    {
+      "id": "demo_cert_2",
+      "memberId": "demo_member_2",
+      "memberName": "Петрова Мария Сергеевна",
+      "certificateNumber": "002",
+      "issueDate": "2023-02-20",
+      "shareAmount": 20000,
+      "status": "active"
+    }
+  ],
+  "lastUpdated": "2023-04-01T12:00:00.000Z"
+}

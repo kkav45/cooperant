@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кооперативный Мессенджер</title>
+    
+    <!-- Telegram Web Apps SDK (опционально) -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Яндекс.Диск интеграция -->
+    <script src="yandex-disk-integration-v2.js?v=20260218"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            display: flex;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Левая боковая панель */
+        .sidebar-left {
+            width: 30%;
+            max-width: 350px;
+            min-width: 280px;
+            background-color: #ffffff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 10;
+            min-height: 0; /* Позволяет элементу сжиматься */
+        }
+
+        .sidebar-left.hidden {
+            transform: translateX(-100%);
+        }
+
+        .app-header {
+            padding: 15px;
+            background-color: #0088cc;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .app-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .search-container {
+            padding: 10px;
+            background-color: #f0f2f5;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #e0e0e0;
+            outline: none;
+        }
+
+        /* Яндекс.Диск кнопка */
+        .yandex-disk-section {
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #fc0 0%, #f9a800 100%);
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .yandex-disk-status {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 10px;
+        }
+
+        .yandex-disk-status:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(252, 0, 0, 0.15);
+        }
+
+        .yandex-disk-status:active {
+            transform: translateY(0);
+        }
+
+        .yandex-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .yandex-text {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .yandex-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            flex-shrink: 0;
+        }
+
+        .yandex-indicator.disconnected {
+            background: #f44336;
+        }
+
+        .yandex-indicator.syncing {
+            background: #ff9800;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+
+        .chats-list {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0; /* Позволяет элементу сжиматься */
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f2f5;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .chat-item:hover {
+            background-color: #f5f7fa;
+        }
+
+        .chat-item.active {
+            background-color: #e9ecef;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #0088cc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .chat-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .chat-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .last-message {
+            font-size: 14px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-time {
+            font-size: 12px;
+            color: #999;
+            align-self: flex-start;
+            margin-top: 5px;
+        }
+
+        /* Центральная область */
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f0f2f5;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNlNWU1ZTUiIGZpbGwtb3BhY2l0eT0iLjIiPjxwYXRoIGQ9Ik0zMCA1QzE2LjE5MyA1IDUgMTYuMTkzIDUgMzBzMTEuMTkzIDI1IDI1IDI1IDI1LTExLjE5MyAyNS0yNS0xMS4xOTMtMjUtMjUtMjV6bTAgNDZjLTExLjA0NiAwLTIwLTguOTU0LTIwLTIwczguOTU0LTIwIDIwLTIwIDIwIDguOTU0IDIwIDIwLTguOTU0IDIwLTIwIDIweiIvPjwvZz48L2c+PC9zdmc+');
+            min-height: 0; /* Позволяет элементу сжиматься */
+        }
+
+        .chat-header {
+            padding: 15px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #0088cc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .chat-header-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* Позволяет элементу сжиматься */
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .received {
+            background-color: #ffffff;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+        }
+
+        .sent {
+            background-color: #d9fdd3;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #666;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .message-input-area {
+            padding: 15px;
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .send-button {
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            margin-left: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-button:hover {
+            background-color: #0077b3;
+        }
+
+        /* Правая боковая панель */
+        .sidebar-right {
+            width: 30%;
+            max-width: 350px;
+            min-width: 280px;
+            background-color: #ffffff;
+            border-left: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 10;
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            transform: translateX(100%);
+            min-height: 0; /* Позволяет элементу сжиматься */
+        }
+
+        .sidebar-right.visible {
+            transform: translateX(0);
+        }
+
+        .details-header {
+            padding: 15px;
+            background-color: #0088cc;
+            color: white;
+            font-weight: bold;
+        }
+
+        .details-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0; /* Позволяет элементу сжиматься */
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .detail-value {
+            padding: 8px;
+            background-color: #f5f7fa;
+            border-radius: 5px;
+        }
+
+        .edit-button {
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Адаптивный дизайн */
+        @media (max-width: 768px) {
+            .sidebar-left {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+                z-index: 20;
+            }
+
+            .sidebar-right {
+                position: absolute;
+                right: 0;
+                top: 0;
+                height: 100%;
+            }
+
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar-left, .main-chat, .sidebar-right {
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+                min-height: 0;
+            }
+
+            .sidebar-left {
+                height: 40%;
+                flex: none;
+            }
+
+            .main-chat {
+                height: 50%;
+                flex: 1;
+                min-height: 0;
+            }
+
+            .sidebar-right {
+                height: 100%;
+                transform: translateX(100%);
+            }
+
+            .sidebar-right.visible {
+                transform: translateX(0);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Левая боковая панель -->
+        <div class="sidebar-left" id="sidebarLeft">
+            <div class="app-header">
+                <div class="app-title">Кооперативный Мессенджер</div>
+                <button class="menu-btn" id="menuBtn">☰</button>
+            </div>
+
+            <!-- Кнопка Яндекс.Диска -->
+            <div class="yandex-disk-section" id="yandexDiskSection">
+                <div class="yandex-disk-status" id="yandexDiskStatus" onclick="handleYandexDiskClick()">
+                    <span class="yandex-icon">☁️</span>
+                    <span class="yandex-text" id="yandexDiskText">Яндекс Диск</span>
+                    <span class="yandex-indicator" id="yandexIndicator"></span>
+                </div>
+            </div>
+
+            <div class="search-container">
+                <input type="text" class="search-box" placeholder="Поиск пайщиков..." id="searchInput">
+            </div>
+
+            <div class="chats-list" id="chatsList">
+                <!-- Чаты будут добавлены через JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Центральная область -->
+        <div class="main-chat" id="mainChat">
+            <div class="chat-header" id="chatHeader">
+                <div class="chat-header-avatar" id="currentAvatar">АИ</div>
+                <div class="chat-header-name" id="currentName">Выберите пайщика</div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <!-- Сообщения будут добавлены через JavaScript -->
+            </div>
+            
+            <div class="message-input-area">
+                <input type="text" class="message-input" placeholder="Введите сообщение..." id="messageInput">
+                <button class="send-button" id="sendButton">➤</button>
+            </div>
+        </div>
+        
+        <!-- Правая боковая панель -->
+        <div class="sidebar-right" id="sidebarRight">
+            <div class="details-header">Детали операции</div>
+            <div class="details-content" id="detailsContent">
+                <div class="detail-item">
+                    <div class="detail-label">Тип операции:</div>
+                    <div class="detail-value" id="operationType">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Сумма:</div>
+                    <div class="detail-value" id="operationAmount">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Дата:</div>
+                    <div class="detail-value" id="operationDate">-</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Описание:</div>
+                    <div class="detail-value" id="operationDescription">-</div>
+                </div>
+                <button class="edit-button" id="editOperationBtn">Редактировать</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Изначальные примеры данных (на случай, если нет связи с родительским окном)
+        let members = [
+            {
+                id: 1,
+                name: "Иванов Алексей",
+                avatar: "ИА",
+                lastMessage: "Внес пай 5000 руб.",
+                lastTime: "10:30",
+                operations: [
+                    { id: 1, type: "Внесение пая", amount: 5000, date: "2023-05-15", description: "Ежегодный взнос" },
+                    { id: 2, type: "Выплата дивидендов", amount: 2500, date: "2023-04-20", description: "Дивиденды за квартал" }
+                ]
+            },
+            {
+                id: 2,
+                name: "Петрова Мария",
+                avatar: "ПМ",
+                lastMessage: "Запросила информацию о счете",
+                lastTime: "09:45",
+                operations: [
+                    { id: 3, type: "Запрос информации", amount: 0, date: "2023-05-14", description: "Запрос выписки по счету" },
+                    { id: 4, type: "Внесение пая", amount: 3000, date: "2023-03-10", description: "Первоначальный взнос" }
+                ]
+            },
+            {
+                id: 3,
+                name: "Сидоров Дмитрий",
+                avatar: "СД",
+                lastMessage: "Получил одобрение на займ",
+                lastTime: "Вчера",
+                operations: [
+                    { id: 5, type: "Одобренный займ", amount: 50000, date: "2023-05-13", description: "Займ на развитие бизнеса" },
+                    { id: 6, type: "Погашение займа", amount: 10000, date: "2023-04-25", description: "Часть основного долга" }
+                ]
+            },
+            {
+                id: 4,
+                name: "Козлова Елена",
+                avatar: "КЕ",
+                lastMessage: "Обновила документы",
+                lastTime: "Пт",
+                operations: [
+                    { id: 7, type: "Внесение пая", amount: 7000, date: "2023-05-12", description: "Дополнительный взнос" },
+                    { id: 8, type: "Выплата дивидендов", amount: 3500, date: "2023-04-15", description: "Дивиденды за квартал" }
+                ]
+            },
+            {
+                id: 5,
+                name: "Волков Сергей",
+                avatar: "ВС",
+                lastMessage: "Отправил заявку на выход",
+                lastTime: "Чт",
+                operations: [
+                    { id: 9, type: "Заявка на выход", amount: 0, date: "2023-05-11", description: "Заявление о выходе из кооператива" },
+                    { id: 10, type: "Возврат пая", amount: 15000, date: "2023-03-05", description: "Возврат части пая" }
+                ]
+            }
+        ];
+
+        // Текущий выбранный пайщик
+        let currentMember = null;
+        let currentMessages = [];
+
+        // Инициализация приложения
+        function init() {
+            renderChats();
+            setupEventListeners();
+        }
+
+        // Запрашиваем данные у родительского окна при загрузке
+        window.addEventListener('load', function() {
+            // Запрашиваем у родительского окна данные о пайщиках
+            setTimeout(function() {
+                parent.postMessage({type: 'REQUEST_MEMBER_DATA'}, '*');
+            }, 100); // Небольшая задержка, чтобы iframe был полностью загружен
+            
+            // Инициализируем с начальными данными
+            init();
+        });
+
+        // Обработка сообщений из родительского окна
+        window.addEventListener('message', function(event) {
+            // Проверяем источник сообщения (в реальном приложении уточните домен)
+            if (event.data && event.data.type === 'MEMBER_DATA') {
+                // Обновляем данные пайщиков из основной системы
+                members = event.data.data;
+                
+                // Перерисовываем список чатов
+                renderChats();
+                
+                // Если был выбран пайщик, обновляем его данные
+                if (currentMember) {
+                    const updatedMember = members.find(m => m.id === currentMember.id);
+                    if (updatedMember) {
+                        currentMember = updatedMember;
+                        renderMessages(updatedMember.operations);
+                    }
+                }
+            }
+        });
+
+        // DOM элементы
+        const chatsList = document.getElementById('chatsList');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const currentName = document.getElementById('currentName');
+        const currentAvatar = document.getElementById('currentAvatar');
+        const sidebarRight = document.getElementById('sidebarRight');
+        const detailsContent = document.getElementById('detailsContent');
+        const operationType = document.getElementById('operationType');
+        const operationAmount = document.getElementById('operationAmount');
+        const operationDate = document.getElementById('operationDate');
+        const operationDescription = document.getElementById('operationDescription');
+        const editOperationBtn = document.getElementById('editOperationBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebarLeft = document.getElementById('sidebarLeft');
+        const searchInput = document.getElementById('searchInput');
+
+        // Инициализация
+        function init() {
+            renderChats();
+            setupEventListeners();
+        }
+
+        // Рендер списка чатов
+        function renderChats() {
+            chatsList.innerHTML = '';
+            
+            members.forEach(member => {
+                const chatItem = document.createElement('div');
+                chatItem.className = 'chat-item';
+                chatItem.dataset.id = member.id;
+                
+                chatItem.innerHTML = `
+                    <div class="avatar">${member.avatar}</div>
+                    <div class="chat-info">
+                        <div class="chat-name">${member.name}</div>
+                        <div class="last-message">${member.lastMessage}</div>
+                    </div>
+                    <div class="chat-time">${member.lastTime}</div>
+                `;
+                
+                chatItem.addEventListener('click', () => selectMember(member));
+                chatsList.appendChild(chatItem);
+            });
+        }
+
+        // Выбор пайщика
+        function selectMember(member) {
+            currentMember = member;
+            
+            // Обновляем заголовок чата
+            currentName.textContent = member.name;
+            currentAvatar.textContent = member.avatar;
+            
+            // Убираем активный класс у всех чатов
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Добавляем активный класс текущему чату
+            document.querySelector(`.chat-item[data-id="${member.id}"]`).classList.add('active');
+            
+            // Отображаем сообщения пайщика
+            renderMessages(member.operations);
+            
+            // Скрываем правую панель
+            sidebarRight.classList.remove('visible');
+        }
+
+        // Рендер сообщений
+        function renderMessages(messages) {
+            messagesContainer.innerHTML = '';
+            currentMessages = [...messages];
+            
+            messages.forEach((msg, index) => {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message received';
+                messageElement.dataset.id = msg.id;
+                
+                // Форматируем сумму
+                const formattedAmount = msg.amount ? `${msg.amount.toLocaleString()} руб.` : '';
+                
+                messageElement.innerHTML = `
+                    <div>${msg.type}: ${formattedAmount}</div>
+                    <div class="message-time">${msg.date}</div>
+                `;
+                
+                messageElement.addEventListener('click', () => showMessageDetails(msg));
+                messagesContainer.appendChild(messageElement);
+            });
+        }
+
+        // Показать детали сообщения
+        function showMessageDetails(operation) {
+            operationType.textContent = operation.type;
+            operationAmount.textContent = operation.amount ? `${operation.amount.toLocaleString()} руб.` : '—';
+            operationDate.textContent = operation.date;
+            operationDescription.textContent = operation.description;
+            
+            sidebarRight.classList.add('visible');
+        }
+
+        // Отправить сообщение
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text || !currentMember) return;
+            
+            // Создаем новое сообщение
+            const newMessage = {
+                id: Date.now(),
+                type: "Сообщение",
+                amount: 0,
+                date: new Date().toISOString().split('T')[0],
+                description: text
+            };
+            
+            // Добавляем к операциям текущего пайщика
+            currentMember.operations.push(newMessage);
+            
+            // Добавляем в контейнер сообщений
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message sent';
+            messageElement.dataset.id = newMessage.id;
+            
+            messageElement.innerHTML = `
+                <div>${text}</div>
+                <div class="message-time">${formatTime(new Date())}</div>
+            `;
+            
+            messageElement.addEventListener('click', () => showMessageDetails(newMessage));
+            messagesContainer.appendChild(messageElement);
+            
+            // Очищаем поле ввода
+            messageInput.value = '';
+            
+            // Прокручиваем вниз
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Обновляем последнее сообщение в списке чатов
+            updateLastMessage(currentMember.id, text);
+        }
+
+        // Форматировать время
+        function formatTime(date) {
+            return date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+        }
+
+        // Обновить последнее сообщение в списке чатов
+        function updateLastMessage(memberId, message) {
+            const chatItem = document.querySelector(`.chat-item[data-id="${memberId}"]`);
+            if (chatItem) {
+                const lastMessageEl = chatItem.querySelector('.last-message');
+                lastMessageEl.textContent = message.length > 30 ? message.substring(0, 30) + '...' : message;
+                
+                const timeEl = chatItem.querySelector('.chat-time');
+                timeEl.textContent = formatTime(new Date());
+            }
+        }
+
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            sendButton.addEventListener('click', sendMessage);
+
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            editOperationBtn.addEventListener('click', () => {
+                alert('Функция редактирования операции будет реализована в следующей версии');
+            });
+
+            menuBtn.addEventListener('click', () => {
+                sidebarLeft.classList.toggle('hidden');
+            });
+
+            // Поиск
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const chatItems = document.querySelectorAll('.chat-item');
+
+                chatItems.forEach(item => {
+                    const name = item.querySelector('.chat-name').textContent.toLowerCase();
+                    const isVisible = name.includes(searchTerm);
+                    item.style.display = isVisible ? 'flex' : 'none';
+                });
+            });
+        }
+
+        // ============================================
+        // ЯНДЕКС.ДИСК ФУНКЦИИ
+        // ============================================
+
+        // Обработка клика по Яндекс.Диску
+        function handleYandexDiskClick() {
+            // Тактильный отклик для Telegram
+            if (window.TelegramMiniApp) {
+                window.TelegramMiniApp.hapticFeedback('light');
+            }
+
+            // Проверяем статус авторизации
+            const token = localStorage.getItem('yandexDiskToken');
+            const disabled = localStorage.getItem('yandexDiskDisabled') === 'true';
+
+            if (disabled || !token) {
+                // Показываем окно подключения
+                showYandexDiskModal();
+            } else {
+                // Показываем меню синхронизации
+                showYandexDiskMenu();
+            }
+        }
+
+        // Показать инструкцию по авторизации для Telegram
+        window.showYandexDiskAuthHelp = function(authUrl) {
+            const content = `
+                <div style="padding:30px;max-width:500px;margin:0 auto">
+                    <div style="font-size:64px;text-align:center;margin-bottom:20px">📱</div>
+                    <h2 style="text-align:center;margin-bottom:15px;font-size:20px;font-weight:600">Авторизация в браузере</h2>
+                    
+                    <div style="background:#f5f7fa;border-radius:12px;padding:20px;margin-bottom:20px">
+                        <p style="margin:0 0 15px;font-size:14px;line-height:1.5">
+                            <strong>Шаг 1:</strong> Авторизация откроется в вашем браузере
+                        </p>
+                        <p style="margin:0 0 15px;font-size:14px;line-height:1.5">
+                            <strong>Шаг 2:</strong> Разрешите доступ к Яндекс.Диску
+                        </p>
+                        <p style="margin:0;font-size:14px;line-height:1.5">
+                            <strong>Шаг 3:</strong> Вернитесь в Telegram после успеха
+                        </p>
+                    </div>
+                    
+                    <div style="display:flex;flex-direction:column;gap:10px">
+                        <a href="${authUrl}" target="_blank" rel="noopener noreferrer" 
+                           style="min-height:44px;padding:12px;background:#0088cc;color:#fff;text-decoration:none;border-radius:12px;text-align:center;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px">
+                            <span>🔐</span>
+                            Открыть авторизацию
+                        </a>
+                        <button onclick="closeModal()" style="min-height:44px;padding:12px;background:#f5f7fa;color:#333;border:none;border-radius:12px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                    
+                    <p style="text-align:center;font-size:12px;color:#999;margin-top:15px">
+                        После авторизации вы будете автоматически перенаправлены обратно
+                    </p>
+                </div>
+            `;
+            showModal(content);
+        };
+
+        // Показать окно подключения
+        function showYandexDiskModal() {
+            const content = `
+                <div style="padding:40px;text-align:center;max-width:500px;margin:0 auto">
+                    <div style="font-size:64px;margin-bottom:20px">☁️</div>
+                    <h2 style="margin-bottom:10px;font-size:22px;font-weight:600">Яндекс Диск</h2>
+                    <p style="color:#666;margin-bottom:30px;line-height:1.5">
+                        Для надёжного хранения данных кооператива подключитесь к Яндекс Диску.
+                        Данные будут автоматически сохраняться в папку "КООПЕРАНТ".
+                    </p>
+                    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+                        <button onclick="connectYandexDiskFromMessenger()"
+                                style="min-height:44px;padding:12px 24px;background:#fc0;color:#000;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px">
+                            <span style="font-size:20px">☁️</span>
+                            Войти через Яндекс
+                        </button>
+                        <button onclick="useLocalStorageFromMessenger()"
+                                style="min-height:44px;padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:12px;cursor:pointer;font-size:15px">
+                            Работать без Яндекс Диска
+                        </button>
+                    </div>
+                    <p style="font-size:12px;color:#999;margin-top:20px">
+                        🔒 Ваши данные защищены и используются только для работы приложения
+                    </p>
+                </div>
+            `;
+            showModal(content);
+        }
+
+        // Показать меню синхронизации
+        function showYandexDiskMenu() {
+            const status = getYandexDiskStatus();
+            const lastSync = status.lastSync ? status.lastSync.toLocaleString() : 'Никогда';
+
+            const content = `
+                <div style="padding:30px;max-width:500px;margin:0 auto">
+                    <div style="display:flex;align-items:center;gap:15px;margin-bottom:25px">
+                        <div style="font-size:48px">☁️</div>
+                        <div>
+                            <h2 style="margin:0;font-size:20px;font-weight:600">Яндекс Диск</h2>
+                            <p style="margin:5px 0 0;color:#666;font-size:14px">Синхронизация данных</p>
+                        </div>
+                    </div>
+
+                    <div style="background:#f5f7fa;border-radius:12px;padding:20px;margin-bottom:20px">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+                            <span style="font-size:14px;color:#666">Статус</span>
+                            <span style="display:flex;align-items:center;gap:8px">
+                                <span class="yandex-indicator" style="width:10px;height:10px;display:inline-block"></span>
+                                <span style="font-weight:600;color:#4caf50">Подключён</span>
+                            </span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+                            <span style="font-size:14px;color:#666">Последняя синхронизация</span>
+                            <span style="font-size:14px;font-weight:500">${lastSync}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <span style="font-size:14px;color:#666">Автосохранение</span>
+                            <span style="font-size:14px;font-weight:500;color:#4caf50">Включено (30 сек)</span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:10px">
+                        <button onclick="forceSyncFromMessenger()" style="min-height:44px;padding:12px;background:#0088cc;color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600">
+                            🔄 Синхронизировать сейчас
+                        </button>
+                        <button onclick="createBackupFromMessenger()" style="min-height:44px;padding:12px;background:#4caf50;color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600">
+                            💾 Создать резервную копию
+                        </button>
+                        <button onclick="logoutYandexFromMessenger()" style="min-height:44px;padding:12px;background:#ffebee;color:#c62828;border:none;border-radius:12px;cursor:pointer;font-size:15px">
+                            🚪 Выйти из Яндекс Диска
+                        </button>
+                        <button onclick="closeModal()" style="min-height:44px;padding:12px;background:#f5f7fa;color:#333;border:none;border-radius:12px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+            showModal(content);
+        }
+
+        // Получить статус Яндекс.Диска
+        function getYandexDiskStatus() {
+            const token = localStorage.getItem('yandexDiskToken');
+            const folderId = localStorage.getItem('yandexCooperativFolderId');
+            const disabled = localStorage.getItem('yandexDiskDisabled') === 'true';
+
+            return {
+                authorized: !!token && !!folderId,
+                disabled: disabled,
+                lastSync: null // Можно добавить отслеживание времени последней синхронизации
+            };
+        }
+
+        // Обновить индикатор статуса
+        function updateYandexDiskIndicator() {
+            const indicator = document.getElementById('yandexIndicator');
+            const text = document.getElementById('yandexDiskText');
+
+            if (!indicator || !text) return;
+
+            const status = getYandexDiskStatus();
+
+            if (status.disabled || !status.authorized) {
+                indicator.className = 'yandex-indicator disconnected';
+                text.textContent = 'Яндекс Диск (отключён)';
+            } else {
+                indicator.className = 'yandex-indicator';
+                text.textContent = 'Яндекс Диск';
+            }
+        }
+
+        // Подключение к Яндекс.Диску
+        async function connectYandexDiskFromMessenger() {
+            if (typeof window.connectYandexDisk === 'function') {
+                await window.connectYandexDisk();
+            } else {
+                alert('Функция подключения к Яндекс.Диску будет доступна после загрузки yandex-disk-integration.js');
+            }
+            closeModal();
+        }
+
+        // Работа без Яндекс.Диска
+        function useLocalStorageFromMessenger() {
+            localStorage.setItem('yandexDiskDisabled', 'true');
+            updateYandexDiskIndicator();
+            closeModal();
+
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'info',
+                    message: 'Данные сохраняются локально в браузере',
+                    duration: 3000
+                });
+            }
+        }
+
+        // Принудительная синхронизация
+        async function forceSyncFromMessenger() {
+            if (typeof window.forceSyncYandex === 'function') {
+                await window.forceSyncYandex();
+            } else {
+                alert('Функция синхронизации будет доступна после загрузки yandex-disk-integration.js');
+            }
+            closeModal();
+        }
+
+        // Создать резервную копию
+        async function createBackupFromMessenger() {
+            if (typeof window.createBackupYandex === 'function') {
+                await window.createBackupYandex();
+            } else {
+                alert('Функция резервного копирования будет доступна после загрузки yandex-disk-integration.js');
+            }
+            closeModal();
+        }
+
+        // Выход из Яндекс.Диска
+        function logoutYandexFromMessenger() {
+            if (typeof window.logoutYandexDisk === 'function') {
+                window.logoutYandexDisk();
+                updateYandexDiskIndicator();
+            }
+            closeModal();
+        }
+
+        // Показать модальное окно
+        function showModal(content) {
+            // Проверяем, есть ли уже модальное окно
+            const existingModal = document.querySelector('.yandex-modal-overlay');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            const overlay = document.createElement('div');
+            overlay.className = 'yandex-modal-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.2s ease;
+            `;
+
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                background: #fff;
+                border-radius: 16px;
+                max-width: 90%;
+                max-height: 90%;
+                overflow-y: auto;
+                animation: slideUp 0.3s ease;
+            `;
+            modal.innerHTML = content;
+
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+
+            // Закрытие по клику на overlay
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeModal();
+                }
+            });
+
+            // Сохраняем ссылку для последующего закрытия
+            window.currentModal = overlay;
+        }
+
+        // Закрыть модальное окно
+        function closeModal() {
+            if (window.currentModal) {
+                window.currentModal.style.animation = 'fadeOut 0.2s ease';
+                setTimeout(() => {
+                    window.currentModal.remove();
+                    window.currentModal = null;
+                }, 200);
+            }
+        }
+
+        // Добавляем CSS анимации для модальных окон
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            @keyframes slideUp {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Инициализация индикатора при загрузке
+        window.addEventListener('load', function() {
+            setTimeout(updateYandexDiskIndicator, 500);
+            
+            // Обработка токена из callback
+            handleYandexCallback();
+        });
+
+        // Обработка возврата токена из Яндекс
+        function handleYandexCallback() {
+            // Проверяем, есть ли токен в URL (после редиректа)
+            const urlParams = new URLSearchParams(window.location.search);
+            const hash = window.location.hash;
+            
+            let token = null;
+            
+            // Пробуем получить из hash
+            if (hash && hash.includes('access_token')) {
+                const hashParams = new URLSearchParams(hash.substring(1));
+                token = hashParams.get('access_token');
+            }
+            
+            // Пробуем получить из search
+            if (!token && urlParams.get('access_token')) {
+                token = urlParams.get('access_token');
+            }
+            
+            if (token) {
+                // Сохраняем токен
+                localStorage.setItem('yandexDiskToken', token);
+                
+                // Очищаем URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Показываем успех
+                if (typeof window.showToast === 'function') {
+                    window.showToast({
+                        type: 'success',
+                        message: '✓ Яндекс.Диск подключён!',
+                        duration: 5000
+                    });
+                }
+                
+                // Тактильный отклик
+                if (window.TelegramMiniApp) {
+                    window.TelegramMiniApp.hapticFeedback('success');
+                }
+                
+                // Запускаем инициализацию
+                setTimeout(() => {
+                    if (typeof window.initYandexDiskIntegration === 'function') {
+                        window.initYandexDiskIntegration();
+                    }
+                }, 1000);
+            }
+            
+            // Обработка сообщений от callback окна
+            window.addEventListener('message', function(event) {
+                if (event.data && event.data.type === 'YANDEX_TOKEN') {
+                    const token = event.data.token;
+                    if (token) {
+                        localStorage.setItem('yandexDiskToken', token);
+                        
+                        if (typeof window.showToast === 'function') {
+                            window.showToast({
+                                type: 'success',
+                                message: '✓ Яндекс.Диск подключён!',
+                                duration: 5000
+                            });
+                        }
+                        
+                        if (window.TelegramMiniApp) {
+                            window.TelegramMiniApp.hapticFeedback('success');
+                        }
+                        
+                        setTimeout(() => {
+                            if (typeof window.initYandexDiskIntegration === 'function') {
+                                window.initYandexDiskIntegration();
+                            }
+                        }, 1000);
+                    }
+                }
+            });
+        }
+
+        // Запуск приложения
+        // document.addEventListener('DOMContentLoaded', init); // Уже вызывается в window.load
+    </script>
+</body>
+</html>

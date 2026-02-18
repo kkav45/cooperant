@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест отображения баланса в боковом меню</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .info-box {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+        }
+        .balance-display {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            font-weight: bold;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        /* Стили для бокового меню */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100%;
+            background-color: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .side-menu.active {
+            right: 0;
+        }
+        .side-menu-header {
+            padding: 15px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .side-menu-body {
+            padding: 20px;
+        }
+        .side-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+        .side-menu-overlay.active {
+            display: block;
+        }
+        .close {
+            cursor: pointer;
+            font-size: 24px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Тест отображения баланса в боковом меню</h1>
+        
+        <div class="info-box">
+            <h3>Тестовые данные:</h3>
+            <p>Всего пайщиков: <span id="member-count">-</span></p>
+            <p>Всего платежей: <span id="payment-count">-</span></p>
+            <p>Паевые взносы: <span id="share-payments-count">-</span></p>
+            <p>Возвраты паевых взносов: <span id="return-payments-count">-</span></p>
+        </div>
+        
+        <button onclick="openReturnPaymentForm()">Открыть форму возврата взноса</button>
+    </div>
+    
+    <!-- Боковое меню -->
+    <div id="side-menu" class="side-menu">
+        <div class="side-menu-header">
+            <h3 id="side-menu-title">Детали</h3>
+            <span class="close" onclick="closeSideMenu()">&times;</span>
+        </div>
+        <div id="side-menu-body" class="side-menu-body">
+            <!-- Содержимое бокового меню будет загружаться сюда -->
+        </div>
+    </div>
+    
+    <!-- Оверлей для бокового меню -->
+    <div id="side-menu-overlay" class="side-menu-overlay" onclick="closeSideMenu()"></div>
+    
+    <script>
+        // Имитация данных из реального приложения
+        const members = [
+            {id: 'member1', name: 'Иванов Иван Иванович'},
+            {id: 'member2', name: 'Петров Петр Петрович'},
+            {id: 'member3', name: 'Сидоров Сидор Сидорович'}
+        ];
+        
+        const payments = [
+            // Паевые взносы для первого пайщика
+            {id: 'p1', memberId: 'member1', type: 'share', paid: true, amount: 15000, description: 'Первоначальный паевой взнос'},
+            {id: 'p2', memberId: 'member1', type: 'share', paid: true, amount: 5000, description: 'Дополнительный паевой взнос'},
+            {id: 'p3', memberId: 'member1', type: 'return_share', amount: 3000, description: 'Возврат части паевого взноса'},
+            
+            // Паевые взносы для второго пайщика
+            {id: 'p4', memberId: 'member2', type: 'share', paid: true, amount: 20000, description: 'Первоначальный паевой взнос'},
+            
+            // Паевые взносы для третьего пайщика
+            {id: 'p6', memberId: 'member3', type: 'share', paid: true, amount: 30000, description: 'Первоначальный паевой взнос'},
+            {id: 'p7', memberId: 'member3', type: 'share', paid: true, amount: 10000, description: 'Дополнительный паевой взнос'},
+            {id: 'p8', memberId: 'member3', type: 'return_share', amount: 5000, description: 'Возврат паевого взноса'}
+        ];
+        
+        // Функция генерации ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+        
+        // Функция открытия бокового меню
+        function showSideMenu(title, content) {
+            const sideMenu = document.getElementById('side-menu');
+            const overlay = document.getElementById('side-menu-overlay');
+            
+            document.getElementById('side-menu-title').textContent = title;
+            
+            // Установка содержимого с обработкой скриптов
+            const sideMenuBody = document.getElementById('side-menu-body');
+            sideMenuBody.innerHTML = content;
+            
+            // Выполняем скрипты, которые были вставлены в HTML
+            const scripts = sideMenuBody.getElementsByTagName('script');
+            for (let script of scripts) {
+                const newScript = document.createElement('script');
+                if (script.src) {
+                    newScript.src = script.src;
+                } else {
+                    newScript.textContent = script.textContent;
+                }
+                document.head.appendChild(newScript);
+                document.head.removeChild(newScript);
+            }
+            
+            sideMenu.classList.add('active');
+            overlay.classList.add('active');
+        }
+        
+        // Функция закрытия бокового меню
+        function closeSideMenu() {
+            const sideMenu = document.getElementById('side-menu');
+            const overlay = document.getElementById('side-menu-overlay');
+            
+            sideMenu.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+        
+        // Функция открытия формы возврата взноса
+        function openReturnPaymentForm() {
+            // Создаем HTML-форму для возврата паевого взноса (стандартный случай)
+            let content = `
+                <h3>Возврат паевого взноса</h3>
+                <form id="return-payment-form">
+                    <div class="form-group">
+                        <label for="return-payment-member">Пайщик *</label>
+                        <select id="return-payment-member" required>
+                            <option value="">Выберите пайщика</option>
+                            ${members.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="return-payment-type">Тип взноса *</label>
+                        <select id="return-payment-type" required>
+                            <option value="share">Паевой взнос</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="return-payment-method">Форма возврата *</label>
+                            <select id="return-payment-method" required>
+                                <option value="cash">Наличные</option>
+                                <option value="non_cash">Безналичные</option>
+                                <option value="property">Имущество</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="return-amount-field" style="display:block;">
+                            <label for="return-payment-amount">Сумма *</label>
+                            <input type="number" id="return-payment-amount" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Доступный баланс</label>
+                            <input type="text" id="member-balance-display" class="balance-display" value="0 ₽" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Общий баланс паевых взносов</label>
+                            <input type="text" id="total-share-balance" class="balance-display" value="0 ₽" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Уже возвращено</label>
+                        <input type="text" id="total-returned-amount" class="balance-display" value="0 ₽" readonly>
+                    </div>
+                    <div class="form-group" id="return-property-details" style="display:none;">
+                        <label for="return-payment-property-desc">Описание имущества *</label>
+                        <textarea id="return-payment-property-desc" rows="2" placeholder="Опишите имущество, возвращаемое пайщику"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="return-payment-date">Дата *</label>
+                            <input type="date" id="return-payment-date" value="${new Date().toISOString().split('T')[0]}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="return-payment-document">Номер документа *</label>
+                            <input type="text" id="return-payment-document" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="return-payment-description">Описание</label>
+                        <textarea id="return-payment-description" rows="2">Возврат паевого взноса</textarea>
+                    </div>
+                    <div style="margin-top: 1rem; display: flex; gap: 10px;">
+                        <button type="button" class="action-button save">Сохранить</button>
+                        <button type="button" class="action-button cancel" onclick="closeSideMenu()">Отмена</button>
+                    </div>
+                </form>
+                <script>
+                    // Добавляем обработчик события изменения выбора пайщика
+                    // Код выполняется после вставки HTML в DOM
+                    (function() {
+                        // Ждем немного, чтобы элементы были доступны в DOM
+                        setTimeout(function() {
+                            const memberSelect = document.getElementById('return-payment-member');
+                            if (memberSelect) {
+                                // Устанавливаем обработчик события
+                                memberSelect.onchange = function() {
+                                    // Проверяем наличие необходимых данных
+                                    if (typeof payments === 'undefined' || !Array.isArray(payments)) {
+                                        console.error('Переменная payments не определена или не является массивом');
+                                        document.getElementById('member-balance-display').value = 'Ошибка: данные не загружены';
+                                        if (document.getElementById('total-share-balance')) {
+                                            document.getElementById('total-share-balance').value = 'Ошибка: данные не загружены';
+                                        }
+                                        if (document.getElementById('total-returned-amount')) {
+                                            document.getElementById('total-returned-amount').value = 'Ошибка: данные не загружены';
+                                        }
+                                        return;
+                                    }
+                                    
+                                    const memberId = this.value;
+                                    if (!memberId) {
+                                        document.getElementById('member-balance-display').value = '0 ₽';
+                                        // Обнуляем также поля информации о балансе
+                                        if (document.getElementById('total-share-balance')) {
+                                            document.getElementById('total-share-balance').value = '0 ₽';
+                                        }
+                                        if (document.getElementById('total-returned-amount')) {
+                                            document.getElementById('total-returned-amount').value = '0 ₽';
+                                        }
+                                        return;
+                                    }
+
+                                    // Рассчитываем общий баланс паевых взносов пайщика
+                                    const allSharePayments = payments.filter(p =>
+                                        p.memberId === memberId &&
+                                        p.type === 'share' &&
+                                        p.paid === true
+                                    );
+                                    const totalShareBalance = allSharePayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+                                    // Рассчитываем сумму уже возвращенных паевых взносов
+                                    const returnPayments = payments.filter(p =>
+                                        p.memberId === memberId &&
+                                        p.type === 'return_share'
+                                    );
+                                    const totalReturnedAmount = returnPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+                                    // Доступный баланс для возврата
+                                    const availableBalance = Math.max(0, totalShareBalance - totalReturnedAmount);
+
+                                    document.getElementById('member-balance-display').value = availableBalance.toLocaleString() + ' ₽';
+
+                                    // Обновляем также поля информации о балансе, если они существуют
+                                    if (document.getElementById('total-share-balance')) {
+                                        document.getElementById('total-share-balance').value = totalShareBalance.toLocaleString() + ' ₽';
+                                    }
+                                    if (document.getElementById('total-returned-amount')) {
+                                        document.getElementById('total-returned-amount').value = totalReturnedAmount.toLocaleString() + ' ₽';
+                                    }
+                                };
+                                
+                                // Вызываем обработчик для начального состояния, если уже выбран пайщик
+                                if (memberSelect.value) {
+                                    memberSelect.onchange();
+                                }
+                            }
+                        }, 10); // Небольшая задержка для гарантии доступности элементов
+                    })();
+                <\/script>
+            `;
+
+            showSideMenu('Возврат паевого взноса', content);
+        }
+        
+        // Обновляем информацию о данных
+        function updateDataInfo() {
+            document.getElementById('member-count').textContent = members.length;
+            document.getElementById('payment-count').textContent = payments.length;
+            document.getElementById('share-payments-count').textContent = payments.filter(p => p.type === 'share' && p.paid === true).length;
+            document.getElementById('return-payments-count').textContent = payments.filter(p => p.type === 'return_share').length;
+        }
+        
+        // Инициализация
+        window.onload = function() {
+            updateDataInfo();
+            console.log('Тестовая страница загружена');
+            console.log('Пайщики:', members);
+            console.log('Платежи:', payments);
+        };
+    </script>
+</body>
+</html>

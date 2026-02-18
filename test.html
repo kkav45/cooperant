@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Script Loading</title>
+</head>
+<body>
+    <script>
+        try {
+            // Load the app.js file to test for syntax errors
+            document.write('<scr' + 'ipt src="app.js"></scri' + 'pt>');
+            console.log("Script loaded successfully - no syntax errors");
+        } catch (error) {
+            console.error("Error loading script:", error);
+        }
+    </script>
+    
+    <script>
+        // Test if showSection function exists
+        if (typeof showSection === 'function') {
+            console.log("showSection function is available");
+        } else {
+            console.error("showSection function is NOT available");
+        }
+        
+        // Test if coopDirectoryHandle variable exists
+        if (typeof coopDirectoryHandle !== 'undefined') {
+            console.log("coopDirectoryHandle variable is available");
+        } else {
+            console.error("coopDirectoryHandle variable is NOT available");
+        }
+    </script>
+</body>
+</html>

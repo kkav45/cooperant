@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="description" content="Информационная система учета пайщиков кооператива">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <title>Кооператив | Учет пайщиков</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Библиотека для экспорта в Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        /* Критические стили для быстрой загрузки */
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background-color: #2c3e50;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            min-width: 44px;
+            min-height: 44px;
+        }
+        
+        .main-nav ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 0.5rem;
+        }
+        
+        .main-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+        }
+        
+        .main-nav a:hover {
+            background-color: #34495e;
+        }
+        
+        /* Мобильные стили */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .main-nav {
+                display: none;
+            }
+            
+            .main-nav.active {
+                display: block;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background-color: #2c3e50;
+                padding: 1rem;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            
+            .main-nav ul {
+                flex-direction: column;
+            }
+            
+            .main-nav a {
+                display: block;
+                padding: 0.75rem 1rem;
+            }
+        }
+        
+        /* Оверлей для мобильного меню */
+        .side-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .side-menu-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+        
+        /* Боковое меню */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 80%;
+            max-width: 400px;
+            height: 100vh;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            z-index: 999;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .side-menu.active {
+            left: 0;
+        }
+        
+        .side-menu-header {
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .side-menu-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+        
+        .side-menu-header .close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .side-menu-body {
+            padding: 1.5rem;
+        }
+        
+        .mobile-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .mobile-nav li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .mobile-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            min-height: 44px;
+        }
+        
+        .mobile-nav a:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .mobile-nav .icon {
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        /* Адаптивность для малых экранов */
+        @media (max-width: 480px) {
+            .side-menu {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .header-container h1 {
+                font-size: 1.25rem;
+            }
+        }
+        
+        /* Safe area для iPhone */
+        @supports (padding: max(0px)) {
+            .header-container {
+                padding-left: max(0px, env(safe-area-inset-left));
+                padding-right: max(0px, env(safe-area-inset-right));
+                padding-top: max(0px, env(safe-area-inset-top));
+            }
+            
+            .side-menu {
+                padding-left: max(0px, env(safe-area-inset-left));
+                padding-right: max(0px, env(safe-area-inset-right));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Оверлей для затемнения фона -->
+    <div class="side-menu-overlay" id="menuOverlay"></div>
+    
+    <!-- Боковое мобильное меню -->
+    <aside class="side-menu" id="sideMenu">
+        <div class="side-menu-header">
+            <h3>☰ Меню</h3>
+            <button class="close-btn" id="closeMenuBtn" aria-label="Закрыть меню">✕</button>
+        </div>
+        <div class="side-menu-body">
+            <nav>
+                <ul class="mobile-nav">
+                    <li><a href="#" data-section="dashboard"><span class="icon">🏠</span> Главная</a></li>
+                    <li><a href="#" data-section="members"><span class="icon">👥</span> Пайщики</a></li>
+                    <li><a href="#" data-section="payments"><span class="icon">💳</span> Взносы</a></li>
+                    <li><a href="#" data-section="accounting"><span class="icon">📘</span> Бухгалтерия</a></li>
+                    <li><a href="#" data-section="documents"><span class="icon">📁</span> Документы</a></li>
+                    <li><a href="#" data-section="applications"><span class="icon">📝</span> Заявления</a></li>
+                    <li><a href="#" data-section="meetings"><span class="icon">🤝</span> Заседания</a></li>
+                    <li><a href="#" data-section="reports"><span class="icon">📊</span> Отчеты</a></li>
+                    <li><a href="#" data-section="settings"><span class="icon">⚙️</span> Настройки</a></li>
+                </ul>
+            </nav>
+        </div>
+    </aside>
+    
+    <!-- Шапка сайта -->
+    <header>
+        <div class="header-container">
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Открыть меню">☰</button>
+            <h1>Кооператив</h1>
+            <button class="header-action" id="headerAction" aria-label="Действия" style="background:none;border:none;color:white;font-size:1.25rem;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;">⋮</button>
+        </div>
+        <nav class="main-nav" id="mainNav">
+            <ul>
+                <li><a href="#" data-section="dashboard">🏠 Главная</a></li>
+                <li><a href="#" data-section="members">👥 Пайщики</a></li>
+                <li><a href="#" data-section="payments">💳 Взносы</a></li>
+                <li><a href="#" data-section="accounting">📘 Бухгалтерия</a></li>
+                <li><a href="#" data-section="documents">📁 Документы</a></li>
+                <li><a href="#" data-section="applications">📝 Заявления</a></li>
+                <li><a href="#" data-section="meetings">🤝 Заседания</a></li>
+                <li><a href="#" data-section="reports">📊 Отчеты</a></li>
+                <li><a href="#" data-section="settings" style="background-color: #607D8B;">⚙️ Настройки</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Основное содержимое -->
+    <main id="main-content">
+        <!-- Секции будут добавлены из index.html -->
+        <div id="dashboard" class="section active">
+            <h2>Добро пожаловать в систему учета пайщиков</h2>
+            <p>Выберите раздел в меню для начала работы с системой.</p>
+        </div>
+    </main>
+    
+    <!-- Service Worker для PWA -->
+    <script>
+        // Регистрация Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker зарегистрирован:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Ошибка регистрации Service Worker:', error);
+                    });
+            });
+        }
+        
+        // Инициализация мобильного меню
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            const closeBtn = document.getElementById('closeMenuBtn');
+            const overlay = document.getElementById('menuOverlay');
+            const menu = document.getElementById('sideMenu');
+            const mainNav = document.getElementById('mainNav');
+            
+            // Функция открытия меню
+            function openMenu() {
+                menu.classList.add('active');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // Функция закрытия меню
+            function closeMenu() {
+                menu.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            // Обработчики событий
+            if (menuBtn) {
+                menuBtn.addEventListener('click', openMenu);
+            }
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeMenu);
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', closeMenu);
+            }
+            
+            // Закрытие по свайпу влево
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            if (menu) {
+                menu.addEventListener('touchstart', e => {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, { passive: true });
+                
+                menu.addEventListener('touchend', e => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    if (touchStartX - touchEndX > 50) {
+                        closeMenu(); // Свайп влево
+                    }
+                }, { passive: true });
+            }
+            
+            // Обработка навигации
+            document.querySelectorAll('[data-section]').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    const sectionId = link.dataset.section;
+                    closeMenu();
+                    showSection(sectionId);
+                });
+            });
+            
+            // Функция переключения секций
+            window.showSection = function(sectionId) {
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                const targetSection = document.getElementById(sectionId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
+                
+                // Сохраняем в URL
+                history.pushState({ section: sectionId }, '', '?section=' + sectionId);
+            };
+            
+            // Обработка кнопки действий в хедере
+            const headerAction = document.getElementById('headerAction');
+            if (headerAction) {
+                headerAction.addEventListener('click', () => {
+                    alert('Меню действий (в разработке)');
+                });
+            }
+        });
+    </script>
+    
+    <!-- Подключение основного JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>

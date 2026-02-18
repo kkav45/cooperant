@@ -1,0 +1,150 @@
+{
+    "name": "Информационная система учета пайщиков кооператива",
+    "short_name": "Кооператив",
+    "description": "Система учета пайщиков, взносов и бухгалтерии для потребительских кооперативов",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#ffffff",
+    "theme_color": "#2c3e50",
+    "scope": "/",
+    "lang": "ru",
+    "dir": "ltr",
+    "categories": ["business", "finance", "productivity"],
+    "icons": [
+        {
+            "src": "/icon-72.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-96.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-128.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-144.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-152.png",
+            "sizes": "152x152",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icon-384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshot-wide.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/screenshot-narrow.png",
+            "sizes": "720x1280",
+            "type": "image/png",
+            "form_factor": "narrow"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Пайщики",
+            "short_name": "Пайщики",
+            "description": "Реестр пайщиков кооператива",
+            "url": "/index.html?section=members",
+            "icons": [
+                {
+                    "src": "/icon-members.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Взносы",
+            "short_name": "Взносы",
+            "description": "Учет паевых взносов",
+            "url": "/index.html?section=payments",
+            "icons": [
+                {
+                    "src": "/icon-payments.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Бухгалтерия",
+            "short_name": "Бухгалтерия",
+            "description": "Бухгалтерский учет и отчеты",
+            "url": "/index.html?section=accounting",
+            "icons": [
+                {
+                    "src": "/icon-accounting.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        },
+        {
+            "name": "Отчеты",
+            "short_name": "Отчеты",
+            "description": "Отчеты и аналитика",
+            "url": "/index.html?section=reports",
+            "icons": [
+                {
+                    "src": "/icon-reports.png",
+                    "sizes": "96x96",
+                    "type": "image/png"
+                }
+            ]
+        }
+    ],
+    "share_target": {
+        "action": "/share",
+        "method": "POST",
+        "enctype": "multipart/form-data",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "files": [
+                {
+                    "name": "documents",
+                    "accept": ["application/pdf", "image/*"]
+                }
+            ]
+        }
+    },
+    "prefer_related_applications": false,
+    "related_applications": [],
+    "iarc_rating_id": ""
+}

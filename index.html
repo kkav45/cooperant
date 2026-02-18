@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0088cc">
+    <title>Кооператив Мессенджер</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Яндекс.Диск интеграция v2 -->
+    <script src="yandex-disk-integration-v2.js?v=20260218"></script>
+    
+    <!-- Google Fonts: Roboto (кириллица) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap&subset=cyrillic" rel="stylesheet">
+
+    <style>
+        /* TELEGRAM THEME VARIABLES */
+        :root {
+            --tg-bg-color: var(--tg-theme-bg-color, #ffffff);
+            --tg-text-color: var(--tg-theme-text-color, #000000);
+            --tg-hint-color: var(--tg-theme-hint-color, #999999);
+            --tg-button-color: var(--tg-theme-button-color, #2481cc);
+            --tg-button-text-color: var(--tg-theme-button-text-color, #ffffff);
+            --tg-secondary-bg-color: var(--tg-theme-secondary-bg-color, #f0f2f5);
+
+            /* Приложение */
+            --bg-primary: var(--tg-secondary-bg-color, #f0f2f5);
+            --bg-secondary: var(--tg-bg-color, #ffffff);
+            --text-primary: var(--tg-text-color, #000000);
+            --text-secondary: var(--tg-hint-color, #999999);
+            --border-color: rgba(128, 128, 128, 0.2);
+            --hover-bg: var(--tg-secondary-bg-color, #f5f7fa);
+        }
+
+        /* Принудительное применение цветов Telegram */
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            background-color: var(--tg-secondary-bg-color);
+            color: var(--tg-text-color);
+        }
+
+        /* Все фоновые элементы */
+        .sidebar-menu,
+        .chats-panel,
+        .menu-content,
+        .chats-list,
+        .chat-item,
+        .message-input-area,
+        .search-box,
+        .filter-chip,
+        .menu-item,
+        .report-card,
+        .detail-value,
+        .action-btn.secondary,
+        .fab-item-label {
+            background: var(--bg-secondary) !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Основные области */
+        .main-chat,
+        .messages-container,
+        .large-report-panel,
+        .side-menu-overlay {
+            background: var(--bg-primary) !important;
+        }
+
+        /* Текст во всех элементах */
+        .chat-name,
+        .chat-time,
+        .last-message,
+        .cooperative-name,
+        .cooperative-stats,
+        .menu-item-name,
+        .menu-item-subtitle,
+        .menu-section-title,
+        .report-card-title,
+        .report-card-desc,
+        .message-content,
+        .message-time,
+        .detail-label {
+            color: var(--text-primary) !important;
+        }
+
+        /* Границы */
+        .sidebar-menu,
+        .chats-panel,
+        .chat-item,
+        .menu-item,
+        .search-box,
+        .message-input,
+        .detail-value {
+            border-color: var(--border-color) !important;
+        }
+
+        /* Вторичный текст */
+        .chat-time,
+        .last-message,
+        .cooperative-stats,
+        .menu-item-subtitle,
+        .report-card-desc,
+        .message-time,
+        .detail-label,
+        .filter-chip {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Адаптация для тёмной темы - убираем жёсткие цвета */
+        @media (prefers-color-scheme: dark) {
+            /* Светлые фоны делаем тёмными */
+            [style*="background:#fff"],
+            [style*="background:#ffffff"],
+            [style*="background:#f5f7fa"],
+            [style*="background:#e3f2fd"],
+            [style*="background:#e8f5e9"],
+            [style*="background:#fff3e0"],
+            [style*="background:#ffebee"] {
+                background: var(--bg-secondary) !important;
+            }
+            
+            /* Тёмный текст делаем светлым */
+            [style*="color:#000"],
+            [style*="color:#000000"],
+            [style*="color:#333"],
+            [style*="color:#666"] {
+                color: var(--text-primary) !important;
+            }
+        }
+        
+        .container {
+            display: flex;
+            height: 100%;
+            height: 100dvh;  /* Dynamic viewport height для мобильных */
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* БАЗОВЫЕ СТИЛИ - ШРИФТЫ */
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Заголовки */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            font-weight: 500;
+            line-height: 1.3;
+        }
+        
+        /* Кнопки и элементы форм */
+        button, input, select, textarea {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+        
+        /* БАЗОВЫЕ СТИЛИ ДЛЯ ДЕСКТОПА */
+        .chats-panel {
+            position: relative;
+            width: 100%;
+            max-width: 400px;  /* Единая ширина для чатов и меню */
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+        }
+        
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            min-width: 0;
+            position: relative;
+        }
+        
+        /* ЛЕВОЕ МЕНЮ НАВИГАЦИИ - единая ширина с чатами */
+        .sidebar-menu {
+            width: 100%;
+            max-width: 400px;  /* = chats-panel */
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100%;
+            height: 100dvh;
+            z-index: 200;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .sidebar-menu.visible {
+            transform: translateX(0);
+        }
+
+        /* КНОПКА ЯНДЕКС.ДИСКА */
+        .yandex-disk-section {
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #fc0 0%, #f9a800 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .yandex-disk-status {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 10px;
+        }
+
+        .yandex-disk-status:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(252, 0, 0, 0.15);
+        }
+
+        .yandex-disk-status:active {
+            transform: translateY(0);
+        }
+
+        .yandex-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .yandex-text {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 600;
+            color: #000;
+        }
+
+        .yandex-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            flex-shrink: 0;
+        }
+
+        .yandex-indicator.disconnected {
+            background: #f44336;
+        }
+
+        .yandex-indicator.syncing {
+            background: #ff9800;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .menu-header {
+            padding: 20px 16px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        
+        .menu-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* СТИЛИЗАЦИЯ СКРОЛЛБАРОВ - единообразные */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+        
+        /* Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+        .menu-section { padding: 15px 0; border-bottom: 1px solid #f0f0f0; }
+        .menu-section-title {
+            padding: 0 20px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .menu-item:hover { background: var(--hover-bg); }
+        .menu-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .menu-item-info { flex: 1; min-width: 0; }
+        .menu-item-name { font-weight: 500; font-size: 13px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .menu-item-subtitle { font-size: 11px; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .menu-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            background: #e0e0e0;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+        .menu-badge.alert { background: #ffebee; color: #c62828; }
+        .menu-badge.success { background: #e8f5e9; color: #2e7d32; }
+        .menu-arrow { color: #ccc; margin-left: 8px; font-size: 14px; }
+        
+        /* OVERLAY для закрытия панелей */
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+        
+        .panel-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* ПОДМЕНЮ ОТЧЕТОВ */
+        .table-filters {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: #f5f7fa;
+            border-bottom: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+        }
+        .filter-input:focus {
+            border-color: #0088cc;
+            box-shadow: 0 0 0 2px rgba(0,136,204,0.1);
+        }
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        /* TOAST УВЕДОМЛЕНИЯ */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            min-width: 300px;
+            padding: 16px 20px;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s ease;
+            pointer-events: auto;
+        }
+        .toast.success { background: #e8f5e9; border-left: 4px solid #4caf50; }
+        .toast.error { background: #ffebee; border-left: 4px solid #f44336; }
+        .toast.warning { background: #fff3e0; border-left: 4px solid #ff9800; }
+        .toast.info { background: #e3f2fd; border-left: 4px solid #2196f3; }
+        .toast-icon { font-size: 20px; }
+        .toast-message { flex: 1; font-size: 14px; color: #333; }
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+        
+        /* INDOCTOR ЗАГРУЗКИ */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader-overlay.active {
+            display: flex;
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #fff;
+            border-top-color: #0088cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ПОДМЕНЮ ОТЧЕТОВ */
+        .reports-submenu {
+            width: 400px;
+            min-width: 400px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            z-index: 50;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        .reports-submenu.visible { transform: translateX(0); }
+        
+        .submenu-header {
+            padding: 20px 15px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .submenu-title { font-size: 16px; font-weight: 600; }
+        .submenu-back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .submenu-content { flex: 1; overflow-y: auto; padding: 15px; }
+        .submenu-section { margin-bottom: 20px; }
+        .submenu-section-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            padding-left: 10px;
+            letter-spacing: 0.5px;
+        }
+        .report-card {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .report-card:hover { background: #e3f2fd; transform: translateX(4px); }
+        .report-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .report-card-info { flex: 1; min-width: 0; }
+        .report-card-title { font-weight: 600; font-size: 13px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .report-card-desc { font-size: 11px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* СПИСОК ЧАТОВ - ВСЕГДА НА МЕСТЕ */
+        .chats-panel {
+            width: 400px;
+            min-width: 400px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+            position: relative;
+        }
+        
+        .chats-header {
+            padding: 15px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .burger-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f7fa;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .burger-btn:hover { background: #e0e0e0; }
+        
+        .cooperative-info { flex: 1; }
+        .cooperative-name { font-weight: 600; font-size: 14px; }
+        .cooperative-stats { font-size: 12px; color: #666; }
+        
+        .search-section {
+            padding: 12px 15px;
+            background: #f5f7fa;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 20px;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+        }
+        .search-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+        .quick-filters {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-chip {
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .filter-chip.active { background: #0088cc; color: #fff; border-color: #0088cc; }
+        
+        .chats-list { flex: 1; overflow-y: auto; }
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f2f5;
+            cursor: pointer;
+        }
+        .chat-item:hover { background: #f5f7fa; }
+        .chat-item.active { background: #e3f2fd; }
+        .chat-item .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .chat-item .chat-info {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .chat-item .chat-top, .chat-item .chat-middle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        .chat-item .chat-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chat-item .chat-time { font-size: 11px; color: #999; }
+        .chat-item .status { font-size: 11px; }
+        .chat-item .status::before { content: '●'; margin-right: 4px; }
+        .chat-item .status.active { color: #4caf50; }
+        .chat-item .status.debt { color: #f44336; }
+        .chat-item .status.pending { color: #ff9800; }
+        .chat-item .balance { font-size: 12px; font-weight: 600; }
+        .chat-item .balance.positive { color: #4caf50; }
+        .chat-item .balance.negative { color: #f44336; }
+        .chat-item .last-message {
+            font-size: 13px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* МАССОВЫЕ ОПЕРАЦИИ */
+        .chat-item.selectable {
+            position: relative;
+            padding-left: 50px;
+        }
+        .chat-checkbox {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .mass-actions-panel {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 50px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .mass-actions-panel.active {
+            display: flex;
+            transform: translateX(-50%) translateY(0);
+        }
+        .mass-actions-panel button {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .mass-actions-panel button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .mass-count {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        /* ЦЕНТРАЛЬНАЯ ЧАСТЬ */
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f0f2f5;
+            min-height: 0;
+            position: relative;
+        }
+        .chat-header {
+            padding: 15px 20px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .chat-header-left { display: flex; align-items: center; flex: 1; }
+        .chat-header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        .chat-header-name { font-weight: 600; font-size: 16px; }
+        .chat-header-status { font-size: 12px; color: #4caf50; margin-top: 2px; }
+        .chat-header-actions { display: flex; gap: 8px; }
+        .header-action-btn, .menu-more-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f7fa;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .message {
+            max-width: 600px;
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            background: #fff;
+            align-self: flex-start;
+            border-top-left-radius: 4px;
+        }
+        .message.sent {
+            background: #d9fdd3;
+            align-self: flex-end;
+            border-top-right-radius: 4px;
+        }
+        .message-type { font-size: 11px; color: #0088cc; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; }
+        .message-content { font-size: 14px; color: #333; margin-bottom: 6px; }
+        .message-amount { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .message-time { font-size: 11px; color: #666; text-align: right; }
+        .message-input-wrapper {
+            background: #fff;
+            border-top: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .message-input-area {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .attach-btn, .voice-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f7fa;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 24px;
+            outline: none;
+            font-size: 14px;
+        }
+        .send-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        /* БОЛЬШАЯ ПРАВАЯ ПАНЕЛЬ (отчеты) */
+        .large-report-panel {
+            position: absolute;
+            left: 400px;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: #f5f7fa;
+            z-index: 97;
+            display: none;
+            flex-direction: column;
+        }
+        .large-report-panel.visible { display: flex; }
+        .large-report-header {
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .large-report-title { font-size: 18px; font-weight: 600; }
+        .close-large-report-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .large-report-content { flex: 1; overflow-y: auto; padding: 30px; }
+        
+        /* ПРАВАЯ ПАНЕЛЬ (инфо о пайщике, детали) - большие */
+        .sidebar-right, .operation-details-panel, .menu-content-panel {
+            width: 100%;
+            max-width: 400px;  /* Большие панели */
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100%;
+            height: 100dvh;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+        .sidebar-right.visible, .operation-details-panel.visible, .menu-content-panel.visible {
+            transform: translateX(0);
+        }
+        .member-info-header, .details-header, .menu-panel-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .close-info-btn, .close-details-btn, .close-panel-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .member-info-content, .details-content, .menu-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* Детали операции */
+        .detail-tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
+        .detail-tab {
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .detail-tab.active { color: #0088cc; border-bottom-color: #0088cc; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .detail-item { margin-bottom: 16px; }
+        .detail-label { font-size: 12px; color: #666; margin-bottom: 6px; font-weight: 500; }
+        .detail-value { padding: 10px 12px; background: #f5f7fa; border-radius: 8px; font-size: 14px; }
+        .detail-value.highlight { background: #e3f2fd; color: #0088cc; font-weight: 600; }
+        .action-buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+        .action-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .action-btn.primary { background: linear-gradient(135deg, #0088cc, #0066aa); color: #fff; }
+        .action-btn.secondary { background: #f5f7fa; color: #333; }
+        .action-btn.danger { background: #ffebee; color: #c62828; }
+        
+        /* Инфо о пайщике */
+        .member-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 32px;
+            margin: 0 auto 15px;
+        }
+        .member-name-large { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 5px; }
+        .member-status-large { text-align: center; font-size: 13px; color: #666; margin-bottom: 20px; }
+        .balance-card {
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .balance-label { font-size: 13px; opacity: 0.9; margin-bottom: 8px; }
+        .balance-amount { font-size: 28px; font-weight: 700; }
+        .info-section { margin-bottom: 25px; }
+        .info-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f7fa;
+        }
+        .info-label { font-size: 13px; color: #666; }
+        .info-value { font-size: 13px; font-weight: 500; color: #333; }
+        .info-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+        .info-action-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .info-action-btn.primary { background: linear-gradient(135deg, #0088cc, #0066aa); color: #fff; }
+        .info-action-btn.secondary { background: #f5f7fa; color: #333; }
+        .info-action-btn.danger { background: #ffebee; color: #c62828; }
+        
+        /* FAB КНОПКА */
+        .fab-container {
+            position: fixed;
+            right: 20px;
+            bottom: 90px;
+            z-index: 1000;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .fab-container.hidden {
+            opacity: 0;
+            transform: scale(0);
+            pointer-events: none;
+        }
+        .fab-main {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,136,204,0.4);
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fab-main:hover { transform: scale(1.1); }
+        .fab-main.close { transform: rotate(45deg); }
+        .fab-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 12px;
+            pointer-events: none;
+        }
+        .fab-menu.expanded { pointer-events: all; }
+        .fab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .fab-menu.expanded .fab-item {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        .fab-item-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fab-item-label {
+            margin-top: 4px;
+            font-size: 11px;
+            color: #333;
+            background: rgba(255,255,255,0.95);
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        
+        /* Адаптивность */
+        
+        /* ДЕСКТОП (>1024px) - единая ширина 400px */
+        @media (min-width: 1025px) {
+            .sidebar-menu {
+                width: 100%;
+                max-width: 400px;  /* = chats-panel */
+            }
+            
+            .chats-panel {
+                width: 100%;
+                max-width: 400px;
+            }
+            
+            .sidebar-right,
+            .operation-details-panel,
+            .menu-content-panel {
+                width: 100%;
+                max-width: 400px;  /* Большие панели */
+            }
+            
+            .large-report-panel {
+                left: 400px;
+                right: 0;
+                width: auto;
+                max-width: none;
+            }
+        }
+        
+        /* ПЛАНШЕТ (768px - 1024px) */
+        @media (max-width: 1024px) {
+            .sidebar-menu, .reports-submenu, .chats-panel { width: 100%; max-width: 400px; }
+            .sidebar-right, .operation-details-panel, .menu-content-panel, .large-report-panel { width: 100%; max-width: 400px; }
+            .message { max-width: 600px; }
+        }
+        
+        /* МОБИЛЬНЫЙ (481px - 768px) */
+        @media (max-width: 768px) {
+            .sidebar-menu, .reports-submenu, .chats-panel { width: 100%; max-width: 80%; }
+            .sidebar-right, .operation-details-panel, .menu-content-panel, .large-report-panel { width: 100%; max-width: 100%; }
+            .message { max-width: 600px; }
+        }
+        
+        /* МАЛЕНЬКИЙ МОБИЛЬНЫЙ (<=480px) */
+        @media (max-width: 480px) {
+            .sidebar-menu, .reports-submenu, .chats-panel { width: 100%; max-width: 100%; }
+        }
+        
+        /* Safe Areas (iPhone X и новее) */
+        @supports (padding: max(0px)) {
+            .chat-header, .chats-header, .message-input-area {
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+            
+            .menu-header {
+                padding-top: max(20px, env(safe-area-inset-top));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- OVERLAY для закрытия панелей -->
+    <div class="panel-overlay" id="panelOverlay"></div>
+    
+    <div class="container">
+        <!-- ЛЕВОЕ МЕНЮ НАВИГАЦИИ -->
+        <div class="sidebar-menu" id="sidebarMenu">
+            <div class="menu-header">
+                <div class="menu-title">🏠 Кооператив</div>
+                <button class="menu-close-btn" id="menuCloseBtn">◀</button>
+            </div>
+
+            <!-- КНОПКА ЯНДЕКС.ДИСКА -->
+            <div class="yandex-disk-section" id="yandexDiskSection">
+                <div class="yandex-disk-status" id="yandexDiskStatus" onclick="handleYandexDiskClick()">
+                    <span class="yandex-icon">☁️</span>
+                    <span class="yandex-text" id="yandexDiskText">Яндекс Диск</span>
+                    <span class="yandex-indicator" id="yandexIndicator"></span>
+                </div>
+            </div>
+
+            <!-- ПОИСК ПО МЕНЮ -->
+            <div style="padding:12px 16px;background:#f5f7fa;border-bottom:1px solid var(--border-color)">
+                <input type="text" id="menuSearch" placeholder="🔍 Поиск..." 
+                       style="width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:14px;outline:none;background:var(--bg-secondary);color:var(--text-primary)">
+            </div>
+            
+            <div class="menu-content">
+                <!-- ⚡ БЫСТРЫЙ ДОСТУП -->
+                <div class="menu-section">
+                    <div class="menu-section-title">⚡ Быстрый доступ</div>
+                    <div class="menu-item" data-panel="favorites">
+                        <div class="menu-item-icon" style="background:#fff3e0">⭐</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Избранное</div>
+                            <div class="menu-item-subtitle">Частые операции</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-report="calendar-full">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📅</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Календарь событий</div>
+                            <div class="menu-item-subtitle">Планы и сроки</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 👥 ПАЙЩИКИ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">👥 Пайщики</div>
+                    <div class="menu-item" data-report="members-registry-full">
+                        <div class="menu-item-icon" style="background:#e8f5e9">📋</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Реестр пайщиков</div>
+                            <div class="menu-item-subtitle">Список пайщиков</div>
+                        </div>
+                        <span class="menu-badge success">12</span>
+                    </div>
+                    <div class="menu-item" data-action="create-member">
+                        <div class="menu-item-icon" style="background:#e8f5e9">➕</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Добавить пайщика</div>
+                            <div class="menu-item-subtitle">Новый пайщик</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="edit-member">
+                        <div class="menu-item-icon" style="background:#e8f5e9">✏️</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Редактировать пайщика</div>
+                            <div class="menu-item-subtitle">Исправить данные</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-report="certificates-registry-full">
+                        <div class="menu-item-icon" style="background:#fce4ec">📜</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Удостоверения</div>
+                            <div class="menu-item-subtitle">Выданные бланки</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 💳 ВЗНОСЫ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">💳 Взносы</div>
+                    <div class="menu-item" data-report="payments-report-full">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Отчёт по взносам</div>
+                            <div class="menu-item-subtitle">Поступления</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="create-payment">
+                        <div class="menu-item-icon" style="background:#e3f2fd">➕</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Добавить взнос</div>
+                            <div class="menu-item-subtitle">Новый взнос</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="create-return-payment">
+                        <div class="menu-item-icon" style="background:#ffebee">↩️</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Возврат взноса</div>
+                            <div class="menu-item-subtitle">Оформить возврат</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📘 БУХГАЛТЕРИЯ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📘 Бухгалтерия</div>
+                    <div class="menu-item" data-action="create-transaction">
+                        <div class="menu-item-icon" style="background:#fff3e0">📒</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Добавить проводку</div>
+                            <div class="menu-item-subtitle">Бухгалтерская проводка</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-report="osv">
+                        <div class="menu-item-icon" style="background:#fff3e0">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">ОСВ</div>
+                            <div class="menu-item-subtitle">Оборотно-сальдовая</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="pko">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">ПКО</div>
+                            <div class="menu-item-subtitle">Приходный ордер</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="rko">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">РКО</div>
+                            <div class="menu-item-subtitle">Расходный ордер</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="payment-order">
+                        <div class="menu-item-icon" style="background:#e8f5e9">💰</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Платёжное поручение</div>
+                            <div class="menu-item-subtitle">Банковский платёж</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-submenu="accounting-reports">
+                        <div class="menu-item-icon" style="background:#fff3e0">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Отчёты</div>
+                            <div class="menu-item-subtitle">Балансы, справки</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <!-- Раскрытые отчёты -->
+                    <div class="reports-expanded" data-parent="accounting-reports" style="padding-left:58px;padding-top:5px;display:none">
+                        <div class="menu-item" data-report="balance" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">⚖️</span>Бухгалтерский баланс</div>
+                        <div class="menu-item" data-report="profit-loss" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">📈</span>Отчёт о фин. результатах</div>
+                        <div class="menu-item" data-report="target-use" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">🎯</span>Отчёт о целевом использовании</div>
+                        <div class="menu-item" data-report="accounting-certificate" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">📄</span>Бухгалтерская справка</div>
+                    </div>
+                </div>
+
+                <!-- 📙 НАЛОГИ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📙 Налоги</div>
+                    <div class="menu-item" data-report="kudir">
+                        <div class="menu-item-icon" style="background:#fff3e0">📖</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">КУДиР</div>
+                            <div class="menu-item-subtitle">Книга учёта</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-report="usn-declaration">
+                        <div class="menu-item-icon" style="background:#fff3e0">📋</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Декларация УСН</div>
+                            <div class="menu-item-subtitle">Налоговая отчётность</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="act-sverka">
+                        <div class="menu-item-icon" style="background:#f5f5f5">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Акт сверки</div>
+                            <div class="menu-item-subtitle">Сверка с контрагентами</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-submenu="zero-reporting">
+                        <div class="menu-item-icon" style="background:#f5f5f5">∅</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Нулевая отчётность</div>
+                            <div class="menu-item-subtitle">При отсутствии деятельности</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <!-- Раскрытые отчёты -->
+                    <div class="reports-expanded" data-parent="zero-reporting" style="padding-left:58px;padding-top:5px;display:none">
+                        <div class="menu-item" data-action="generate-usn-zero" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">📋</span>Декларация УСН</div>
+                        <div class="menu-item" data-action="generate-balance-zero" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">⚖️</span>Баланс</div>
+                        <div class="menu-item" data-action="generate-szv-zero" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">📊</span>СЗВ-СТАЖ</div>
+                        <div class="menu-item" data-action="generate-rsv-zero" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">📊</span>РСВ</div>
+                        <div class="menu-item" data-action="generate-sredn-zero" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">👥</span>Среднесписочная</div>
+                    </div>
+                </div>
+
+                <!-- 📗 УПРАВЛЕНЧЕСКИЙ УЧЁТ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📗 Управленческий учёт</div>
+                    <div class="menu-item" data-submenu="analytics">
+                        <div class="menu-item-icon" style="background:#e8f5e9">📈</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Аналитика</div>
+                            <div class="menu-item-subtitle">Отчёты, графики</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <!-- Раскрытые отчёты -->
+                    <div class="reports-expanded" data-parent="analytics" style="padding-left:58px;padding-top:5px;display:none">
+                        <div class="menu-item" data-report="members-report-full" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">📋</span>Реестр пайщиков</div>
+                        <div class="menu-item" data-report="payments-report-full" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">💳</span>Отчёт по взносам</div>
+                        <div class="menu-item" data-report="financial-report-full" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">📈</span>Финансовый отчёт</div>
+                        <div class="menu-item" data-report="debt-report" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">⚠️</span>Отчёт о задолженностях</div>
+                    </div>
+                    <div class="menu-item" data-submenu="funds">
+                        <div class="menu-item-icon" style="background:#e8f5e9">💰</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Фонды</div>
+                            <div class="menu-item-subtitle">Отчёты по фондам</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <!-- Раскрытые отчёты по фондам -->
+                    <div class="reports-expanded" data-parent="funds" style="padding-left:58px;padding-top:5px;display:none">
+                        <div class="menu-item" data-report="share-fund" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">💰</span>Паевой фонд</div>
+                        <div class="menu-item" data-report="development-fund" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">🚀</span>Фонд развития</div>
+                        <div class="menu-item" data-report="business-fund" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">🏢</span>Фонд хоз. деятельности</div>
+                        <div class="menu-item" data-report="funds-analytics" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">📊</span>Аналитика фондов</div>
+                        <div class="menu-item" data-report="indivisible-fund" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">🏛️</span>Неделимый фонд</div>
+                        <div class="menu-item" data-report="reserve-fund" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">🛡️</span>Резервный фонд</div>
+                    </div>
+                    <div class="menu-item" data-submenu="meetings">
+                        <div class="menu-item-icon" style="background:#e8f5e9">📝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Собрания</div>
+                            <div class="menu-item-subtitle">Протоколы, регистрация</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <!-- Раскрытые отчёты -->
+                    <div class="reports-expanded" data-parent="meetings" style="padding-left:58px;padding-top:5px;display:none">
+                        <div class="menu-item" data-action="create-meeting" style="padding:8px 12px;font-size:12px;cursor:pointer;background:#e8f5e9;border-radius:4px;margin-bottom:8px"><span style="margin-right:8px">➕</span>Создать протокол</div>
+                        <div class="menu-item" data-report="meeting-protocol-full" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">📝</span>Протокол собрания</div>
+                        <div class="menu-item" data-report="attendance-list-full" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">✍️</span>Лист регистрации</div>
+                    </div>
+                    <div class="menu-item" data-submenu="control">
+                        <div class="menu-item-icon" style="background:#e8f5e9">⏰</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Контроль</div>
+                            <div class="menu-item-subtitle">Сроки, напоминания</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <!-- Раскрытые отчёты -->
+                    <div class="reports-expanded" data-parent="control" style="padding-left:58px;padding-top:5px;display:none">
+                        <div class="menu-item" data-action="add-calendar-event" style="padding:8px 12px;font-size:12px;cursor:pointer;background:#e8f5e9;border-radius:4px;margin-bottom:8px"><span style="margin-right:8px">➕</span>Добавить мероприятие</div>
+                        <div class="menu-item" data-report="calendar-full" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">📅</span>Календарь событий</div>
+                        <div class="menu-item" data-report="control-dashboard" style="padding:8px 12px;font-size:12px;cursor:pointer"><span style="margin-right:8px">⏰</span>Контроль сроков</div>
+                    </div>
+                </div>
+
+                <!-- 📁 ДОКУМЕНТЫ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📁 Документы</div>
+                    <div class="menu-item" data-action="create-document">
+                        <div class="menu-item-icon" style="background:#f5f7fa">📁</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Загрузить документ</div>
+                            <div class="menu-item-subtitle">Новый документ</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="invoice">
+                        <div class="menu-item-icon" style="background:#f5f7fa">📄</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Счёт на оплату</div>
+                            <div class="menu-item-subtitle">Выставить счёт</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📋 ЗАЯВЛЕНИЯ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📋 Заявления</div>
+                    <div class="menu-item" data-action="create-application">
+                        <div class="menu-item-icon" style="background:#fce4ec">📝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Подать заявление</div>
+                            <div class="menu-item-subtitle">На вступление</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-report="applications-registry">
+                        <div class="menu-item-icon" style="background:#fce4ec">📋</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Реестр заявлений</div>
+                            <div class="menu-item-subtitle">Все заявления</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ⚙️ НАСТРОЙКИ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">⚙️ Настройки</div>
+                    <div class="menu-item" data-panel="profile">
+                        <div class="menu-item-icon" style="background:#e0e0e0">👤</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Профиль</div>
+                            <div class="menu-item-subtitle">Пользователь</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="toggleDarkMode()">
+                        <div class="menu-item-icon" style="background:#e0e0e0">🌓</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Тёмная тема</div>
+                            <div class="menu-item-subtitle">Переключить тему</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="exportMembersToExcel()">
+                        <div class="menu-item-icon" style="background:#e0e0e0">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Экспорт в Excel</div>
+                            <div class="menu-item-subtitle">Выгрузить данные</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-panel="backup">
+                        <div class="menu-item-icon" style="background:#e0e0e0">💾</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Резервное копирование</div>
+                            <div class="menu-item-subtitle">Сохранение данных</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOAST КОНТЕЙНЕР -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- INDOCTOR ЗАГРУЗКИ -->
+        <div class="loader-overlay" id="loaderOverlay">
+            <div class="loader"></div>
+        </div>
+
+        <!-- ПОДМЕНЮ ОТЧЕТОВ -->
+        <div class="reports-submenu" id="reportsSubmenu">
+            <div class="submenu-header">
+                <button class="submenu-back-btn" id="submenuBackBtn">← Назад</button>
+                <div class="submenu-title" id="submenuTitle">Отчеты</div>
+                <div style="width:80px"></div>
+            </div>
+            <div class="submenu-content" id="submenuContent"></div>
+        </div>
+        
+        <!-- СПИСОК ЧАТОВ - ВСЕГДА НА МЕСТЕ -->
+        <div class="chats-panel" id="chatsPanel">
+            <div class="chats-header">
+                <button class="burger-btn" id="burgerBtn" data-tooltip="Меню (Ctrl+M)">☰</button>
+                <div class="cooperative-info">
+                    <div class="cooperative-name">Потребительский кооператив</div>
+                    <div class="cooperative-stats">12 пайщиков • 9 активных</div>
+                </div>
+            </div>
+            <div class="search-section">
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Поиск пайщиков..." id="searchInput">
+                </div>
+                <div class="quick-filters">
+                    <button class="filter-chip active">Все</button>
+                    <button class="filter-chip">🔴 Должники</button>
+                    <button class="filter-chip">🟢 Активные</button>
+                </div>
+            </div>
+            <div class="chats-list" id="chatsList"></div>
+        </div>
+        
+        <!-- ЦЕНТРАЛЬНАЯ ЧАСТЬ -->
+        <div class="main-chat">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <button class="header-action-btn" id="massSelectBtn" title="Массовые операции" style="margin-right:10px">☑️</button>
+                    <div class="chat-header-avatar" id="currentAvatar">ИИ</div>
+                    <div>
+                        <div class="chat-header-name" id="currentName">Иванов Иван Иванович</div>
+                        <div class="chat-header-status">● Активен</div>
+                    </div>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="header-action-btn" title="Позвонить">📞</button>
+                    <button class="header-action-btn" title="Email">✉️</button>
+                    <button class="menu-more-btn" id="menuMoreBtn" title="Информация" data-tooltip="Информация о пайщике">⋮</button>
+                </div>
+            </div>
+            <div class="messages-container" id="messagesContainer"></div>
+            <div class="message-input-wrapper">
+                <div class="message-input-area">
+                    <button class="attach-btn">📎</button>
+                    <input type="text" class="message-input" placeholder="Добавить операцию..." id="messageInput">
+                    <button class="voice-btn">🎤</button>
+                    <button class="send-button" id="sendButton">➤</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- БОЛЬШАЯ ПРАВАЯ ПАНЕЛЬ (отчеты) -->
+        <div class="large-report-panel" id="largeReportPanel">
+            <div class="large-report-header">
+                <div class="large-report-title" id="largeReportTitle">Отчет</div>
+                <button class="close-large-report-btn" id="closeLargeReportBtn">✕</button>
+            </div>
+            <div class="large-report-content" id="largeReportContent"></div>
+        </div>
+        
+        <!-- ПРАВАЯ ПАНЕЛЬ (инфо о пайщике) -->
+        <div class="sidebar-right" id="sidebarRight">
+            <div class="member-info-header">
+                <h3>Информация о пайщике</h3>
+                <button class="close-info-btn" id="closeInfoBtn">✕</button>
+            </div>
+            <div class="member-info-content" id="memberInfoContent"></div>
+        </div>
+        
+        <!-- ПРАВАЯ ПАНЕЛЬ (детали операции) -->
+        <div class="operation-details-panel" id="operationDetailsPanel">
+            <div class="details-header">
+                <h3 id="detailsTitle">Детали операции</h3>
+                <button class="close-details-btn" id="closeDetailsBtn">✕</button>
+            </div>
+            <div class="details-content" id="detailsContent"></div>
+        </div>
+        
+        <!-- ПРАВАЯ ПАНЕЛЬ (контент левого меню) -->
+        <div class="menu-content-panel" id="menuContentPanel">
+            <div class="menu-panel-header">
+                <h3 id="menuPanelTitle">Раздел</h3>
+                <button class="close-panel-btn" id="closePanelBtn">✕</button>
+            </div>
+            <div class="menu-panel-content" id="menuPanelContent"></div>
+        </div>
+        
+        <!-- FAB КНОПКА -->
+        <div class="fab-container" id="fabContainer">
+            <div class="fab-menu" id="fabMenu">
+                <div class="fab-item" data-action="application">
+                    <div class="fab-item-btn" style="background:#f44336">��</div>
+                    <span class="fab-item-label">Заявление</span>
+                </div>
+                <div class="fab-item" data-action="document">
+                    <div class="fab-item-btn" style="background:#9c27b0">📁</div>
+                    <span class="fab-item-label">Документ</span>
+                </div>
+                <div class="fab-item" data-action="transaction">
+                    <div class="fab-item-btn" style="background:#ff9800">📒</div>
+                    <span class="fab-item-label">Проводка</span>
+                </div>
+                <div class="fab-item" data-action="payment">
+                    <div class="fab-item-btn" style="background:#2196f3">💳</div>
+                    <span class="fab-item-label">Взнос</span>
+                </div>
+                <div class="fab-item" data-action="member">
+                    <div class="fab-item-btn" style="background:#4caf50">👤</div>
+                    <span class="fab-item-label">Пайщик</span>
+                </div>
+            </div>
+            <button class="fab-main" id="fabMain">+</button>
+        </div>
+    </div>
+
+    <!-- ПАНЕЛЬ МАССОВЫХ ОПЕРАЦИЙ -->
+    <div class="mass-actions-panel" id="massActionsPanel">
+        <span class="mass-count" id="massCount">0 выбрано</span>
+        <button onclick="massExport()">📊 Экспорт</button>
+        <button onclick="massMessage()">✉️ Сообщение</button>
+        <button onclick="clearMassSelection()">✕ Сброс</button>
+    </div>
+
+    <!-- Подключение внешних скриптов -->
+    <script src="yandex-disk-integration-v2.js?v=20260218"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="app.js?v=20260218"></script>
+    <script src="application_functions.js?v=20260218"></script>
+    <script src="reports.js?v=20260218"></script>
+    <script src="settings.js?v=20260218"></script>
+    <script src="messenger-app-v2.js?v=20260218"></script>
+    <script src="pdf_export.js?v=20260218"></script>
+    
+    <!-- Обработка токена Яндекс Диска -->
+    <script>
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'YANDEX_TOKEN') {
+                if (window.handleYandexToken) {
+                    window.handleYandexToken(event.data.token);
+                }
+            }
+        });
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('access_token');
+        if (token) {
+            if (window.handleYandexToken) {
+                window.handleYandexToken(token);
+            }
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
+    
+    <!-- PANEL MANAGER & TELEGRAM INIT -->
+    <script>
+        // ============================================
+        // TELEGRAM WEBAPP INIT
+        // ============================================
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Применяем тему Telegram
+        function applyTelegramTheme() {
+            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.backgroundColor || '#ffffff');
+            document.documentElement.style.setProperty('--tg-theme-text-color', tg.textColor || '#000000');
+            document.documentElement.style.setProperty('--tg-theme-hint-color', tg.hintColor || '#999999');
+            document.documentElement.style.setProperty('--tg-theme-button-color', tg.buttonColor || '#2481cc');
+            document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.buttonTextColor || '#ffffff');
+            document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.secondaryBackgroundColor || '#f0f2f5');
+            
+            // Устанавливаем цвета хедера
+            tg.setHeaderColor(tg.themeParams.bg_color || '#ffffff');
+            tg.setBottomBarColor(tg.themeParams.secondary_bg_color || '#f0f2f5');
+        }
+
+        // Применяем тему при загрузке
+        applyTelegramTheme();
+
+        // Слушим изменения темы
+        tg.onEvent('themeChanged', () => {
+            applyTelegramTheme();
+        });
+
+        // ============================================
+        // ЯНДЕКС.ДИСК ФУНКЦИИ
+        // ============================================
+
+        // Обработка клика по Яндекс.Диску
+        function handleYandexDiskClick() {
+            // Тактильный отклик для Telegram
+            if (window.TelegramMiniApp) {
+                window.TelegramMiniApp.hapticFeedback('light');
+            }
+
+            // Проверяем статус авторизации
+            const token = localStorage.getItem('yandexDiskToken');
+            const disabled = localStorage.getItem('yandexDiskDisabled') === 'true';
+
+            if (disabled || !token) {
+                // Показываем окно подключения
+                showYandexDiskModal();
+            } else {
+                // Показываем меню синхронизации
+                showYandexDiskMenu();
+            }
+        }
+
+        // Показать окно подключения
+        function showYandexDiskModal() {
+            const content = `
+                <div style="padding:40px;text-align:center;max-width:500px;margin:0 auto">
+                    <div style="font-size:64px;margin-bottom:20px">☁️</div>
+                    <h2 style="margin-bottom:10px;font-size:22px;font-weight:600">Яндекс Диск</h2>
+                    <p style="color:#666;margin-bottom:30px;line-height:1.5">
+                        Для надёжного хранения данных кооператива подключитесь к Яндекс Диску.
+                        Данные будут автоматически сохраняться в папку "КООПЕРАНТ".
+                    </p>
+                    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+                        <button onclick="connectYandexDiskFromIndex()"
+                                style="min-height:44px;padding:12px 24px;background:#fc0;color:#000;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px">
+                            <span style="font-size:20px">☁️</span>
+                            Войти через Яндекс
+                        </button>
+                        <button onclick="useLocalStorageFromIndex()"
+                                style="min-height:44px;padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:12px;cursor:pointer;font-size:15px">
+                            Работать без Яндекс Диска
+                        </button>
+                    </div>
+                    <p style="font-size:12px;color:#999;margin-top:20px">
+                        🔒 Ваши данные защищены и используются только для работы приложения
+                    </p>
+                </div>
+            `;
+            showModalYandex(content);
+        }
+
+        // Показать меню синхронизации
+        function showYandexDiskMenu() {
+            const content = `
+                <div style="padding:30px;max-width:500px;margin:0 auto">
+                    <div style="display:flex;align-items:center;gap:15px;margin-bottom:25px">
+                        <div style="font-size:48px">☁️</div>
+                        <div>
+                            <h2 style="margin:0;font-size:20px;font-weight:600">Яндекс Диск</h2>
+                            <p style="margin:5px 0 0;color:#666;font-size:14px">Синхронизация данных</p>
+                        </div>
+                    </div>
+                    <div style="background:#f5f7fa;border-radius:12px;padding:20px;margin-bottom:20px">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
+                            <span style="font-size:14px;color:#666">Статус</span>
+                            <span style="display:flex;align-items:center;gap:8px">
+                                <span class="yandex-indicator" style="width:10px;height:10px;display:inline-block"></span>
+                                <span style="font-weight:600;color:#4caf50">Подключён</span>
+                            </span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <span style="font-size:14px;color:#666">Автосохранение</span>
+                            <span style="font-size:14px;font-weight:500;color:#4caf50">Включено (30 сек)</span>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:10px">
+                        <button onclick="forceSyncFromIndex()" style="min-height:44px;padding:12px;background:#0088cc;color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600">
+                            🔄 Синхронизировать сейчас
+                        </button>
+                        <button onclick="createBackupFromIndex()" style="min-height:44px;padding:12px;background:#4caf50;color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600">
+                            💾 Создать резервную копию
+                        </button>
+                        <button onclick="logoutYandexFromIndex()" style="min-height:44px;padding:12px;background:#ffebee;color:#c62828;border:none;border-radius:12px;cursor:pointer;font-size:15px">
+                            🚪 Выйти из Яндекс Диска
+                        </button>
+                        <button onclick="closeModalYandex()" style="min-height:44px;padding:12px;background:#f5f7fa;color:#333;border:none;border-radius:12px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+            showModalYandex(content);
+        }
+
+        // Функции для кнопок
+        window.connectYandexDiskFromIndex = async function() {
+            if (typeof window.connectYandexDisk === 'function') {
+                await window.connectYandexDisk();
+            }
+            closeModalYandex();
+        };
+
+        window.useLocalStorageFromIndex = function() {
+            localStorage.setItem('yandexDiskDisabled', 'true');
+            updateYandexDiskIndicator();
+            closeModalYandex();
+        };
+
+        window.forceSyncFromIndex = async function() {
+            if (typeof window.forceSyncYandex === 'function') {
+                await window.forceSyncYandex();
+            }
+            closeModalYandex();
+        };
+
+        window.createBackupFromIndex = async function() {
+            if (typeof window.createBackupYandex === 'function') {
+                await window.createBackupYandex();
+            }
+            closeModalYandex();
+        };
+
+        window.logoutYandexFromIndex = function() {
+            if (typeof window.logoutYandexDisk === 'function') {
+                window.logoutYandexDisk();
+                updateYandexDiskIndicator();
+            }
+            closeModalYandex();
+        };
+
+        // Обновить индикатор статуса
+        function updateYandexDiskIndicator() {
+            const indicator = document.getElementById('yandexIndicator');
+            const text = document.getElementById('yandexDiskText');
+            if (!indicator || !text) return;
+
+            const token = localStorage.getItem('yandexDiskToken');
+            const folderId = localStorage.getItem('yandexCooperativFolderId');
+            const disabled = localStorage.getItem('yandexDiskDisabled') === 'true';
+
+            if (disabled || !token || !folderId) {
+                indicator.className = 'yandex-indicator disconnected';
+                text.textContent = 'Яндекс Диск (отключён)';
+            } else {
+                indicator.className = 'yandex-indicator';
+                text.textContent = 'Яндекс Диск';
+            }
+        }
+
+        // Модальное окно
+        function showModalYandex(content) {
+            const existing = document.querySelector('.yandex-modal-overlay');
+            if (existing) existing.remove();
+
+            const overlay = document.createElement('div');
+            overlay.className = 'yandex-modal-overlay';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;';
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'background:#fff;border-radius:16px;max-width:90%;max-height:90%;overflow-y:auto;animation:slideUp 0.3s ease;';
+            modal.innerHTML = content;
+
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) closeModalYandex();
+            });
+
+            window.currentYandexModal = overlay;
+        }
+
+        function closeModalYandex() {
+            if (window.currentYandexModal) {
+                window.currentYandexModal.style.animation = 'fadeOut 0.2s ease';
+                setTimeout(() => {
+                    window.currentYandexModal.remove();
+                    window.currentYandexModal = null;
+                }, 200);
+            }
+        }
+
+        // CSS анимации
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+            @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        `;
+        document.head.appendChild(style);
+
+        // Инициализация индикатора
+        setTimeout(updateYandexDiskIndicator, 1000);
+
+        // ============================================
+        // PANEL MANAGER
+        // ============================================
+        const PanelManager = {
+            currentPanel: null,
+            overlay: document.getElementById('panelOverlay'),
+            
+            open(panelId) {
+                // Закрыть все открытые панели
+                this.closeAll();
+                
+                // Открыть нужную
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.classList.add('visible');
+                    this.overlay.classList.add('active');
+                    this.currentPanel = panelId;
+                    
+                    // Haptic feedback
+                    if (tg.HapticFeedback) {
+                        tg.HapticFeedback.impactOccurred('light');
+                    }
+                }
+            },
+            
+            close(panelId) {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.classList.remove('visible');
+                    
+                    // Если это была последняя панель, скрыть overlay
+                    if (!document.querySelector('.panel.visible')) {
+                        this.overlay.classList.remove('active');
+                    }
+                    
+                    this.currentPanel = null;
+                }
+            },
+            
+            closeAll() {
+                document.querySelectorAll('.panel.visible').forEach(panel => {
+                    panel.classList.remove('visible');
+                });
+                this.overlay.classList.remove('active');
+                this.currentPanel = null;
+            }
+        };
+        
+        // Закрытие по клику на overlay
+        document.getElementById('panelOverlay').addEventListener('click', () => {
+            PanelManager.closeAll();
+        });
+        
+        // ============================================
+        // SWIPE GESTURES
+        // ============================================
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            // Свайп вправо → закрыть панель
+            if (diff < -swipeThreshold && PanelManager.currentPanel) {
+                PanelManager.closeAll();
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('medium');
+                }
+            }
+        }
+        
+        // Обновляем обработчики кнопок для использования PanelManager
+        document.addEventListener('DOMContentLoaded', () => {
+            // Кнопка закрытия левого меню
+            const menuCloseBtn = document.getElementById('menuCloseBtn');
+            if (menuCloseBtn) {
+                menuCloseBtn.addEventListener('click', () => {
+                    PanelManager.close('sidebarMenu');
+                });
+            }
+            
+            // Бургер меню
+            const burgerBtn = document.getElementById('burgerBtn');
+            if (burgerBtn) {
+                burgerBtn.addEventListener('click', () => {
+                    PanelManager.open('sidebarMenu');
+                });
+            }
+        });
+        
+        console.log('🚀 Telegram Mini App запущен');
+    </script>
+</body>
+</html>

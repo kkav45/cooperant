@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Улучшенное тестирование PDF с кириллицей</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+    <h1>Улучшенное тестирование PDF с кириллическим текстом</h1>
+    <button onclick="createAdvancedTestPDF()">Создать улучшенный тестовый PDF</button>
+
+    <script>
+        async function createAdvancedTestPDF() {
+            // Загружаем jsPDF
+            const { jsPDF } = window.jspdf;
+            
+            // Создаем PDF документ
+            const doc = new jsPDF();
+
+            // Загружаем шрифт с поддержкой кириллицы
+            try {
+                // Загружаем файл шрифта
+                const fontResponse = await fetch('./fonts/roboto-cyrillic-normal.js');
+                const fontScript = await fontResponse.text();
+                
+                // Выполняем скрипт шрифта
+                eval(fontScript);
+
+                // Добавляем шрифт к документу
+                doc.addFont('./fonts/roboto-cyrillic-normal.js', 'Roboto', 'normal');
+                doc.setFont('Roboto');
+                
+                console.log('Шрифт успешно загружен');
+            } catch (error) {
+                console.error('Ошибка при загрузке шрифта:', error);
+                alert('Ошибка при загрузке шрифта. Проверьте наличие файла ./fonts/roboto-cyrillic-normal.js');
+                return;
+            }
+
+            // Устанавливаем размер шрифта
+            doc.setFontSize(16);
+
+            // Добавляем заголовок
+            doc.text('Тестовый PDF с кириллическим текстом', 105, 20, null, null, 'center');
+            
+            doc.setFontSize(12);
+            doc.text('Это улучшенная тестовая страница для проверки отображения русского текста в PDF', 20, 40);
+
+            // Добавляем различные примеры кириллического текста
+            const testTexts = [
+                'ФИО: Иванов Иван Иванович',
+                'Адрес: г. Москва, ул. Тестовая, д. 1',
+                'Дата рождения: 20.05.1980',
+                'Телефон: +7 (123) 456-78-90',
+                'Статус: Активный участник',
+                'Удостоверение №001 от 15.01.2023',
+                'Общее собрание членов кооператива',
+                'Принятые решения:',
+                '- Утвердить бюджет на 2023 год',
+                '- Избрать председателя правления'
+            ];
+
+            let yPos = 60;
+            testTexts.forEach(text => {
+                if (yPos > 270) { // Если достигли конца страницы, добавляем новую
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.text(text, 20, yPos);
+                yPos += 10;
+            });
+
+            // Сохраняем PDF
+            doc.save('advanced_test_kirillica.pdf');
+            
+            alert('Улучшенный тестовый PDF создан успешно!');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0088cc">
+    <title>Кооператив Мессенджер</title>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/minkoop-rf/KOOP@main/telegram-mini-app-styles.css">
+</head>
+<body>
+    <!-- OVERLAY для закрытия панелей -->
+    <div class="panel-overlay" id="panelOverlay"></div>
+    
+    <div class="container">
+        <!-- ЛЕВОЕ МЕНЮ -->
+        <div class="panel sidebar-menu" id="sidebarMenu">
+            <div class="menu-header">
+                <div class="menu-title">🏠 Кооператив</div>
+                <button class="menu-close-btn" id="menuCloseBtn">◀</button>
+            </div>
+            <div class="menu-content" id="menuContent">
+                <!-- Меню загружается динамически -->
+            </div>
+        </div>
+        
+        <!-- СПИСОК ЧАТОВ -->
+        <div class="chats-panel" id="chatsPanel">
+            <div class="chats-header">
+                <button class="header-action-btn" id="burgerBtn">☰</button>
+                <div class="cooperative-info">
+                    <div class="cooperative-name" id="cooperativeName">Потребительский кооператив</div>
+                    <div class="cooperative-stats" id="cooperativeStats">Загрузка...</div>
+                </div>
+            </div>
+            <div class="search-section">
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Поиск пайщиков..." id="searchInput">
+                </div>
+                <div class="quick-filters" id="quickFilters">
+                    <button class="filter-chip active">Все</button>
+                    <button class="filter-chip">🔴 Должники</button>
+                    <button class="filter-chip">🟢 Активные</button>
+                </div>
+            </div>
+            <div class="chats-list" id="chatsList">
+                <!-- Чаты загружаются динамически -->
+            </div>
+        </div>
+        
+        <!-- ЦЕНТРАЛЬНАЯ ОБЛАСТЬ -->
+        <div class="main-chat">
+            <div class="chat-header">
+                <div class="chat-header-avatar" id="currentAvatar">ИИ</div>
+                <div style="flex:1">
+                    <div class="chat-header-name" id="currentName">Иванов Иван Иванович</div>
+                    <div class="chat-header-status" id="currentStatus">● Активен</div>
+                </div>
+                <button class="header-action-btn" id="menuMoreBtn">⋮</button>
+            </div>
+            <div class="messages-container" id="messagesContainer">
+                <!-- Сообщения загружаются динамически -->
+            </div>
+            <div class="message-input-wrapper">
+                <div class="message-input-area">
+                    <input type="text" class="message-input" placeholder="Добавить операцию..." id="messageInput">
+                    <button class="send-button" id="sendButton">➤</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ПРАВАЯ ПАНЕЛЬ: Информация о пайщике -->
+        <div class="panel sidebar-right" id="sidebarRight">
+            <div class="menu-header" style="background:linear-gradient(135deg, #4caf50, #2e7d32)">
+                <div class="menu-title">ℹ️ Информация</div>
+                <button class="menu-close-btn" id="closeInfoBtn">✕</button>
+            </div>
+            <div class="menu-content" id="memberInfoContent">
+                <!-- Информация загружается динамически -->
+            </div>
+        </div>
+        
+        <!-- ПАНЕЛЬ КОНТЕНТА МЕНЮ -->
+        <div class="panel menu-content-panel" id="menuContentPanel">
+            <div class="menu-header" style="background:linear-gradient(135deg, #ff9800, #f57c00)">
+                <div class="menu-title" id="menuPanelTitle">Раздел</div>
+                <button class="menu-close-btn" id="closePanelBtn">✕</button>
+            </div>
+            <div class="menu-content" id="menuPanelContent">
+                <!-- Контент загружается динамически -->
+            </div>
+        </div>
+        
+        <!-- ПАНЕЛЬ ОТЧЁТОВ -->
+        <div class="panel large-report-panel" id="largeReportPanel">
+            <div class="menu-header" style="background:linear-gradient(135deg, #2196f3, #1976d2)">
+                <div class="menu-title" id="largeReportTitle">Отчёт</div>
+                <button class="menu-close-btn" id="closeLargeReportBtn">✕</button>
+            </div>
+            <div class="menu-content" id="largeReportContent">
+                <!-- Отчёт загружается динамически -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- ЗАГРУЗКА -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">Загрузка...</div>
+    </div>
+    
+    <!-- СКРИПТЫ -->
+    <script src="https://cdn.jsdelivr.net/gh/minkoop-rf/KOOP@main/yandex-disk-integration.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/minkoop-rf/KOOP@main/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/minkoop-rf/KOOP@main/messenger-app-v2.js"></script>
+    
+    <!-- TELEGRAM MINI APP INIT -->
+    <script>
+        // ============================================
+        // TELEGRAM WEBAPP INITIALIZATION
+        // ============================================
+        const tg = window.Telegram.WebApp;
+        
+        // Готовность
+        tg.ready();
+        
+        // Развернуть на весь экран
+        tg.expand();
+        
+        // Настроить цвета
+        function applyTelegramTheme() {
+            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.backgroundColor || '#ffffff');
+            document.documentElement.style.setProperty('--tg-theme-text-color', tg.textColor || '#000000');
+            document.documentElement.style.setProperty('--tg-theme-hint-color', tg.hintColor || '#999999');
+            document.documentElement.style.setProperty('--tg-theme-link-color', tg.linkColor || '#2481cc');
+            document.documentElement.style.setProperty('--tg-theme-button-color', tg.buttonColor || '#2481cc');
+            document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.buttonTextColor || '#ffffff');
+            document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.secondaryBackgroundColor || '#f0f2f5');
+        }
+        
+        applyTelegramTheme();
+        
+        // Главная кнопка
+        tg.MainButton.setText('НАЧАТЬ РАБОТУ');
+        tg.MainButton.onClick(() => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            tg.MainButton.hide();
+        });
+        tg.MainButton.show();
+        
+        // ============================================
+        // PANEL MANAGER
+        // ============================================
+        const PanelManager = {
+            currentPanel: null,
+            overlay: document.getElementById('panelOverlay'),
+            
+            open(panelId) {
+                // Закрыть все открытые панели
+                this.closeAll();
+                
+                // Открыть нужную
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.classList.add('visible');
+                    this.overlay.classList.add('active');
+                    this.currentPanel = panelId;
+                    
+                    // Haptic feedback
+                    if (tg.HapticFeedback) {
+                        tg.HapticFeedback.impactOccurred('light');
+                    }
+                }
+            },
+            
+            close(panelId) {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.classList.remove('visible');
+                    
+                    // Если это была последняя панель, скрыть overlay
+                    if (!document.querySelector('.panel.visible')) {
+                        this.overlay.classList.remove('active');
+                    }
+                    
+                    this.currentPanel = null;
+                }
+            },
+            
+            closeAll() {
+                document.querySelectorAll('.panel.visible').forEach(panel => {
+                    panel.classList.remove('visible');
+                });
+                this.overlay.classList.remove('active');
+                this.currentPanel = null;
+            }
+        };
+        
+        // Закрытие по клику на overlay
+        document.getElementById('panelOverlay').addEventListener('click', () => {
+            PanelManager.closeAll();
+        });
+        
+        // ============================================
+        // SWIPE GESTURES
+        // ============================================
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            // Свайп вправо → закрыть панель
+            if (diff < -swipeThreshold && PanelManager.currentPanel) {
+                PanelManager.closeAll();
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('medium');
+                }
+            }
+        }
+        
+        // ============================================
+        // LOADING
+        // ============================================
+        function showLoading(text) {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        // ============================================
+        // ERROR HANDLING
+        // ============================================
+        window.addEventListener('error', e => {
+            console.error('Ошибка:', e.error);
+            tg.showAlert('Произошла ошибка: ' + e.error.message);
+        });
+        
+        // ============================================
+        // INIT
+        // ============================================
+        console.log('🚀 Telegram Mini App запущен');
+    </script>
+</body>
+</html>

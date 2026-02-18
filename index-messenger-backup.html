@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Информационная система учета пайщиков кооператива</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Библиотека для экспорта в Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Информационная система учета пайщиков кооператива</h1>
+        <nav>
+            <ul>
+                <li><a href="#" onclick="showSection('dashboard')">Главная</a></li>
+                <li><a href="#" onclick="showSection('members')">Пайщики</a></li>
+                <li><a href="#" onclick="showSection('payments')">Взносы</a></li>
+                <li><a href="#" onclick="showSection('accounting')">Бухгалтерия</a></li>
+                <li><a href="#" onclick="showSection('documents')">Документы</a></li>
+                <li><a href="#" onclick="showSection('applications')">Заявления</a></li>
+                <li><a href="#" onclick="showSection('meetings')">Заседания</a></li>
+                <li><a href="#" onclick="showSection('reports')">Отчеты</a></li>
+                <li><a href="#" onclick="showSection('settings')" style="background-color: #607D8B;">⚙️ Настройки</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="main-content" style="min-height: calc(100vh - 120px); display: flex; flex-direction: column;">
+        <!-- Содержимое будет загружаться сюда -->
+        <div id="dashboard" class="section active">
+            <h2>Добро пожаловать в систему учета пайщиков</h2>
+            <p>Выберите раздел в меню для начала работы с системой.</p>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Всего пайщиков</h3>
+                    <p id="total-members">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Активных пайщиков</h3>
+                    <p id="active-members">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Паевых взносов</h3>
+                    <p id="total-payments">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Задолженность</h3>
+                    <p id="debt-amount">0 ₽</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Здесь будут другие разделы -->
+        <div id="members" class="section">
+            <h2>Реестр пайщиков</h2>
+            <div class="toolbar">
+                <button onclick="addMember()">Добавить физ.лицо</button>
+                <button onclick="addLegalEntity()">Добавить юр.лицо</button>
+                <input type="text" id="member-search" placeholder="Поиск пайщика..." onkeyup="searchMembers()">
+            </div>
+            <table id="members-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ФИО</th>
+                        <th>Дата вступления</th>
+                        <th>Статус</th>
+                        <th>Кооперативный участок</th>
+                        <th>Контакт</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="members-tbody">
+                    <!-- Данные будут загружаться сюда -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="payments" class="section">
+            <h2>Взносы</h2>
+            <div class="toolbar">
+                <button onclick="addPayment()">Добавить взнос</button>
+                <button onclick="showReturnPaymentForm()">Возврат взноса</button>
+            </div>
+            <table id="payments-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Пайщик</th>
+                        <th>Тип взноса</th>
+                        <th>Форма оплаты</th>
+                        <th>Сумма</th>
+                        <th>Дата</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="payments-tbody">
+                    <!-- Данные будут загружаться сюда -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="accounting" class="section">
+            <h2>Бухгалтерский учет</h2>
+            <div class="toolbar">
+                <button onclick="addTransaction()">Добавить проводку</button>
+                <button onclick="distributeMembershipFees()" class="action-button" style="background-color: #2196F3;">Распределить членские взносы</button>
+                <button onclick="showTaxSystemSettings()" class="action-button" style="background-color: #4CAF50;">Настройки</button>
+                <button onclick="showKUDiR()" class="action-button" style="background-color: #9C27B0;">📊 КУДиР</button>
+                <button onclick="createPKO()" class="action-button" style="background-color: #FF9800;">📄 ПКО</button>
+                <button onclick="createRKO()" class="action-button" style="background-color: #FF9800;">📄 РКО</button>
+                <button onclick="createAccountingCertificate()" class="action-button" style="background-color: #FF9800;">📄 Справка</button>
+            </div>
+            <table id="transactions-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Дата</th>
+                        <th>Дебет</th>
+                        <th>Кредит</th>
+                        <th>Сумма</th>
+                        <th>Описание</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-tbody">
+                    <!-- Данные будут загружаться сюда -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="documents" class="section">
+            <h2>Документооборот</h2>
+            <div class="toolbar">
+                <button onclick="setupDocumentStorage()">Настроить хранение</button>
+                <button onclick="uploadDocument()">Загрузить документ</button>
+            </div>
+            <table id="documents-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Тип</th>
+                        <th>Дата</th>
+                        <th>Размер</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="documents-tbody">
+                    <!-- Данные будут загружаться сюда -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="reports" class="section">
+            <h2>Отчеты</h2>
+            
+            <div class="reports-container">
+                <div class="report-buttons-grid">
+                    <div class="report-category">
+                        <h3>Стандартные отчеты</h3>
+                        <button class="report-button" onclick="generateReport('members')">
+                            <span class="button-icon">📋</span>
+                            <span class="button-text">Отчет по пайщикам</span>
+                        </button>
+                        <button class="report-button" onclick="generateReport('payments')">
+                            <span class="button-icon">💳</span>
+                            <span class="button-text">Отчет по паевым взносам</span>
+                        </button>
+                        <button class="report-button" onclick="generateReport('financial')">
+                            <span class="button-icon">📊</span>
+                            <span class="button-text">Финансовый отчет</span>
+                        </button>
+                    </div>
+                    
+                    <div class="report-category">
+                        <h3>Официальные формы отчетности</h3>
+                        <button class="report-button official-form" onclick="generateReport('balance_sheet')">
+                            <span class="button-icon">🏛️</span>
+                            <span class="button-text">Бухгалтерский баланс (Форма № 1)</span>
+                        </button>
+                        <button class="report-button official-form" onclick="generateReport('profit_loss')">
+                            <span class="button-icon">📈</span>
+                            <span class="button-text">Отчет о финансовых результатах (Форма № 2)</span>
+                        </button>
+                        <button class="report-button official-form" onclick="generateReport('target_use')">
+                            <span class="button-icon">🎯</span>
+                            <span class="button-text">Отчет о целевом использовании средств</span>
+                        </button>
+                        <button class="report-button official-form" onclick="showUSNDeclaration()">
+                            <span class="button-icon">📑</span>
+                            <span class="button-text">Декларация УСН</span>
+                        </button>
+                    </div>
+                    
+                    <div class="report-category">
+                        <h3>Подотчетные операции и командировки</h3>
+                        <button class="report-button" onclick="issueMoneyOnAccountability()">
+                            <span class="button-icon">💵</span>
+                            <span class="button-text">Выдача в подотчет</span>
+                        </button>
+                        <button class="report-button" onclick="createBusinessTripCertificate()">
+                            <span class="button-icon">✈️</span>
+                            <span class="button-text">Командировочное удостоверение</span>
+                        </button>
+                        <button class="report-button" onclick="showSection('accountable-operations')">
+                            <span class="button-icon">📋</span>
+                            <span class="button-text">Все подотчетные операции</span>
+                        </button>
+                    </div>
+                    
+                    <div class="report-category">
+                        <h3>Дополнительные отчеты</h3>
+                        <button class="report-button" onclick="generateReport('accounting')">
+                            <span class="button-icon">📝</span>
+                            <span class="button-text">Бухгалтерская отчетность</span>
+                        </button>
+                        <button class="report-button" onclick="generateDebtReport()">
+                            <span class="button-icon">💰</span>
+                            <span class="button-text">Отчет о задолженностях</span>
+                        </button>
+                        <button class="report-button" onclick="generateShareReturnReport()">
+                            <span class="button-icon">📤</span>
+                            <span class="button-text">Отчет о возвратах паевых взносов</span>
+                        </button>
+                        <button class="report-button" onclick="showFundsMovementReport()">
+                            <span class="button-icon">📊</span>
+                            <span class="button-text">Ведомость движения фондов</span>
+                        </button>
+                        <button class="report-button" onclick="showShareValueCalculation()">
+                            <span class="button-icon">🧮</span>
+                            <span class="button-text">Расчёт стоимости пая</span>
+                        </button>
+                        <button class="report-button" onclick="showTargetUseJournal()">
+                            <span class="button-icon">📖</span>
+                            <span class="button-text">Журнал целевого использования</span>
+                        </button>
+                        <button class="report-button" onclick="showControlDashboard()">
+                            <span class="button-icon">⏰</span>
+                            <span class="button-text">Контроль сроков</span>
+                        </button>
+                        <button class="report-button" onclick="showCalendar()">
+                            <span class="button-icon">📅</span>
+                            <span class="button-text">Календарь событий</span>
+                        </button>
+                    </div>
+
+                    <div class="report-category">
+                        <h3>📋 Реестры и списки</h3>
+                        <button class="report-button" onclick="showMembersRegistry()">
+                            <span class="button-icon">📋</span>
+                            <span class="button-text">Реестр членов кооператива</span>
+                        </button>
+                        <button class="report-button" onclick="showCertificatesRegistry()">
+                            <span class="button-icon">📜</span>
+                            <span class="button-text">Реестр удостоверений</span>
+                        </button>
+                        <button class="report-button" onclick="showMeetingProtocolForm()">
+                            <span class="button-icon">📝</span>
+                            <span class="button-text">Протокол общего собрания</span>
+                        </button>
+                        <button class="report-button" onclick="showAttendanceList()">
+                            <span class="button-icon">✍️</span>
+                            <span class="button-text">Лист регистрации участников</span>
+                        </button>
+                    </div>
+
+                    <div class="report-category">
+                        <h3>📊 Годовая отчётность</h3>
+                        <button class="report-button" onclick="showAnnualFundsReport()">
+                            <span class="button-icon">📊</span>
+                            <span class="button-text">Годовой отчёт по фондам</span>
+                        </button>
+                        <button class="report-button" onclick="showSupervisionReport()">
+                            <span class="button-icon">👁️</span>
+                            <span class="button-text">Заключение ревизионной комиссии</span>
+                        </button>
+                    </div>
+
+                    <div class="report-category">
+                        <h3>📈 Аналитика</h3>
+                        <button class="report-button" onclick="showAnalyticsReports()">
+                            <span class="button-icon">📈</span>
+                            <span class="button-text">Аналитические отчёты</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="report-preview-area">
+                    <h3>Предварительный просмотр отчета</h3>
+                    <div id="report-output" class="report-output">
+                        <p>Выберите тип отчета для его формирования</p>
+                        <p class="hint">Официальные формы отчетности соответствуют требованиям законодательства РФ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="applications" class="section">
+            <h2>Заявления на вступление</h2>
+            <div class="toolbar">
+                <button onclick="addApplication()">Подать заявление</button>
+                <button onclick="batchProcessApplications()">Пакетное рассмотрение</button>
+            </div>
+            <table id="applications-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ФИО заявителя</th>
+                        <th>Контакт</th>
+                        <th>Дата подачи</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="applications-tbody">
+                    <!-- Данные будут загружаться сюда -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="meetings" class="section">
+            <h2>Заседания и протоколы</h2>
+            <div class="toolbar">
+                <button onclick="scheduleMeeting()">Назначить заседание</button>
+            </div>
+            <table id="meetings-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Дата</th>
+                        <th>Тип</th>
+                        <th>Тема</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="meetings-tbody">
+                    <!-- Данные будут загружаться сюда -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="settings" class="section">
+            <h2>⚙️ Настройки кооператива</h2>
+
+            <div class="settings-dashboard">
+                <div class="settings-category">
+                    <h3>📋 Общая информация</h3>
+                    <div class="settings-grid">
+                        <button class="settings-card" onclick="showGeneralSettings()">
+                            <span class="settings-icon">🏢</span>
+                            <span class="settings-title">Наименование и адреса</span>
+                            <span class="settings-desc">Полное и краткое название, юридический и фактический адрес</span>
+                        </button>
+                        <button class="settings-card" onclick="showBranchesSettings()">
+                            <span class="settings-icon">📍</span>
+                            <span class="settings-title">Филиалы и представительства</span>
+                            <span class="settings-desc">Информация о филиалах, представительствах кооператива</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-category">
+                    <h3>👥 Органы управления</h3>
+                    <div class="settings-grid">
+                        <button class="settings-card" onclick="showChairmanSettings()">
+                            <span class="settings-icon">👔</span>
+                            <span class="settings-title">Председатель</span>
+                            <span class="settings-desc">Информация о председателе кооператива</span>
+                        </button>
+                        <button class="settings-card" onclick="showCouncilSettings()">
+                            <span class="settings-icon">🏛️</span>
+                            <span class="settings-title">Совет кооператива</span>
+                            <span class="settings-desc">Члены совета кооператива</span>
+                        </button>
+                        <button class="settings-card" onclick="showBoardSettings()">
+                            <span class="settings-icon">📋</span>
+                            <span class="settings-title">Правление</span>
+                            <span class="settings-desc">Члены правления кооператива</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-category">
+                    <h3>🗺️ Структура кооператива</h3>
+                    <div class="settings-grid">
+                        <button class="settings-card" onclick="showAreasSettings()">
+                            <span class="settings-icon">🗺️</span>
+                            <span class="settings-title">Кооперативные участки</span>
+                            <span class="settings-desc">Участки и территориальное деление пайщиков</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-category">
+                    <h3>👁️ Контроль</h3>
+                    <div class="settings-grid">
+                        <button class="settings-card" onclick="showSupervisionSettings()">
+                            <span class="settings-icon">👁️</span>
+                            <span class="settings-title">Ревизионная комиссия</span>
+                            <span class="settings-desc">Ревизор или ревизионная комиссия</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-category">
+                    <h3>💰 Взносы и фонды</h3>
+                    <div class="settings-grid">
+                        <button class="settings-card" onclick="showContributionTypesSettings()">
+                            <span class="settings-icon">💵</span>
+                            <span class="settings-title">Виды и размеры взносов</span>
+                            <span class="settings-desc">Минимальные размеры, периодичность взносов</span>
+                        </button>
+                        <button class="settings-card" onclick="showFundDistributionSettings()">
+                            <span class="settings-icon">📊</span>
+                            <span class="settings-title">Распределение по фондам</span>
+                            <span class="settings-desc">Порядок распределения членских взносов (%)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-category">
+                    <h3>📊 Налогообложение и отчётность</h3>
+                    <div class="settings-grid">
+                        <button class="settings-card" onclick="showTaxSystemSettings()">
+                            <span class="settings-icon">📈</span>
+                            <span class="settings-title">Система налогообложения</span>
+                            <span class="settings-desc">УСН, ОСНО, ставка налога</span>
+                        </button>
+                        <button class="settings-card" onclick="showProfitDistributionSettings()">
+                            <span class="settings-icon">💰</span>
+                            <span class="settings-title">Распределение прибыли</span>
+                            <span class="settings-desc">Порядок распределения прибыли (%)</span>
+                        </button>
+                        <button class="settings-card" onclick="showAccountingPolicySettings()">
+                            <span class="settings-icon">📖</span>
+                            <span class="settings-title">Учётная политика</span>
+                            <span class="settings-desc">Параметры бухгалтерского и налогового учёта</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-category">
+                    <h3>🔧 Системные настройки</h3>
+                    <div class="settings-grid">
+                        <button class="settings-card" onclick="showDataSettings()">
+                            <span class="settings-icon">💾</span>
+                            <span class="settings-title">Данные и хранение</span>
+                            <span class="settings-desc">Настройки хранения, резервное копирование</span>
+                        </button>
+                        <button class="settings-card" onclick="showSystemSettings()">
+                            <span class="settings-icon">⚙️</span>
+                            <span class="settings-title">Системные параметры</span>
+                            <span class="settings-desc">Дополнительные настройки системы</span>
+                        </button>
+                        <button class="settings-card" onclick="showZeroReportingMenu()">
+                            <span class="settings-icon">📄</span>
+                            <span class="settings-title">Нулевая отчётность</span>
+                            <span class="settings-desc">Шаблоны при отсутствии деятельности</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно для инструкции по настройке -->
+    <div id="setup-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeSetupModal()">&times;</span>
+            <div id="setup-modal-body">
+                <h2>Настройка системы</h2>
+                <p>Для корректной работы системы необходимо настроить доступ к папке C:\КООПЕРАНТ</p>
+                <ol>
+                    <li>Создайте папку C:\КООПЕРАНТ на вашем компьютере</li>
+                    <li>Нажмите кнопку "Настроить доступ к папке" ниже</li>
+                    <li>В открывшемся окне выберите папку C:\КООПЕРАНТ</li>
+                    <li>Предоставьте разрешение на доступ к этой папке</li>
+                </ol>
+                <button onclick="setupCooperativeDirectory()">Настроить доступ к папке</button>
+                <p>После настройки система будет готова к работе</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для обычных операций -->
+    <div id="modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Правое боковое меню -->
+    <div id="side-menu" class="side-menu">
+        <div class="side-menu-header">
+            <h3 id="side-menu-title">Детали</h3>
+            <span class="close" onclick="closeSideMenu()">&times;</span>
+        </div>
+        <div id="side-menu-body" class="side-menu-body">
+            <!-- Содержимое бокового меню будет загружаться сюда -->
+        </div>
+    </div>
+
+    <!-- Индикатор состояния подключения папки -->
+    <div id="folder-status-indicator" title="Состояние подключения папки C:\КООПЕРАНТ">
+        <div class="indicator-dot"></div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="application_functions.js"></script>
+    <script src="reports.js"></script>
+    <script src="settings.js"></script>
+    <script src="pdf_export.js"></script>
+</body>
+</html>

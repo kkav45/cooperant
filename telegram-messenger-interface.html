@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Telegram Mini App Meta -->
+    <meta name="theme-color" content="#2481cc">
+    <meta name="color-scheme" content="light dark">
+    
+    <!-- PWA Meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Description -->
+    <meta name="description" content="Информационная система учета пайщиков кооператива">
+    
+    <title>Кооперативный Мессенджер</title>
+    
+    <!-- Telegram Web Apps SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Стили Telegram Mini App -->
+    <link rel="stylesheet" href="telegram-mini-app-styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Левое меню навигации -->
+        <aside class="sidebar-menu" id="sidebarMenu">
+            <div class="menu-header">
+                <div class="menu-title">☰ Меню</div>
+                <button class="menu-close-btn" id="menuCloseBtn" aria-label="Закрыть меню">✕</button>
+            </div>
+            <div class="menu-content" id="menuContent">
+                <!-- Секции меню будут добавлены через JavaScript -->
+            </div>
+        </aside>
+
+        <!-- Подменю отчетов -->
+        <aside class="reports-submenu" id="reportsSubmenu">
+            <div class="submenu-header">
+                <button class="submenu-back-btn" id="reportsBackBtn">
+                    ← Назад
+                </button>
+                <div class="submenu-title" id="reportsSubmenuTitle">Отчёты</div>
+                <div style="width: 36px;"></div> <!-- Для центровки -->
+            </div>
+            <div class="submenu-content" id="reportsSubmenuContent">
+                <!-- Секции отчетов будут добавлены через JavaScript -->
+            </div>
+        </aside>
+
+        <!-- Список чатов -->
+        <aside class="chats-panel" id="chatsPanel">
+            <div class="chats-header">
+                <button class="burger-btn" id="burgerBtn" aria-label="Открыть меню">☰</button>
+                <div class="cooperative-info">
+                    <div class="cooperative-name" id="cooperativeName">Кооператив «Название»</div>
+                    <div class="cooperative-stats" id="cooperativeStats">125 пайщиков</div>
+                </div>
+                <button class="menu-more-btn" id="menuMoreBtn" aria-label="Ещё">⋮</button>
+            </div>
+            
+            <div class="search-section">
+                <div class="search-box">
+                    <span style="margin-right: 8px;">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Поиск пайщиков...">
+                </div>
+                <div class="quick-filters" id="quickFilters">
+                    <button class="filter-chip active" data-filter="all">Все</button>
+                    <button class="filter-chip" data-filter="active">✓ Активные</button>
+                    <button class="filter-chip" data-filter="debt">⚠ Должники</button>
+                    <button class="filter-chip" data-filter="pending">📝 Новые</button>
+                </div>
+            </div>
+            
+            <div class="chats-list" id="chatsList">
+                <!-- Чаты будут добавлены через JavaScript -->
+            </div>
+        </aside>
+
+        <!-- Центральная часть (основной чат) -->
+        <main class="main-chat" id="mainChat">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <div class="chat-header-avatar" id="currentAvatar">ИА</div>
+                    <div>
+                        <div class="chat-header-name" id="currentName">Выберите пайщика</div>
+                        <div class="chat-header-status" id="currentStatus">Онлайн</div>
+                    </div>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="header-action-btn" id="callBtn" aria-label="Позвонить">📞</button>
+                    <button class="header-action-btn" id="infoBtn" aria-label="Информация">ℹ️</button>
+                </div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <!-- Сообщения будут добавлены через JavaScript -->
+            </div>
+            
+            <div class="message-input-wrapper">
+                <div class="message-input-area">
+                    <button class="attach-btn" id="attachBtn" aria-label="Прикрепить">📎</button>
+                    <input type="text" class="message-input" id="messageInput" placeholder="Сообщение...">
+                    <button class="voice-btn" id="voiceBtn" aria-label="Голосовое">🎤</button>
+                    <button class="send-button" id="sendButton">➤</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Большая правая панель (отчеты) -->
+        <aside class="large-report-panel" id="largeReportPanel">
+            <div class="large-report-header">
+                <div class="large-report-title" id="largeReportTitle">Отчёт</div>
+                <button class="close-large-report-btn" id="closeLargeReportBtn">✕</button>
+            </div>
+            <div class="large-report-content" id="largeReportContent">
+                <!-- Содержимое отчёта -->
+            </div>
+        </aside>
+
+        <!-- Правая панель (инфо о пайщике) -->
+        <aside class="sidebar-right" id="sidebarRight">
+            <div class="member-info-header">
+                <div class="large-report-title">Детали операции</div>
+                <button class="close-info-btn" id="closeInfoBtn" aria-label="Закрыть">✕</button>
+            </div>
+            <div class="member-info-content" id="memberInfoContent">
+                <!-- Детали операции -->
+            </div>
+        </aside>
+    </div>
+
+    <!-- FAB кнопка -->
+    <div class="fab-container hidden" id="fabContainer">
+        <div class="fab-menu" id="fabMenu">
+            <div class="fab-item">
+                <button class="fab-item-btn" id="fabNewOperation" style="background: linear-gradient(135deg, #4caf50, #43a047);">💰</button>
+                <div class="fab-item-label">Операция</div>
+            </div>
+            <div class="fab-item">
+                <button class="fab-item-btn" id="fabNewMessage" style="background: linear-gradient(135deg, #2196f3, #1e88e5);">✉️</button>
+                <div class="fab-item-label">Сообщение</div>
+            </div>
+            <div class="fab-item">
+                <button class="fab-item-btn" id="fabScanQR" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">📷</button>
+                <div class="fab-item-label">QR код</div>
+            </div>
+        </div>
+        <button class="fab-main" id="fabMain">+</button>
+    </div>
+
+    <!-- Telegram Mini App Integration -->
+    <script src="telegram-mini-app.js"></script>
+    
+    <!-- Основной JavaScript приложения -->
+    <script>
+        // ========================================
+        // ДАННЫЕ ПРИЛОЖЕНИЯ
+        // ========================================
+        
+        const membersData = [
+            { 
+                id: 1, 
+                name: "Иванов Иван Иванович", 
+                avatar: "ИА", 
+                color: "linear-gradient(135deg,#ff6b6b,#ee5a5a)", 
+                status: "debt", 
+                statusText: "Должник", 
+                balance: -2000, 
+                phone: "+7 (999) 123-45-67", 
+                email: "ivanov@example.com", 
+                lastTransaction: "Просрочен членский взнос (2 мес)", 
+                lastTime: "10:30",
+                operations: [
+                    { id: 1, type: "Внесение пая", amount: 5000, date: "2024-01-15", description: "Ежегодный паевой взнос", status: "paid" },
+                    { id: 2, type: "Членский взнос", amount: 1000, date: "2024-02-01", description: "Членский взнос за февраль", status: "overdue" }
+                ]
+            },
+            { 
+                id: 2, 
+                name: "Петрова Мария Сергеевна", 
+                avatar: "ПМ", 
+                color: "linear-gradient(135deg,#51cf66,#40c057)", 
+                status: "active", 
+                statusText: "Активен", 
+                balance: 25000, 
+                phone: "+7 (999) 234-56-78", 
+                email: "petrova@example.com", 
+                lastTransaction: "Внесён паевой взнос 10 000 ₽", 
+                lastTime: "Вчера",
+                operations: [
+                    { id: 4, type: "Внесение пая", amount: 10000, date: "2024-01-14", description: "Дополнительный паевой взнос", status: "paid" },
+                    { id: 5, type: "Вступительный взнос", amount: 5000, date: "2023-12-10", description: "Вступительный взнос", status: "paid" }
+                ]
+            },
+            { 
+                id: 3, 
+                name: "Сидоров Дмитрий Петрович", 
+                avatar: "СД", 
+                color: "linear-gradient(135deg,#fcc419,#fab005)", 
+                status: "pending", 
+                statusText: "На рассмотрении", 
+                balance: 5000, 
+                phone: "+7 (999) 345-67-89", 
+                email: "sidorov@example.com", 
+                lastTransaction: "Заявление о вступлении подано", 
+                lastTime: "Пт",
+                operations: [
+                    { id: 7, type: "Вступительный взнос", amount: 5000, date: "2024-01-13", description: "Вступительный взнос", status: "pending" }
+                ]
+            }
+        ];
+
+        let currentMember = null;
+        let currentMessages = [];
+        let fabExpanded = false;
+
+        // ========================================
+        // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+        // ========================================
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Ждём инициализации Telegram
+            await window.TelegramMiniApp.ready();
+            
+            console.log('App initialized with Telegram:', window.TelegramMiniApp.ready());
+            
+            // Получаем данные пользователя из Telegram
+            const userData = window.TelegramMiniApp.getUserData();
+            if (userData) {
+                console.log('User data from Telegram:', userData);
+                // Можно использовать userData.firstName, userData.username и т.д.
+            }
+            
+            // Инициализируем приложение
+            initApp();
+        });
+
+        function initApp() {
+            renderChats();
+            renderMenu();
+            if (membersData.length > 0) {
+                selectMember(membersData[0]);
+            }
+            setupEventListeners();
+            setupFabButton();
+            setupFilters();
+            setupSearch();
+            
+            // Применяем тактильный отклик
+            applyHapticFeedbackToButtons();
+        }
+
+        // ========================================
+        // РЕНДЕРИНГ ЧАТОВ
+        // ========================================
+        
+        function renderChats(filter = 'all') {
+            const chatsList = document.getElementById('chatsList');
+            
+            const filteredData = filter === 'all' 
+                ? membersData 
+                : membersData.filter(m => m.status === filter);
+            
+            chatsList.innerHTML = filteredData.map(m => {
+                const balanceClass = m.balance >= 0 ? 'positive' : 'negative';
+                const balanceText = m.balance >= 0 ? `${m.balance.toLocaleString()} ₽` : `−${Math.abs(m.balance).toLocaleString()} ₽`;
+                const icon = m.status === 'debt' ? '⚠' : m.status === 'pending' ? '📝' : '✓';
+                
+                return `<div class="chat-item" data-id="${m.id}">
+                    <div class="avatar" style="background:${m.color}">${m.avatar}</div>
+                    <div class="chat-info">
+                        <div class="chat-top">
+                            <span class="chat-name">${m.name}</span>
+                            <span class="chat-time">${m.lastTime}</span>
+                        </div>
+                        <div class="chat-middle">
+                            <span class="status ${m.status}">${m.statusText}</span>
+                            <span class="balance ${balanceClass}">${balanceText}</span>
+                        </div>
+                        <div class="last-message">
+                            <span class="icon">${icon}</span> ${m.lastTransaction}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            chatsList.querySelectorAll('.chat-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const id = parseInt(item.dataset.id);
+                    const member = membersData.find(m => m.id === id);
+                    if (member) {
+                        window.TelegramMiniApp.hapticFeedback('light');
+                        selectMember(member);
+                    }
+                });
+            });
+        }
+
+        // ========================================
+        // ВЫБОР ПАЙЩИКА
+        // ========================================
+        
+        function selectMember(member) {
+            currentMember = member;
+            
+            // Обновляем заголовок чата
+            document.getElementById('currentName').textContent = member.name;
+            document.getElementById('currentAvatar').textContent = member.avatar;
+            document.getElementById('currentStatus').textContent = member.statusText;
+            
+            // Убираем активный класс у всех чатов
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Добавляем активный класс текущему чату
+            const activeItem = document.querySelector(`.chat-item[data-id="${member.id}"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+            }
+            
+            // Отображаем сообщения
+            renderMessages(member.operations);
+            
+            // Скрываем правую панель
+            document.getElementById('sidebarRight').classList.remove('visible');
+        }
+
+        // ========================================
+        // РЕНДЕРИНГ СООБЩЕНИЙ
+        // ========================================
+        
+        function renderMessages(messages) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '';
+            currentMessages = [...messages];
+
+            messages.forEach(msg => {
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message received';
+                messageElement.dataset.id = msg.id;
+
+                const formattedAmount = msg.amount ? `${msg.amount.toLocaleString()} руб.` : '';
+
+                messageElement.innerHTML = `
+                    <div class="message-type">${msg.type}</div>
+                    <div class="message-content">${formattedAmount}</div>
+                    <div class="message-time">${msg.date}</div>
+                `;
+
+                messageElement.addEventListener('click', () => {
+                    window.TelegramMiniApp.hapticFeedback('light');
+                    showMessageDetails(msg);
+                });
+                
+                messagesContainer.appendChild(messageElement);
+            });
+            
+            // Прокрутка вниз
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // ========================================
+        // ДЕТАЛИ ОПЕРАЦИИ
+        // ========================================
+        
+        function showMessageDetails(operation) {
+            const content = document.getElementById('memberInfoContent');
+            content.innerHTML = `
+                <div class="detail-item">
+                    <div class="detail-label">Тип операции</div>
+                    <div class="detail-value highlight">${operation.type}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Сумма</div>
+                    <div class="detail-value highlight">${operation.amount ? operation.amount.toLocaleString() + ' руб.' : '—'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Дата</div>
+                    <div class="detail-value">${operation.date}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Описание</div>
+                    <div class="detail-value">${operation.description || '—'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Статус</div>
+                    <div class="detail-value">${operation.status || '—'}</div>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn primary">Редактировать</button>
+                    <button class="action-btn secondary">Распечатать</button>
+                    <button class="action-btn danger">Удалить</button>
+                </div>
+            `;
+            
+            document.getElementById('sidebarRight').classList.add('visible');
+            
+            // Добавляем обработчик BackButton
+            window.TelegramMiniApp.addBackHandler(() => {
+                document.getElementById('sidebarRight').classList.remove('visible');
+                window.TelegramMiniApp.removeBackHandler();
+            });
+        }
+
+        // ========================================
+        // МЕНЮ
+        // ========================================
+        
+        function renderMenu() {
+            const menuContent = document.getElementById('menuContent');
+            const menuSections = [
+                {
+                    title: 'Основные разделы',
+                    items: [
+                        { icon: '🏠', name: 'Главная', subtitle: 'Обзор кооператива' },
+                        { icon: '👥', name: 'Пайщики', subtitle: 'Реестр членов' },
+                        { icon: '💳', name: 'Взносы', subtitle: 'Платежи и взносы' },
+                        { icon: '📘', name: 'Бухгалтерия', subtitle: 'Финансовые отчёты' }
+                    ]
+                },
+                {
+                    title: 'Документы',
+                    items: [
+                        { icon: '📁', name: 'Документы', subtitle: 'Все документы' },
+                        { icon: '📝', name: 'Заявления', subtitle: 'Заявления пайщиков' },
+                        { icon: '🤝', name: 'Заседания', subtitle: 'Протоколы собраний' }
+                    ]
+                },
+                {
+                    title: 'Отчёты',
+                    items: [
+                        { icon: '📊', name: 'Отчёты', subtitle: 'Все отчёты' },
+                        { icon: '📈', name: 'Аналитика', subtitle: 'Статистика и графики' }
+                    ]
+                }
+            ];
+            
+            menuContent.innerHTML = menuSections.map(section => `
+                <div class="menu-section">
+                    <div class="menu-section-title">${section.title}</div>
+                    ${section.items.map(item => `
+                        <div class="menu-item" data-item="${item.name}">
+                            <div class="menu-item-icon">${item.icon}</div>
+                            <div class="menu-item-info">
+                                <div class="menu-item-name">${item.name}</div>
+                                <div class="menu-item-subtitle">${item.subtitle}</div>
+                            </div>
+                            <div class="menu-arrow">›</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+            
+            // Обработчики кликов
+            menuContent.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    window.TelegramMiniApp.hapticFeedback('light');
+                    const itemName = item.dataset.item;
+                    
+                    if (itemName === 'Отчёты' || itemName === 'Аналитика') {
+                        openReportsSubmenu(itemName);
+                    } else {
+                        window.TelegramMiniApp.showAlert(`Переход в раздел "${itemName}" (в разработке)`);
+                    }
+                });
+            });
+        }
+
+        // ========================================
+        // ПОДМЕНЮ ОТЧЁТОВ
+        // ========================================
+        
+        function openReportsSubmenu(title) {
+            document.getElementById('reportsSubmenuTitle').textContent = title;
+            const content = document.getElementById('reportsSubmenuContent');
+            
+            const reports = [
+                { icon: '📊', title: 'Бухгалтерский баланс', desc: 'Форма №1' },
+                { icon: '📈', title: 'Отчёт о фин. результатах', desc: 'Форма №2' },
+                { icon: '📋', title: 'Отчёт по пайщикам', desc: 'Реестр членов' },
+                { icon: '💳', title: 'Отчёт по взносам', desc: 'Поступления' }
+            ];
+            
+            content.innerHTML = `
+                <div class="submenu-section">
+                    ${reports.map(report => `
+                        <div class="report-card">
+                            <div class="report-card-icon">${report.icon}</div>
+                            <div class="report-card-info">
+                                <div class="report-card-title">${report.title}</div>
+                                <div class="report-card-desc">${report.desc}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.getElementById('reportsSubmenu').classList.add('visible');
+            
+            // Обработчик BackButton
+            window.TelegramMiniApp.addBackHandler(() => {
+                document.getElementById('reportsSubmenu').classList.remove('visible');
+                window.TelegramMiniApp.removeBackHandler();
+            });
+        }
+
+        // ========================================
+        // FAB КНОПКА
+        // ========================================
+        
+        function setupFabButton() {
+            const fabMain = document.getElementById('fabMain');
+            const fabMenu = document.getElementById('fabMenu');
+            const fabContainer = document.getElementById('fabContainer');
+            
+            fabMain.addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('selection');
+                fabExpanded = !fabExpanded;
+                
+                if (fabExpanded) {
+                    fabMenu.classList.add('expanded');
+                    fabMain.classList.add('close');
+                    fabContainer.classList.remove('hidden');
+                } else {
+                    fabMenu.classList.remove('expanded');
+                    fabMain.classList.remove('close');
+                }
+            });
+            
+            // Обработчики кнопок FAB
+            document.getElementById('fabNewOperation').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('success');
+                fabExpanded = false;
+                fabMenu.classList.remove('expanded');
+                fabMain.classList.remove('close');
+                window.TelegramMiniApp.showAlert('Создание новой операции (в разработке)');
+            });
+            
+            document.getElementById('fabNewMessage').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('success');
+                fabExpanded = false;
+                fabMenu.classList.remove('expanded');
+                fabMain.classList.remove('close');
+                window.TelegramMiniApp.showAlert('Новое сообщение (в разработке)');
+            });
+            
+            document.getElementById('fabScanQR').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('success');
+                fabExpanded = false;
+                fabMenu.classList.remove('expanded');
+                fabMain.classList.remove('close');
+                
+                // Используем нативный сканер QR Telegram
+                if (window.TelegramMiniApp.getTelegram()) {
+                    window.TelegramMiniApp.getTelegram().showPopup({
+                        title: 'Сканер QR',
+                        message: 'Функция сканирования QR кодов будет доступна через Telegram.WebApp.scanQR()',
+                        buttons: [{type: 'ok'}]
+                    });
+                } else {
+                    window.TelegramMiniApp.showAlert('Сканирование QR кода (требуется Telegram)');
+                }
+            });
+        }
+
+        // ========================================
+        // ФИЛЬРЫ
+        // ========================================
+        
+        function setupFilters() {
+            const filterButtons = document.querySelectorAll('.filter-chip');
+            
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.TelegramMiniApp.hapticFeedback('selection');
+                    
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const filter = btn.dataset.filter;
+                    renderChats(filter);
+                });
+            });
+        }
+
+        // ========================================
+        // ПОИСК
+        // ========================================
+        
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const chatItems = document.querySelectorAll('.chat-item');
+                
+                chatItems.forEach(item => {
+                    const name = item.querySelector('.chat-name').textContent.toLowerCase();
+                    const isVisible = name.includes(searchTerm);
+                    item.style.display = isVisible ? 'flex' : 'none';
+                });
+            });
+        }
+
+        // ========================================
+        // ОБРАБОТЧИКИ СОБЫТИЙ
+        // ========================================
+        
+        function setupEventListeners() {
+            // Бургер меню
+            document.getElementById('burgerBtn').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('light');
+                document.getElementById('sidebarMenu').classList.add('visible');
+            });
+            
+            // Закрытие меню
+            document.getElementById('menuCloseBtn').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('light');
+                document.getElementById('sidebarMenu').classList.remove('visible');
+            });
+            
+            // Назад к отчётам
+            document.getElementById('reportsBackBtn').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('light');
+                document.getElementById('reportsSubmenu').classList.remove('visible');
+                window.TelegramMiniApp.removeBackHandler();
+            });
+            
+            // Закрытие большой панели отчётов
+            document.getElementById('closeLargeReportBtn').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('light');
+                document.getElementById('largeReportPanel').classList.remove('visible');
+                window.TelegramMiniApp.removeBackHandler();
+            });
+            
+            // Закрытие панели информации
+            document.getElementById('closeInfoBtn').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('light');
+                document.getElementById('sidebarRight').classList.remove('visible');
+                window.TelegramMiniApp.removeBackHandler();
+            });
+            
+            // Кнопка отправки
+            document.getElementById('sendButton').addEventListener('click', sendMessage);
+            document.getElementById('messageInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            
+            // Кнопки заголовка
+            document.getElementById('callBtn').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('light');
+                window.TelegramMiniApp.showAlert('Звонок (в разработке)');
+            });
+            
+            document.getElementById('infoBtn').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('light');
+                if (currentMember) {
+                    window.TelegramMiniApp.showAlert(`${currentMember.name}\n${currentMember.phone}\n${currentMember.email}`);
+                }
+            });
+            
+            // Кнопки ввода
+            document.getElementById('attachBtn').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('light');
+                window.TelegramMiniApp.showAlert('Прикрепить файл (в разработке)');
+            });
+            
+            document.getElementById('voiceBtn').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('light');
+                window.TelegramMiniApp.showAlert('Голосовое сообщение (в разработке)');
+            });
+            
+            // Кнопка "Ещё"
+            document.getElementById('menuMoreBtn').addEventListener('click', () => {
+                window.TelegramMiniApp.hapticFeedback('light');
+                window.TelegramMiniApp.showPopup({
+                    title: 'Действия',
+                    message: 'Выберите действие:',
+                    buttons: [
+                        {id: 'settings', type: 'default', text: 'Настройки'},
+                        {id: 'help', type: 'default', text: 'Помощь'},
+                        {id: 'cancel', type: 'destructive', text: 'Отмена'}
+                    ]
+                }, (buttonId) => {
+                    console.log('Selected button:', buttonId);
+                });
+            });
+        }
+
+        // ========================================
+        // ОТПРАВКА СООБЩЕНИЯ
+        // ========================================
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            
+            if (!text || !currentMember) return;
+            
+            window.TelegramMiniApp.hapticFeedback('success');
+            
+            // Создаём новое сообщение
+            const newMessage = {
+                id: Date.now(),
+                type: "Сообщение",
+                amount: 0,
+                date: new Date().toISOString().split('T')[0],
+                description: text
+            };
+            
+            // Добавляем к операциям
+            currentMember.operations.push(newMessage);
+            
+            // Рендерим сообщение
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message sent';
+            messageElement.dataset.id = newMessage.id;
+            
+            messageElement.innerHTML = `
+                <div class="message-content">${text}</div>
+                <div class="message-time">${formatTime(new Date())}</div>
+            `;
+            
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Очищаем поле
+            input.value = '';
+            
+            // Обновляем последнее сообщение
+            updateLastMessage(currentMember.id, text);
+        }
+
+        function formatTime(date) {
+            return date.getHours().toString().padStart(2, '0') + ':' + 
+                   date.getMinutes().toString().padStart(2, '0');
+        }
+
+        function updateLastMessage(memberId, message) {
+            const chatItem = document.querySelector(`.chat-item[data-id="${memberId}"]`);
+            if (chatItem) {
+                const lastMessageEl = chatItem.querySelector('.last-message');
+                lastMessageEl.innerHTML = `<span class="icon">✓</span> ${message}`;
+                
+                const timeEl = chatItem.querySelector('.chat-time');
+                timeEl.textContent = formatTime(new Date());
+            }
+        }
+    </script>
+</body>
+</html>

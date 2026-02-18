@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест кнопки возврата взноса</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тестирование кнопки возврата взноса</h1>
+    
+    <div class="test-section">
+        <h3>Тест основной кнопки "Возврат взноса"</h3>
+        <p>Эта кнопка должна вызывать стандартную форму возврата взноса:</p>
+        <button onclick="showReturnPaymentForm()">Возврат взноса</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>Тест кнопки с параметрами (для выбытия пайщика)</h3>
+        <p>Эта кнопка должна вызывать форму возврата с предопределенным пайщиком:</p>
+        <button onclick="showReturnPaymentForm('test_member_id', '2023-01-01')">Возврат взноса (с параметрами)</button>
+    </div>
+
+    <script>
+        // Имитация необходимых переменных и функций для тестирования
+        let members = [
+            {id: 'test_member_id', name: 'Тестовый Пайщик'},
+            {id: 'member2', name: 'Второй Пайщик'}
+        ];
+        
+        let payments = [
+            {memberId: 'test_member_id', type: 'share', paid: true, amount: 10000}
+        ];
+
+        // Функция генерации ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // Заглушка для showSideMenu
+        function showSideMenu(title, content) {
+            alert(`showSideMenu вызван\nЗаголовок: ${title}\nСодержимое: ${content.substring(0, 100)}...`);
+        }
+
+        // Заглушка для showModal
+        function showModal(content) {
+            alert(`showModal вызван\nСодержимое: ${content.substring(0, 100)}...`);
+        }
+
+        // Заглушка для closeModal
+        function closeModal() {
+            alert('closeModal вызван');
+        }
+
+        // Заглушка для closeSideMenu
+        function closeSideMenu() {
+            alert('closeSideMenu вызван');
+        }
+
+        // Универсальная функция, которую мы создали
+        function showReturnPaymentForm(selectedMemberId = null, withdrawalDate = null) {
+            console.log(`showReturnPaymentForm вызвана с параметрами: selectedMemberId=${selectedMemberId}, withdrawalDate=${withdrawalDate}`);
+            
+            // Если передан memberId, то это вызов из процесса выбытия пайщика
+            if (selectedMemberId) {
+                const member = members.find(m => m.id === selectedMemberId);
+                if (!member) {
+                    console.error('Пайщик не найден');
+                    return;
+                }
+
+                // Рассчитываем сумму к возврату (упрощенный расчет)
+                const eligiblePayments = payments.filter(p =>
+                    p.memberId === selectedMemberId &&
+                    p.type === 'share' &&
+                    p.paid === true
+                );
+
+                const totalEligibleAmount = eligiblePayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+                showModal(`
+                    <h3>Возврат паевого взноса пайщику: ${member.name}</h3>
+                    <form id="return-payment-form">
+                        <input type="hidden" id="return-member-id" value="${member.id}">
+                        <input type="hidden" id="return-withdrawal-date" value="${withdrawalDate || new Date().toISOString().split('T')[0]}">
+                        <div class="form-group">
+                            <label for="return-amount">Сумма к возврату</label>
+                            <input type="number" id="return-amount" value="${totalEligibleAmount}" readonly>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="return-method">Форма возврата</label>
+                                <select id="return-method" required>
+                                    <option value="cash">Наличные</option>
+                                    <option value="non_cash">Безналичные</option>
+                                    <option value="property">Имущество</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="return-date">Дата возврата *</label>
+                                <input type="date" id="return-date" value="${withdrawalDate || new Date().toISOString().split('T')[0]}" required>
+                            </div>
+                        </div>
+                        <div class="form-group" id="return-property-details" style="display:none;">
+                            <label for="return-property-desc">Описание возвращаемого имущества</label>
+                            <textarea id="return-property-desc" rows="2" placeholder="Опишите имущество, возвращаемое пайщику"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="return-document">Номер документа</label>
+                            <input type="text" id="return-document" placeholder="Акт возврата паевого взноса">
+                        </div>
+                        <div class="form-group">
+                            <label for="return-description">Описание операции</label>
+                            <textarea id="return-description" rows="2">Возврат паевого взноса при выбытии пайщика</textarea>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <button type="button" onclick="processReturnPayment()">Выполнить возврат</button>
+                            <button type="button" onclick="closeModal()">Отмена</button>
+                        </div>
+                    </form>
+                    <script>
+                        document.getElementById('return-method').addEventListener('change', function() {
+                            const propertyDetails = document.getElementById('return-property-details');
+                            if (this.value === 'property') {
+                                propertyDetails.style.display = 'block';
+                            } else {
+                                propertyDetails.style.display = 'none';
+                            }
+                        });
+                    <\/script>
+                `);
+            } else {
+                // Создаем HTML-форму для возврата паевого взноса (стандартный случай)
+                let content = `
+                    <h3>Возврат паевого взноса</h3>
+                    <form id="return-payment-form">
+                        <div class="form-group">
+                            <label for="return-payment-member">Пайщик *</label>
+                            <select id="return-payment-member" required>
+                                <option value="">Выберите пайщика</option>
+                                ${members.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="return-payment-type">Тип взноса *</label>
+                            <select id="return-payment-type" required>
+                                <option value="share">Паевой взнос</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="return-payment-method">Форма возврата *</label>
+                                <select id="return-payment-method" required onchange="toggleReturnPaymentDetails()">
+                                    <option value="cash">Наличные</option>
+                                    <option value="non_cash">Безналичные</option>
+                                    <option value="property">Имущество</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="return-amount-field" style="display:block;">
+                                <label for="return-payment-amount">Сумма *</label>
+                                <input type="number" id="return-payment-amount" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="form-group" id="return-property-details" style="display:none;">
+                            <label for="return-payment-property-desc">Описание имущества *</label>
+                            <textarea id="return-payment-property-desc" rows="2" placeholder="Опишите имущество, возвращаемое пайщику"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="return-payment-date">Дата *</label>
+                                <input type="date" id="return-payment-date" value="${new Date().toISOString().split('T')[0]}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="return-payment-document">Номер документа *</label>
+                                <input type="text" id="return-payment-document" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="return-payment-description">Описание</label>
+                            <textarea id="return-payment-description" rows="2">Возврат паевого взноса</textarea>
+                        </div>
+                        <div style="margin-top: 1rem; display: flex; gap: 10px;">
+                            <button type="button" class="action-button save" onclick="saveReturnPayment()">Сохранить</button>
+                            <button type="button" class="action-button cancel" onclick="closeSideMenu()">Отмена</button>
+                        </div>
+                    </form>
+                    <script>
+                        // Генерируем автоматический номер документа
+                        const nextReturnPaymentNumber = payments.filter(p => p.type === 'return_share').length + 1;
+                        const returnPaymentDocumentNumber = 'Возв-' + new Date().getFullYear() + '-' + nextReturnPaymentNumber.toString().padStart(4, '0');
+                        document.getElementById('return-payment-document').value = returnPaymentDocumentNumber;
+
+                        // Обновляем поля при изменении метода оплаты
+                        function toggleReturnPaymentDetails() {
+                            const methodSelect = document.getElementById('return-payment-method');
+                            const amountField = document.getElementById('return-amount-field');
+                            const propertyDetails = document.getElementById('return-property-details');
+
+                            if (methodSelect && amountField && propertyDetails) {
+                                if (methodSelect.value === 'property') {
+                                    amountField.style.display = 'none';
+                                    propertyDetails.style.display = 'block';
+                                } else {
+                                    amountField.style.display = 'block';
+                                    propertyDetails.style.display = 'none';
+                                }
+                            }
+                        }
+                    <\/script>
+                `;
+
+                showSideMenu('Возврат паевого взноса', content);
+            }
+        }
+
+        // Заглушка для функций, которые должны существовать
+        function saveReturnPayment() {
+            alert('saveReturnPayment вызван');
+        }
+
+        function processReturnPayment() {
+            alert('processReturnPayment вызван');
+        }
+
+        // Сообщаем пользователю, что тест готов
+        console.log('Тестовая страница загружена. Проверьте кнопки.');
+    </script>
+</body>
+</html>

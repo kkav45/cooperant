@@ -1,0 +1,2352 @@
+/* Сброс стилей */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f4f4f4;
+}
+
+header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+header h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+nav ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+}
+
+nav li {
+    margin: 0 1rem;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+nav a:hover {
+    background-color: #34495e;
+}
+
+main {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.section {
+    display: none;
+    padding: 1rem;
+    min-height: calc(100vh - 120px);
+}
+
+.section.active {
+    display: block;
+}
+
+#messenger.section {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.stat-card {
+    background-color: #ecf0f1;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.stat-card h3 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.stat-card p {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.toolbar button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 1rem;
+}
+
+.toolbar button:hover {
+    background-color: #2980b9;
+}
+
+.toolbar input[type="text"] {
+    flex-grow: 1;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* ========================================
+   ЕДИНЫЕ СТИЛИ ДЛЯ ВСЕХ ТАБЛИЦ
+   ======================================== */
+
+/* Базовые стили для всех таблиц */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 13px;
+}
+
+/* Общие стили для заголовков и ячеек */
+th, td {
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: top;
+}
+
+/* Стили для заголовков таблицы */
+th {
+    background-color: #f5f5f5;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #bdbdbd;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Чередование строк */
+tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* Подсветка при наведении */
+tbody tr:hover {
+    background-color: #f5f5f5;
+    transition: background-color 0.2s ease;
+}
+
+/* Стили для кнопок в таблицах */
+.action-button {
+    display: inline-block;
+    padding: 6px 10px;
+    margin: 2px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-width: 32px;
+}
+
+.action-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.action-button:active {
+    transform: translateY(0);
+}
+
+/* Цвета для кнопок */
+.action-button {
+    background-color: #2196F3; /* Синий - просмотр */
+    color: white;
+}
+
+.action-button.edit {
+    background-color: #FF9800; /* Оранжевый - редактирование */
+}
+
+.action-button.delete {
+    background-color: #f44336; /* Красный - удаление */
+}
+
+.action-button.save {
+    background-color: #4CAF50; /* Зелёный - сохранение */
+}
+
+.action-button.cancel {
+    background-color: #9E9E9E; /* Серый - отмена */
+}
+
+/* Статусы в таблицах */
+.status-pending {
+    color: #FF9800;
+    font-weight: 500;
+}
+
+.status-approved {
+    color: #4CAF50;
+    font-weight: 500;
+}
+
+.status-rejected {
+    color: #f44336;
+    font-weight: 500;
+}
+
+/* Суммы в таблицах */
+.amount {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+}
+
+.incoming {
+    color: #2e7d32; /* Зелёный для поступлений */
+}
+
+.outgoing {
+    color: #c62828; /* Красный для расходов */
+}
+
+/* ========================================
+   ТАБЛИЦЫ В БОКОВОМ МЕНЮ (50% ширины)
+   ======================================== */
+
+/* Базовые стили для всех таблиц в боковом меню */
+.side-menu .settings-table,
+.side-menu .balance-table,
+.side-menu .data-table,
+.side-menu .structure-table,
+.side-menu .history-table,
+.side-menu .funds-table,
+.side-menu .debt-table,
+.side-menu .analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    background: white;
+    font-size: 13px;
+    table-layout: auto;
+}
+
+/* Заголовки и ячейки таблиц */
+.side-menu .settings-table th,
+.side-menu .settings-table td,
+.side-menu .balance-table th,
+.side-menu .balance-table td,
+.side-menu .data-table th,
+.side-menu .data-table td,
+.side-menu .structure-table th,
+.side-menu .structure-table td,
+.side-menu .history-table th,
+.side-menu .history-table td,
+.side-menu .funds-table th,
+.side-menu .funds-table td,
+.side-menu .debt-table th,
+.side-menu .debt-table td,
+.side-menu .analytics-table th,
+.side-menu .analytics-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    word-wrap: break-word;
+    vertical-align: top;
+}
+
+/* Заголовки таблиц */
+.side-menu .settings-table th,
+.side-menu .balance-table th,
+.side-menu .data-table th,
+.side-menu .structure-table th,
+.side-menu .history-table th,
+.side-menu .funds-table th,
+.side-menu .debt-table th,
+.side-menu .analytics-table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #bdbdbd;
+    white-space: nowrap;
+}
+
+/* Чередование строк в таблицах бокового меню */
+.side-menu .settings-table tbody tr:nth-child(even),
+.side-menu .balance-table tbody tr:nth-child(even),
+.side-menu .data-table tbody tr:nth-child(even),
+.side-menu .structure-table tbody tr:nth-child(even),
+.side-menu .history-table tbody tr:nth-child(even),
+.side-menu .funds-table tbody tr:nth-child(even),
+.side-menu .debt-table tbody tr:nth-child(even),
+.side-menu .analytics-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.side-menu .settings-table tbody tr:nth-child(odd),
+.side-menu .balance-table tbody tr:nth-child(odd),
+.side-menu .data-table tbody tr:nth-child(odd),
+.side-menu .structure-table tbody tr:nth-child(odd),
+.side-menu .history-table tbody tr:nth-child(odd),
+.side-menu .funds-table tbody tr:nth-child(odd),
+.side-menu .debt-table tbody tr:nth-child(odd),
+.side-menu .analytics-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+/* Подсветка при наведении */
+.side-menu .settings-table tbody tr:hover,
+.side-menu .balance-table tbody tr:hover,
+.side-menu .data-table tbody tr:hover,
+.side-menu .structure-table tbody tr:hover,
+.side-menu .history-table tbody tr:hover,
+.side-menu .funds-table tbody tr:hover,
+.side-menu .debt-table tbody tr:hover,
+.side-menu .analytics-table tbody tr:hover {
+    background-color: #f5f5f5;
+    transition: background-color 0.2s ease;
+}
+
+/* Суммы в таблицах бокового меню */
+.side-menu .settings-table .amount,
+.side-menu .balance-table .amount,
+.side-menu .data-table .amount,
+.side-menu .structure-table .amount,
+.side-menu .history-table .amount,
+.side-menu .funds-table .amount,
+.side-menu .debt-table .amount,
+.side-menu .analytics-table .amount {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Столбцы с действиями - фиксированная ширина */
+.side-menu .settings-table .actions,
+.side-menu .data-table .actions,
+.side-menu .history-table .actions {
+    text-align: right;
+    white-space: nowrap;
+    width: 1%;
+    min-width: 120px;
+}
+
+.side-menu .settings-table .actions button,
+.side-menu .data-table .actions button,
+.side-menu .history-table .actions button {
+    padding: 6px 10px;
+    font-size: 12px;
+    margin: 2px;
+}
+
+/* Итоговые строки */
+.side-menu .balance-table .total-row,
+.side-menu .funds-table .total-row,
+.side-menu .analytics-table .total-row {
+    font-weight: bold;
+    background-color: #e3f2fd;
+    border-top: 2px solid #90caf9;
+}
+
+.side-menu .balance-table .subtotal-row,
+.side-menu .funds-table .subtotal-row {
+    background-color: #f5f5f5;
+    font-weight: 500;
+}
+
+/* Цвета для поступлений и расходов */
+.side-menu .balance-table .incoming,
+.side-menu .data-table .incoming,
+.side-menu .funds-table .incoming,
+.side-menu .analytics-table .incoming {
+    color: #2e7d32;
+}
+
+.side-menu .balance-table .outgoing,
+.side-menu .data-table .outgoing,
+.side-menu .funds-table .outgoing,
+.side-menu .analytics-table .outgoing {
+    color: #c62828;
+}
+
+/* ========================================
+   ТАБЛИЦЫ НА ОСНОВНОЙ СТРАНИЦЕ
+   ======================================== */
+
+.section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 13px;
+    table-layout: fixed;
+}
+
+.section th,
+.section td {
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    word-wrap: break-word;
+}
+
+.section th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Фиксированная ширина для колонок с действиями */
+.section th:last-child,
+.section td:last-child {
+    width: 180px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* ========================================
+   АДАПТИВНОСТЬ ДЛЯ ТАБЛИЦ И БОКОВОГО МЕНЮ
+   ======================================== */
+
+@media (max-width: 1024px) {
+    /* Таблицы в боковом меню */
+    .side-menu .settings-table,
+    .side-menu .balance-table,
+    .side-menu .data-table,
+    .side-menu .structure-table,
+    .side-menu .history-table,
+    .side-menu .funds-table,
+    .side-menu .debt-table,
+    .side-menu .analytics-table,
+    .side-menu .registry-table,
+    .side-menu .attendance-table,
+    .side-menu .target-use-table,
+    .side-menu .profit-loss-table,
+    .side-menu table {
+        font-size: 12px;
+    }
+
+    .side-menu .settings-table th,
+    .side-menu .settings-table td,
+    .side-menu .balance-table th,
+    .side-menu .balance-table td,
+    .side-menu .data-table th,
+    .side-menu .data-table td,
+    .side-menu .structure-table th,
+    .side-menu .structure-table td,
+    .side-menu .history-table th,
+    .side-menu .history-table td,
+    .side-menu .funds-table th,
+    .side-menu .funds-table td,
+    .side-menu .debt-table th,
+    .side-menu .debt-table td,
+    .side-menu .analytics-table th,
+    .side-menu .analytics-table td,
+    .side-menu .registry-table th,
+    .side-menu .registry-table td,
+    .side-menu .attendance-table th,
+    .side-menu .attendance-table td,
+    .side-menu .target-use-table th,
+    .side-menu .target-use-table td,
+    .side-menu .profit-loss-table th,
+    .side-menu .profit-loss-table td,
+    .side-menu table th,
+    .side-menu table td {
+        padding: 8px 6px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Боковое меню на всю ширину */
+    .side-menu {
+        width: 100%;
+        right: -100%;
+        max-width: 100%;
+        min-width: 100%;
+    }
+
+    /* Таблицы в боковом меню */
+    .side-menu .settings-table,
+    .side-menu .balance-table,
+    .side-menu .data-table,
+    .side-menu .structure-table,
+    .side-menu .history-table,
+    .side-menu .funds-table,
+    .side-menu .debt-table,
+    .side-menu .analytics-table,
+    .side-menu .registry-table,
+    .side-menu .attendance-table,
+    .side-menu .target-use-table,
+    .side-menu .profit-loss-table,
+    .side-menu table {
+        font-size: 11px;
+    }
+
+    .side-menu .settings-table th,
+    .side-menu .settings-table td,
+    .side-menu .balance-table th,
+    .side-menu .balance-table td,
+    .side-menu .data-table th,
+    .side-menu .data-table td,
+    .side-menu .structure-table th,
+    .side-menu .structure-table td,
+    .side-menu .history-table th,
+    .side-menu .history-table td,
+    .side-menu .funds-table th,
+    .side-menu .funds-table td,
+    .side-menu .debt-table th,
+    .side-menu .debt-table td,
+    .side-menu .analytics-table th,
+    .side-menu .analytics-table td,
+    .side-menu .registry-table th,
+    .side-menu .registry-table td,
+    .side-menu .attendance-table th,
+    .side-menu .attendance-table td,
+    .side-menu .target-use-table th,
+    .side-menu .target-use-table td,
+    .side-menu .profit-loss-table th,
+    .side-menu .profit-loss-table td,
+    .side-menu table th,
+    .side-menu table td {
+        padding: 6px 4px;
+    }
+
+    /* Общие таблицы */
+    table {
+        font-size: 12px;
+    }
+
+    th, td {
+        padding: 8px 4px;
+    }
+
+    .action-button {
+        padding: 4px 8px;
+        font-size: 11px;
+        margin: 1px;
+    }
+}
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 100px;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.action-button.cancel {
+    background-color: #95a5a6; /* Серый для отмены */
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 100px;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.action-button.add-payment {
+    background-color: #3498db; /* Синий для добавления взноса */
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 100px;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/* Стили для кнопок в тулбарах */
+.toolbar button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 1rem;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.toolbar button:hover {
+    background-color: #2980b9;
+}
+
+/* Стили для кнопок в модальных окнах и боковых меню */
+.modal .action-button,
+.side-menu .action-button {
+    padding: 0.5rem 1rem;
+    min-width: 100px;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/* Стили для кнопок в отчетах */
+.report-buttons button {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.report-buttons button:hover {
+    background-color: #8e44ad;
+}
+
+/* Общие стили для всех кнопок */
+button {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* Стили для информации об удостоверении */
+.certificate-info {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.certificate-info p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.certificate-info strong {
+    color: #2c3e50;
+}
+
+/* Стили для кнопки "Посмотреть" в виде глаза */
+.action-button[title="Посмотреть информацию о пайщике"] {
+    background-color: #9b59b6; /* Фиолетовый цвет для кнопки просмотра */
+    padding: 0.25rem 0.5rem;
+    font-size: 16px;
+}
+
+.report-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.report-buttons button {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.report-buttons button:hover {
+    background-color: #8e44ad;
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 200;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Боковое меню - 50% ширины */
+.side-menu {
+    position: fixed;
+    top: 0;
+    right: -50%; /* Скрыто за пределами экрана */
+    width: 50%;
+    max-width: 900px;
+    min-width: 500px;
+    height: 100%;
+    background-color: white;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+    z-index: 199; /* Ниже модальных окон */
+    transition: right 0.3s ease;
+    overflow-y: auto;
+}
+
+.side-menu.active {
+    right: 0; /* Показано */
+}
+
+.side-menu-header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.side-menu-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.side-menu-body {
+    padding: 25px;
+}
+
+.side-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 198; /* Ниже бокового меню */
+    display: none;
+}
+
+.side-menu-overlay.active {
+    display: block;
+}
+
+/* Единые стили для всех форм в боковом меню */
+.side-menu .settings-form,
+.side-menu .official-report-container,
+.side-menu .member-details {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.side-menu .settings-form h3,
+.side-menu .official-report-container h2,
+.side-menu .member-details h3 {
+    color: #2c3e50;
+    font-size: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.side-menu .settings-form h4,
+.side-menu .official-report-container h3,
+.side-menu .member-details h4 {
+    color: #2c3e50;
+    font-size: 16px;
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+/* Стили для информационных блоков */
+.side-menu .settings-info {
+    background-color: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #2196F3;
+    margin-bottom: 20px;
+}
+
+.side-menu .settings-info h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #1976D2;
+    font-size: 15px;
+}
+
+.side-menu .settings-info p {
+    margin: 5px 0;
+    font-size: 13px;
+    color: #555;
+}
+
+.side-menu .settings-info ul {
+    margin: 10px 0 10px 20px;
+}
+
+.side-menu .settings-info li {
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+/* Стили для форм */
+.side-menu .form-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.side-menu .form-section h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 15px;
+}
+
+.side-menu .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.side-menu .form-group {
+    margin-bottom: 15px;
+}
+
+.side-menu .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+    font-size: 13px;
+}
+
+.side-menu .form-group input,
+.side-menu .form-group select,
+.side-menu .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+}
+
+.side-menu .form-group input:focus,
+.side-menu .form-group select:focus,
+.side-menu .form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.side-menu .form-group .hint {
+    font-size: 12px;
+    color: #888;
+    margin-top: 5px;
+}
+
+/* Стили для кнопок */
+.side-menu .action-button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.side-menu .action-button.save {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.side-menu .action-button.save:hover {
+    background-color: #45a049;
+}
+
+.side-menu .action-button.cancel {
+    background-color: #6c757d;
+    color: white;
+}
+
+.side-menu .action-button.cancel:hover {
+    background-color: #5a6268;
+}
+
+.side-menu .action-button.edit {
+    background-color: #2196F3;
+    color: white;
+}
+
+.side-menu .action-button.edit:hover {
+    background-color: #1976D2;
+}
+
+.side-menu .action-button.delete {
+    background-color: #d32f2f;
+    color: white;
+}
+
+.side-menu .action-button.delete:hover {
+    background-color: #b71c1c;
+}
+
+.side-menu .action-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Стили для отчётов */
+.side-menu .official-report-container,
+.side-menu .annual-report,
+.side-menu .supervision-report,
+.side-menu .share-card,
+.side-menu .analytics-container {
+    padding: 10px;
+}
+
+.side-menu .report-header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.side-menu .report-header h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.side-menu .report-header p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.side-menu .report-actions {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.side-menu .report-actions button {
+    margin: 5px;
+}
+
+/* Карточки сводки в отчётах */
+.side-menu .report-summary,
+.side-menu .card-summary,
+.side-menu .summary-container,
+.side-menu .analytics-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.side-menu .summary-card,
+.side-menu .summary-item {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.side-menu .summary-label {
+    display: block;
+    font-size: 12px;
+    opacity: 0.9;
+    margin-bottom: 10px;
+}
+
+.side-menu .summary-value {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.side-menu .summary-value.incoming {
+    color: #a5d6a7;
+}
+
+.side-menu .summary-value.outgoing {
+    color: #ef9a9a;
+}
+
+/* Секции форм в отчётах */
+.side-menu .form-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.side-menu .form-section h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 15px;
+}
+
+/* Диаграммы в отчётах */
+.side-menu .chart-placeholder {
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.side-menu .bar-chart {
+    display: flex;
+    gap: 5px;
+    height: 100%;
+    align-items: flex-end;
+}
+
+.side-menu .bar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+}
+
+.side-menu .bar {
+    width: 20px;
+    background: linear-gradient(to top, #667eea, #764ba2);
+    border-radius: 3px 3px 0 0;
+    min-height: 5%;
+    transition: height 0.3s;
+}
+
+.side-menu .bar.income {
+    background: linear-gradient(to top, #43e97b, #38f9d7);
+}
+
+.side-menu .bar.expense {
+    background: linear-gradient(to top, #f093fb, #f5576c);
+}
+
+.side-menu .bar-label {
+    font-size: 10px;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* Информация об отчёте */
+.side-menu .report-info {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #2196F3;
+}
+
+.side-menu .report-info h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #1976D2;
+    font-size: 15px;
+}
+
+.side-menu .report-info p {
+    margin: 5px 0;
+    font-size: 13px;
+    color: #555;
+}
+
+/* Реестры и списки */
+.side-menu .registry-container,
+.side-menu .members-registry,
+.side-menu .certificates-registry {
+    padding: 10px;
+}
+
+.side-menu .registry-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.side-menu .registry-header h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.side-menu .registry-actions {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Таблицы реестров */
+.side-menu .registry-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 13px;
+}
+
+.side-menu .registry-table th,
+.side-menu .registry-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    word-wrap: break-word;
+    vertical-align: top;
+}
+
+.side-menu .registry-table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #bdbdbd;
+    white-space: nowrap;
+}
+
+.side-menu .registry-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.side-menu .registry-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.side-menu .registry-table tbody tr:hover {
+    background-color: #f5f5f5;
+    transition: background-color 0.2s ease;
+}
+
+/* Таблица листа регистрации */
+.side-menu .attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 13px;
+}
+
+.side-menu .attendance-table th,
+.side-menu .attendance-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    word-wrap: break-word;
+    vertical-align: top;
+}
+
+.side-menu .attendance-table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #bdbdbd;
+    white-space: nowrap;
+}
+
+.side-menu .attendance-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.side-menu .attendance-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.side-menu .attendance-table tbody tr:hover {
+    background-color: #f5f5f5;
+    transition: background-color 0.2s ease;
+}
+
+/* Таблицы отчётов (целевое использование, прибыль/убытки) */
+.side-menu .target-use-table,
+.side-menu .profit-loss-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 13px;
+}
+
+.side-menu .target-use-table th,
+.side-menu .target-use-table td,
+.side-menu .profit-loss-table th,
+.side-menu .profit-loss-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    word-wrap: break-word;
+    vertical-align: top;
+}
+
+.side-menu .target-use-table th,
+.side-menu .profit-loss-table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #bdbdbd;
+    white-space: nowrap;
+}
+
+.side-menu .target-use-table tbody tr:nth-child(even),
+.side-menu .profit-loss-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.side-menu .target-use-table tbody tr:nth-child(odd),
+.side-menu .profit-loss-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.side-menu .target-use-table tbody tr:hover,
+.side-menu .profit-loss-table tbody tr:hover {
+    background-color: #f5f5f5;
+    transition: background-color 0.2s ease;
+}
+
+.side-menu .target-use-table .amount,
+.side-menu .profit-loss-table .amount {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Универсальные стили для всех остальных таблиц в боковом меню */
+.side-menu table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 13px;
+    table-layout: auto;
+}
+
+.side-menu table th,
+.side-menu table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    word-wrap: break-word;
+    vertical-align: top;
+}
+
+.side-menu table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #bdbdbd;
+    white-space: nowrap;
+}
+
+.side-menu table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.side-menu table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.side-menu table tbody tr:hover {
+    background-color: #f5f5f5;
+    transition: background-color 0.2s ease;
+}
+
+.side-menu table .amount {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.side-menu table .incoming {
+    color: #2e7d32;
+}
+
+.side-menu table .outgoing {
+    color: #c62828;
+}
+
+.side-menu table .total-row {
+    font-weight: bold;
+    background-color: #e3f2fd;
+    border-top: 2px solid #90caf9;
+}
+
+/* Детали пайщика */
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-item label {
+    font-weight: bold;
+    color: #555;
+    width: 40%;
+}
+
+.detail-item span {
+    color: #333;
+    width: 60%;
+    text-align: right;
+}
+
+.member-payments table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.member-payments th, .member-payments td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.member-payments th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    nav li {
+        margin: 0.5rem 0;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar button {
+        margin-bottom: 0.5rem;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+/* Стили для статусов */
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-approved {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-completed {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-scheduled {
+    background-color: #cce5ff;
+    color: #004085;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status-cancelled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* Стили для формы заявления */
+.application-details {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.application-details h4 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+/* Стили для удостоверения */
+.certificate-container {
+    font-family: Arial, serif;
+    padding: 20px;
+    border: 2px solid #000;
+    max-width: 600px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+.certificate-container h2 {
+    margin: 0 0 20px 0;
+}
+
+.certificate-container p {
+    margin: 10px 0;
+}
+
+/* Стили для протокола заседания */
+.protocol-container {
+    font-family: Arial, serif;
+    padding: 20px;
+    border: 1px solid #000;
+    margin: 20px 0;
+    line-height: 1.6;
+}
+
+.protocol-container h4 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+/* Стили для формы обработки заявления */
+.application-processing {
+    padding: 15px;
+}
+
+/* Стили для индикатора состояния подключения папки */
+#folder-status-indicator {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#folder-status-indicator:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.indicator-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+/* Красный цвет - папка не подключена */
+#folder-status-indicator.disconnected .indicator-dot {
+    background-color: #e74c3c; /* Красный */
+}
+
+/* Зеленый цвет - папка подключена */
+#folder-status-indicator.connected .indicator-dot {
+    background-color: #2ecc71; /* Зеленый */
+}
+
+/* Стили для всплывающей подсказки */
+#folder-status-indicator::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    margin-bottom: 5px;
+}
+
+#folder-status-indicator:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ========================================
+   Стили для раздела отчетов
+   ======================================== */
+
+.reports-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.report-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.report-category {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.report-category:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.report-category h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 8px;
+    font-size: 16px;
+}
+
+.report-button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    color: #333;
+}
+
+.report-button:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+    border-color: #adb5bd;
+    transform: translateX(5px);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.report-button.official-form {
+    border-left: 4px solid #007bff;
+    background: linear-gradient(135deg, #f0f8ff 0%, #ffffff 100%);
+}
+
+.report-button.official-form:hover {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+    border-left-color: #0056b3;
+}
+
+.button-icon {
+    font-size: 20px;
+    margin-right: 12px;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.button-text {
+    flex: 1;
+    line-height: 1.3;
+}
+
+.report-preview-area {
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 300px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.report-preview-area h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 8px;
+}
+
+.report-output {
+    min-height: 250px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.report-output .hint {
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed #dee2e6;
+    font-size: 13px;
+}
+
+/* Стили для официальных форм отчетности */
+.official-report-container {
+    font-family: Arial, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.report-header {
+    text-align: center;
+    border-bottom: 3px solid #000;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.report-header h2 {
+    margin: 0 0 10px 0;
+    color: #000;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.report-header p {
+    margin: 5px 0;
+    font-size: 13px;
+    color: #333;
+}
+
+.report-actions {
+    margin-top: 20px;
+    text-align: center;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+.report-actions .action-button {
+    margin: 0 10px 10px;
+}
+
+/* Стили для таблиц отчетов */
+.balance-table, .profit-loss-table, .target-use-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 13px;
+}
+
+.balance-table th, .balance-table td,
+.profit-loss-table th, .profit-loss-table td,
+.target-use-table th, .target-use-table td {
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.balance-table th, .profit-loss-table th, .target-use-table th {
+    background-color: #e9ecef;
+    font-weight: 600;
+}
+
+.balance-table .amount, .profit-loss-table .amount, .target-use-table .amount {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+}
+
+.balance-table .total-row, .profit-loss-table .total-row, .target-use-table .total-row {
+    font-weight: bold;
+    background-color: #dee2e6;
+}
+
+.balance-table .subtotal-row, .profit-loss-table .subtotal-row, .target-use-table .subtotal-row {
+    background-color: #f1f3f4;
+}
+
+.section-header {
+    background-color: #e9ecef !important;
+    font-weight: bold;
+}
+
+/* Адаптивность для отчетов */
+@media (max-width: 768px) {
+    .report-buttons-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-category {
+        margin-bottom: 15px;
+    }
+}
+
+/* ========================================
+   Стили для раздела Настройки
+   ======================================== */
+
+.settings-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.settings-category {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.settings-category h3 {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.settings-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 140px;
+    text-align: center;
+}
+
+.settings-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.settings-card .settings-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.settings-card .settings-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.settings-card .settings-desc {
+    font-size: 11px;
+    opacity: 0.9;
+    line-height: 1.4;
+}
+
+/* Разные цвета для категорий настроек */
+.settings-category:nth-child(1) .settings-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.settings-category:nth-child(2) .settings-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.settings-category:nth-child(3) .settings-card {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.settings-category:nth-child(4) .settings-card {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.settings-category:nth-child(5) .settings-card {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.settings-category:nth-child(6) .settings-card {
+    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+}
+
+/* Стили для форм настроек */
+.settings-form .form-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.settings-form .form-section h4 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 15px;
+}
+
+.settings-form .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.settings-form .form-group {
+    margin-bottom: 15px;
+}
+
+.settings-form .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+.settings-form .form-group input,
+.settings-form .form-group select,
+.settings-form .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.settings-form .form-group input:focus,
+.settings-form .form-group select:focus,
+.settings-form .form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.settings-form .form-group .hint {
+    font-size: 12px;
+    color: #888;
+    margin-top: 5px;
+}
+
+/* Таблицы в настройках */
+.settings-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: white;
+}
+
+.settings-table th,
+.settings-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.settings-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.settings-table .actions {
+    text-align: right;
+}
+
+.settings-table .actions button {
+    padding: 5px 10px;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+/* Блок информации */
+.settings-info {
+    background-color: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #2196F3;
+    margin-bottom: 20px;
+}
+
+.settings-info h4 {
+    margin-bottom: 10px;
+    color: #1976D2;
+}
+
+.settings-info ul {
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.settings-info li {
+    margin-bottom: 5px;
+}
+
+/* Адаптивность для настроек */
+@media (max-width: 768px) {
+    .settings-dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-form .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   ИСПРАВЛЕНИЯ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ
+   ======================================== */
+
+/* 1. Малые телефоны (≤480px) */
+@media (max-width: 480px) {
+    .side-menu {
+        font-size: 10px;
+    }
+    
+    .action-button {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-width: 80px;
+    }
+    
+    table {
+        font-size: 10px;
+    }
+    
+    th, td {
+        padding: 4px 2px;
+    }
+    
+    .side-menu-header .close-btn {
+        font-size: 2rem;
+        padding: 10px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .toolbar button {
+        width: 100%;
+        margin: 4px 0;
+    }
+    
+    .stats-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+}
+
+/* 2. Блокировка неактивных кнопок */
+.side-menu .action-button:disabled,
+.action-button:disabled,
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #cccccc !important;
+    pointer-events: none;
+    color: #666666;
+}
+
+.side-menu .action-button:disabled::after,
+.action-button:disabled::after,
+button:disabled::after {
+    content: ' 🔒';
+}
+
+/* 3. Горизонтальный скролл для таблиц */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    min-width: 600px;
+}
+
+/* Обёртка для таблиц с прокруткой */
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+}
+
+.table-wrapper table {
+    min-width: 600px;
+}
+
+/* 4. Safe area для iPhone */
+@supports (padding: max(0px)) {
+    .side-menu {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
+    
+    header {
+        padding-top: max(0px, env(safe-area-inset-top));
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
+    
+    .side-menu-header {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
+}
+
+/* 5. Ландшафтная ориентация */
+@media (max-height: 500px) and (orientation: landscape) {
+    .side-menu {
+        width: 80%;
+        max-height: 100vh;
+        overflow-y: auto;
+    }
+    
+    .side-menu-body {
+        max-height: calc(100vh - 60px);
+        overflow-y: auto;
+    }
+    
+    nav ul {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+/* 6. Улучшение тач-интерфейса */
+@media (pointer: coarse) {
+    .action-button,
+    .side-menu-header .close-btn,
+    nav a,
+    .toolbar button,
+    table button,
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Увеличиваем область клика для кнопок */
+    .action-button {
+        padding: 12px 16px;
+    }
+}
+
+/* 7. Дополнительные улучшения для мобильных */
+@media (max-width: 768px) {
+    /* Увеличиваем отступы для тач-интерфейса */
+    .side-menu-body {
+        padding: 15px;
+    }
+    
+    /* Разделяем кнопки действиями */
+    .side-menu .action-button + .action-button {
+        margin-left: 8px;
+    }
+    
+    /* Улучшаем читаемость форм */
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+    }
+    
+    /* Улучшаем навигацию */
+    nav li {
+        margin: 0.25rem 0;
+    }
+    
+    nav a {
+        display: block;
+        padding: 12px;
+        text-align: center;
+    }
+}
+
+/* 8. Анимация открытия бокового меню */
+.side-menu {
+    transition: right 0.3s ease, transform 0.3s ease;
+}
+
+.side-menu.active {
+    transition: right 0.3s ease, transform 0.3s ease;
+}
+
+/* 9. Оверлей для затемнения фона */
+.side-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.side-menu-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* 10. Улучшение для модальных окон на мобильных */
+@media (max-width: 768px) {
+    .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+        margin: 10px;
+    }
+    
+    .modal-header h3 {
+        font-size: 18px;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .modal-footer button {
+        width: 100%;
+    }
+}
+
+/* 11. Индикаторы для неактивных кнопок по типам */
+.side-menu .action-button.delete:disabled {
+    background-color: #ef9a9a !important;
+}
+
+.side-menu .action-button.save:disabled,
+.side-menu .action-button.submit:disabled {
+    background-color: #a5d6a7 !important;
+}
+
+.side-menu .action-button.cancel:disabled,
+.side-menu .action-button.close:disabled {
+    background-color: #bdbdbd !important;
+}
+
+/* 12. Визуальная обратная связь для тач-интерфейса */
+@media (pointer: coarse) {
+    .action-button:active,
+    button:active,
+    nav a:active {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+}
+
+/* 13. Предотвращение случайного зума на iOS */
+input, select, textarea {
+    font-size: 16px; /* Минимальный размер для предотвращения зума */
+}
+
+/* 14. Улучшение скролла для мобильных */
+.side-menu-body::-webkit-scrollbar,
+.modal-content::-webkit-scrollbar,
+.table-container::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.side-menu-body::-webkit-scrollbar-thumb,
+.modal-content::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.side-menu-body::-webkit-scrollbar-track,
+.modal-content::-webkit-scrollbar-track,
+.table-container::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* 15. Поддержка темной темы (опционально) */
+@media (prefers-color-scheme: dark) {
+    .side-menu-overlay {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Финальное тестирование кириллического PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <h1>Финальное тестирование: Кириллический PDF</h1>
+    <p>Этот тест проверяет, что все компоненты работают вместе для корректного отображения русского текста в PDF.</p>
+    <button onclick="runFinalTest()">Выполнить тест</button>
+
+    <script>
+        async function runFinalTest() {
+            try {
+                // Загружаем jsPDF
+                const { jsPDF } = window.jspdf;
+                
+                // Создаем PDF документ
+                const doc = new jsPDF();
+
+                // Загружаем шрифт с поддержкой кириллицы
+                const fontResponse = await fetch('./fonts/roboto-cyrillic-normal.js');
+                const fontScript = await fontResponse.text();
+                
+                // Выполняем скрипт шрифта
+                eval(fontScript);
+
+                // Добавляем шрифт к документу
+                doc.addFont('./fonts/roboto-cyrillic-normal.js', 'Roboto', 'normal');
+                doc.setFont('Roboto');
+                
+                // Устанавливаем размер шрифта
+                doc.setFontSize(16);
+
+                // Добавляем заголовок
+                doc.text('Финальный тест кириллического PDF', 105, 20, null, null, 'center');
+                
+                doc.setFontSize(12);
+                doc.text('Этот тест подтверждает, что русский текст корректно отображается в PDF', 20, 40);
+
+                // Добавляем примеры кириллического текста
+                const examples = [
+                    'ФИО: Иванов Иван Иванович',
+                    'Адрес: г. Москва, ул. Тестовая, д. 1',
+                    'Дата рождения: 20.05.1980',
+                    'Удостоверение: №001 от 15.01.2023',
+                    'Статус: Активный участник',
+                    'Заседание: Общее собрание членов кооператива',
+                    'Решение: Утвердить бюджет на 2023 год',
+                    'Заявление: Петров Петр Петрович',
+                    'Взносы: 10 000 рублей',
+                    'Отчет: Финансовый отчет за 2023 год'
+                ];
+
+                let yPos = 60;
+                examples.forEach(text => {
+                    if (yPos > 270) { // Если достигли конца страницы, добавляем новую
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    doc.text(text, 20, yPos);
+                    yPos += 10;
+                });
+
+                // Сохраняем PDF
+                doc.save('final_cyrillic_test.pdf');
+                
+                alert('Финальный тест успешен! PDF с кириллическим текстом создан.');
+            } catch (error) {
+                console.error('Ошибка при выполнении теста:', error);
+                alert('Ошибка при выполнении теста. Проверьте консоль для подробностей.');
+            }
+        }
+    </script>
+</body>
+</html>

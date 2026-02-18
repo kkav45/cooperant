@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кооперативный Мессенджер v6</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        html, body { height: 100%; margin: 0; overflow: hidden; background: #f0f2f5; }
+        .container { display: flex; height: 100%; position: relative; }
+        
+        /* ЛЕВОЕ МЕНЮ */
+        .sidebar-menu {
+            width: 400px;
+            min-width: 400px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            z-index: 100;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        .sidebar-menu.visible { transform: translateX(0); }
+        
+        .menu-header {
+            padding: 20px 15px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .menu-title { font-size: 18px; font-weight: bold; }
+        .menu-close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .menu-content { flex: 1; overflow-y: auto; }
+        .menu-section { padding: 15px 0; border-bottom: 1px solid #f0f0f0; }
+        .menu-section-title {
+            padding: 0 20px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #999;
+            text-transform: uppercase;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .menu-item:hover { background: #f5f7fa; }
+        .menu-item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+        .menu-item-info { flex: 1; }
+        .menu-item-name { font-weight: 500; font-size: 14px; margin-bottom: 3px; }
+        .menu-item-subtitle { font-size: 12px; color: #999; }
+        .menu-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            background: #e0e0e0;
+            margin-left: 8px;
+        }
+        .menu-badge.alert { background: #ffebee; color: #c62828; }
+        
+        /* СПИСОК ЧАТОВ */
+        .chats-panel {
+            width: 400px;
+            min-width: 400px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 50;
+        }
+        .chats-panel.hidden { transform: translateX(-400px); position: absolute; }
+        
+        .chats-header {
+            padding: 15px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .burger-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f7fa;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .burger-btn:hover { background: #e0e0e0; }
+        
+        .cooperative-info { flex: 1; }
+        .cooperative-name { font-weight: 600; font-size: 14px; }
+        .cooperative-stats { font-size: 12px; color: #666; }
+        
+        .search-section {
+            padding: 12px 15px;
+            background: #f5f7fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 20px;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+        }
+        .search-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+        .quick-filters {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-chip {
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .filter-chip.active { background: #0088cc; color: #fff; border-color: #0088cc; }
+        
+        .chats-list { flex: 1; overflow-y: auto; }
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f2f5;
+            cursor: pointer;
+        }
+        .chat-item:hover { background: #f5f7fa; }
+        .chat-item.active { background: #e3f2fd; }
+        .chat-item .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .chat-item .chat-info {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .chat-item .chat-top, .chat-item .chat-middle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        .chat-item .chat-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chat-item .chat-time { font-size: 11px; color: #999; }
+        .chat-item .status { font-size: 11px; }
+        .chat-item .status::before { content: '●'; margin-right: 4px; }
+        .chat-item .status.active { color: #4caf50; }
+        .chat-item .status.debt { color: #f44336; }
+        .chat-item .status.pending { color: #ff9800; }
+        .chat-item .balance { font-size: 12px; font-weight: 600; }
+        .chat-item .balance.positive { color: #4caf50; }
+        .chat-item .balance.negative { color: #f44336; }
+        .chat-item .last-message {
+            font-size: 13px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* ЦЕНТРАЛЬНАЯ ЧАСТЬ */
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f0f2f5;
+            min-height: 0;
+            position: relative;
+        }
+        .chat-header {
+            padding: 15px 20px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .chat-header-left { display: flex; align-items: center; flex: 1; }
+        .chat-header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        .chat-header-name { font-weight: 600; font-size: 16px; }
+        .chat-header-status { font-size: 12px; color: #4caf50; margin-top: 2px; }
+        .chat-header-actions { display: flex; gap: 8px; }
+        .header-action-btn, .menu-more-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f7fa;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .message {
+            max-width: 600px;
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            background: #fff;
+            align-self: flex-start;
+            border-top-left-radius: 4px;
+        }
+        .message.sent {
+            background: #d9fdd3;
+            align-self: flex-end;
+            border-top-right-radius: 4px;
+        }
+        .message-type { font-size: 11px; color: #0088cc; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; }
+        .message-content { font-size: 14px; color: #333; margin-bottom: 6px; }
+        .message-amount { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .message-time { font-size: 11px; color: #666; text-align: right; }
+        .message-input-wrapper {
+            background: #fff;
+            border-top: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .message-input-area {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .attach-btn, .voice-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f7fa;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 24px;
+            outline: none;
+            font-size: 14px;
+        }
+        .send-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        /* БОЛЬШАЯ ПРАВАЯ ПАНЕЛЬ (отчеты) */
+        .large-report-panel {
+            position: absolute;
+            left: 400px;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: #f5f7fa;
+            z-index: 97;
+            display: none;
+            flex-direction: column;
+        }
+        .large-report-panel.visible { display: flex; }
+        .large-report-header {
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .large-report-title { font-size: 18px; font-weight: 600; }
+        .close-large-report-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .large-report-content { flex: 1; overflow-y: auto; padding: 30px; }
+        
+        /* ПРАВАЯ ПАНЕЛЬ (инфо о пайщике, детали) */
+        .sidebar-right, .operation-details-panel, .menu-content-panel {
+            width: 400px;
+            min-width: 400px;
+            background: #fff;
+            border-left: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        .sidebar-right.visible, .operation-details-panel.visible, .menu-content-panel.visible {
+            transform: translateX(0);
+        }
+        .member-info-header, .details-header, .menu-panel-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .close-info-btn, .close-details-btn, .close-panel-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .member-info-content, .details-content, .menu-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* FAB КНОПКА */
+        .fab-container {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 1000;
+        }
+        .fab-main {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,136,204,0.4);
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+        .fab-main:hover { transform: scale(1.1); }
+        .fab-main.close { transform: rotate(45deg); }
+        .fab-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 12px;
+            pointer-events: none;
+        }
+        .fab-menu.expanded { pointer-events: all; }
+        .fab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+        .fab-menu.expanded .fab-item {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        .fab-item-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .fab-item-label {
+            margin-top: 4px;
+            font-size: 11px;
+            color: #333;
+            background: rgba(255,255,255,0.95);
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        
+        /* Детали операции */
+        .detail-tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
+        .detail-tab {
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .detail-tab.active { color: #0088cc; border-bottom-color: #0088cc; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .detail-item { margin-bottom: 16px; }
+        .detail-label { font-size: 12px; color: #666; margin-bottom: 6px; font-weight: 500; }
+        .detail-value { padding: 10px 12px; background: #f5f7fa; border-radius: 8px; font-size: 14px; }
+        .detail-value.highlight { background: #e3f2fd; color: #0088cc; font-weight: 600; }
+        .action-buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+        .action-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .action-btn.primary { background: linear-gradient(135deg, #0088cc, #0066aa); color: #fff; }
+        .action-btn.secondary { background: #f5f7fa; color: #333; }
+        .action-btn.danger { background: #ffebee; color: #c62828; }
+        
+        /* Инфо о пайщике */
+        .member-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 32px;
+            margin: 0 auto 15px;
+        }
+        .member-name-large { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 5px; }
+        .member-status-large { text-align: center; font-size: 13px; color: #666; margin-bottom: 20px; }
+        .balance-card {
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .balance-label { font-size: 13px; opacity: 0.9; margin-bottom: 8px; }
+        .balance-amount { font-size: 28px; font-weight: 700; }
+        .info-section { margin-bottom: 25px; }
+        .info-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f7fa;
+        }
+        .info-label { font-size: 13px; color: #666; }
+        .info-value { font-size: 13px; font-weight: 500; color: #333; }
+        .info-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+        .info-action-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .info-action-btn.primary { background: linear-gradient(135deg, #0088cc, #0066aa); color: #fff; }
+        .info-action-btn.secondary { background: #f5f7fa; color: #333; }
+        .info-action-btn.danger { background: #ffebee; color: #c62828; }
+        
+        /* Адаптивность */
+        @media (max-width: 1024px) {
+            .sidebar-menu, .chats-panel, .sidebar-right, .operation-details-panel, .menu-content-panel, .large-report-panel { width: 350px; min-width: 350px; }
+            .chats-panel.hidden { transform: translateX(-350px); }
+            .large-report-panel { left: 350px; }
+            .message { max-width: 600px; }
+        }
+        @media (max-width: 768px) {
+            .sidebar-menu, .chats-panel { width: 80%; min-width: 80%; }
+            .chats-panel.hidden { transform: translateX(-80%); }
+            .sidebar-right, .operation-details-panel, .menu-content-panel, .large-report-panel { width: 100%; min-width: 100%; left: 0; }
+            .fab-container { bottom: 80px; right: 15px; }
+            .fab-main { width: 48px; height: 48px; }
+            .message { max-width: 600px; }
+        }
+        @media (max-width: 480px) {
+            .sidebar-menu, .chats-panel { width: 100%; min-width: 100%; }
+            .chats-panel.hidden { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ЛЕВОЕ МЕНЮ -->
+        <div class="sidebar-menu" id="sidebarMenu">
+            <div class="menu-header">
+                <div class="menu-title">🏠 Кооператив</div>
+                <button class="menu-close-btn" id="menuCloseBtn">◀</button>
+            </div>
+            <div class="menu-content">
+                <div class="menu-section">
+                    <div class="menu-section-title">📊 Избранное</div>
+                    <div class="menu-item" onclick="openMenuPanel('favorites')">
+                        <div class="menu-item-icon" style="background:#ffebee">⚠</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Просроченные взносы</div>
+                            <div class="menu-item-subtitle">Требуют внимания</div>
+                        </div>
+                        <span class="menu-badge alert">3</span>
+                    </div>
+                    <div class="menu-item" onclick="openMenuPanel('applications')">
+                        <div class="menu-item-icon" style="background:#fff3e0">📝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Заявления</div>
+                            <div class="menu-item-subtitle">На рассмотрении</div>
+                        </div>
+                        <span class="menu-badge alert">5</span>
+                    </div>
+                    <div class="menu-item" onclick="openMenuPanel('meetings')">
+                        <div class="menu-item-icon" style="background:#e8f5e9">🤝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Заседания</div>
+                            <div class="menu-item-subtitle">Завтра в 10:00</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-section">
+                    <div class="menu-section-title">📚 Учет и отчетность</div>
+                    <div class="menu-item" onclick="openReportsSubmenu('accounting')">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📒</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Бухгалтерский учет</div>
+                            <div class="menu-item-subtitle">ОСВ, анализ счета</div>
+                        </div>
+                        <span>→</span>
+                    </div>
+                    <div class="menu-item" onclick="openReportsSubmenu('tax')">
+                        <div class="menu-item-icon" style="background:#fff3e0">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Налоговый учет</div>
+                            <div class="menu-item-subtitle">Декларации, КУДиР</div>
+                        </div>
+                        <span>→</span>
+                    </div>
+                    <div class="menu-item" onclick="openReportsSubmenu('management')">
+                        <div class="menu-item-icon" style="background:#e8f5e9">📈</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Управленческий учет</div>
+                            <div class="menu-item-subtitle">P&L, Cash Flow</div>
+                        </div>
+                        <span>→</span>
+                    </div>
+                </div>
+                <div class="menu-section">
+                    <div class="menu-section-title">📋 Операции</div>
+                    <div class="menu-item" onclick="openMenuPanel('documents')">
+                        <div class="menu-item-icon" style="background:#f3e5f5">📁</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Документы</div>
+                            <div class="menu-item-subtitle">Файлы, шаблоны</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="openMenuPanel('statements')">
+                        <div class="menu-item-icon" style="background:#fff3e0">📄</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Заявления</div>
+                            <div class="menu-item-subtitle">Входящие</div>
+                        </div>
+                        <span class="menu-badge alert">5</span>
+                    </div>
+                    <div class="menu-item" onclick="openMenuPanel('reports')">
+                        <div class="menu-item-icon" style="background:#fce4ec">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Отчеты</div>
+                            <div class="menu-item-subtitle">Формы, аналитика</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="menu-section">
+                    <div class="menu-section-title">⚙️ Настройки</div>
+                    <div class="menu-item" onclick="openMenuPanel('profile')">
+                        <div class="menu-item-icon" style="background:#e0e0e0">👤</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Профиль</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="openMenuPanel('backup')">
+                        <div class="menu-item-icon" style="background:#e0e0e0">💾</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Резервное копирование</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- СПИСОК ЧАТОВ -->
+        <div class="chats-panel" id="chatsPanel">
+            <div class="chats-header">
+                <button class="burger-btn" id="burgerBtn">☰</button>
+                <div class="cooperative-info">
+                    <div class="cooperative-name">Потребительский кооператив</div>
+                    <div class="cooperative-stats">12 пайщиков • 9 активных</div>
+                </div>
+            </div>
+            <div class="search-section">
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Поиск пайщиков..." id="searchInput">
+                </div>
+                <div class="quick-filters">
+                    <button class="filter-chip active">Все</button>
+                    <button class="filter-chip">🔴 Должники</button>
+                    <button class="filter-chip">🟢 Активные</button>
+                </div>
+            </div>
+            <div class="chats-list" id="chatsList"></div>
+        </div>
+        
+        <!-- ЦЕНТРАЛЬНАЯ ЧАСТЬ -->
+        <div class="main-chat">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <div class="chat-header-avatar" id="currentAvatar">ИИ</div>
+                    <div>
+                        <div class="chat-header-name" id="currentName">Иванов Иван Иванович</div>
+                        <div class="chat-header-status">● Активен</div>
+                    </div>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="header-action-btn" title="Позвонить">📞</button>
+                    <button class="header-action-btn" title="Email">✉️</button>
+                    <button class="menu-more-btn" id="menuMoreBtn" title="Информация">⋮</button>
+                </div>
+            </div>
+            <div class="messages-container" id="messagesContainer"></div>
+            <div class="message-input-wrapper">
+                <div class="message-input-area">
+                    <button class="attach-btn">📎</button>
+                    <input type="text" class="message-input" placeholder="Добавить операцию..." id="messageInput">
+                    <button class="voice-btn">🎤</button>
+                    <button class="send-button" id="sendButton">➤</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- БОЛЬШАЯ ПРАВАЯ ПАНЕЛЬ (отчеты) -->
+        <div class="large-report-panel" id="largeReportPanel">
+            <div class="large-report-header">
+                <div class="large-report-title" id="largeReportTitle">Отчет</div>
+                <button class="close-large-report-btn" onclick="closeLargeReport()">✕</button>
+            </div>
+            <div class="large-report-content" id="largeReportContent"></div>
+        </div>
+        
+        <!-- ПРАВАЯ ПАНЕЛЬ (инфо о пайщике) -->
+        <div class="sidebar-right" id="sidebarRight">
+            <div class="member-info-header">
+                <h3>Информация о пайщике</h3>
+                <button class="close-info-btn" id="closeInfoBtn">✕</button>
+            </div>
+            <div class="member-info-content" id="memberInfoContent"></div>
+        </div>
+        
+        <!-- ПРАВАЯ ПАНЕЛЬ (детали операции) -->
+        <div class="operation-details-panel" id="operationDetailsPanel">
+            <div class="details-header">
+                <h3 id="detailsTitle">Детали операции</h3>
+                <button class="close-details-btn" id="closeDetailsBtn">✕</button>
+            </div>
+            <div class="details-content" id="detailsContent"></div>
+        </div>
+        
+        <!-- ПРАВАЯ ПАНЕЛЬ (контент левого меню) -->
+        <div class="menu-content-panel" id="menuContentPanel">
+            <div class="menu-panel-header">
+                <h3 id="menuPanelTitle">Раздел</h3>
+                <button class="close-panel-btn" id="closePanelBtn">✕</button>
+            </div>
+            <div class="menu-panel-content" id="menuPanelContent"></div>
+        </div>
+        
+        <!-- FAB КНОПКА -->
+        <div class="fab-container">
+            <div class="fab-menu" id="fabMenu">
+                <button class="fab-item" onclick="createNew('application');event.stopPropagation();">
+                    <button class="fab-item-btn" style="background:#f44336">📝</button>
+                    <span class="fab-item-label">Заявление</span>
+                </button>
+                <button class="fab-item" onclick="createNew('document');event.stopPropagation();">
+                    <button class="fab-item-btn" style="background:#9c27b0">📁</button>
+                    <span class="fab-item-label">Документ</span>
+                </button>
+                <button class="fab-item" onclick="createNew('transaction');event.stopPropagation();">
+                    <button class="fab-item-btn" style="background:#ff9800">📒</button>
+                    <span class="fab-item-label">Проводка</span>
+                </button>
+                <button class="fab-item" onclick="createNew('payment');event.stopPropagation();">
+                    <button class="fab-item-btn" style="background:#2196f3">💳</button>
+                    <span class="fab-item-label">Взнос</span>
+                </button>
+                <button class="fab-item" onclick="createNew('member');event.stopPropagation();">
+                    <button class="fab-item-btn" style="background:#4caf50">👤</button>
+                    <span class="fab-item-label">Пайщик</span>
+                </button>
+            </div>
+            <button class="fab-main" id="fabMain">+</button>
+        </div>
+    </div>
+
+    <script>
+        // ДЕМО ДАННЫЕ
+        const members = [
+            { id: 1, name: "Иванов Иван Иванович", avatar: "ИИ", color: "linear-gradient(135deg,#ff6b6b,#ee5a5a)", status: "debt", statusText: "Должник", balance: -2000, phone: "+7 (999) 123-45-67", email: "ivanov@example.com", address: "г. Москва, ул. Примерная, д. 1", joinDate: "15.01.2023", lastTransaction: "Просрочен членский взнос (2 мес)", lastTime: "10:30", operations: [{ id: 1, type: "Внесение пая", amount: 5000, date: "2024-01-15", description: "Ежегодный паевой взнос", status: "paid" }, { id: 2, type: "Членский взнос", amount: 1000, date: "2024-02-01", description: "Членский взнос за февраль", status: "overdue" }] },
+            { id: 2, name: "Петрова Мария Сергеевна", avatar: "ПМ", color: "linear-gradient(135deg,#51cf66,#40c057)", status: "active", statusText: "Активен", balance: 25000, phone: "+7 (999) 234-56-78", email: "petrova@example.com", address: "г. Санкт-Петербург, пр. Невский, д. 10", joinDate: "20.02.2023", lastTransaction: "Внесён паевой взнос 10 000 ₽", lastTime: "Вчера", operations: [{ id: 4, type: "Внесение пая", amount: 10000, date: "2024-01-14", description: "Дополнительный паевой взнос", status: "paid" }, { id: 5, type: "Вступительный взнос", amount: 5000, date: "2023-12-10", description: "Вступительный взнос", status: "paid" }] },
+            { id: 3, name: "Сидоров Дмитрий Петрович", avatar: "СД", color: "linear-gradient(135deg,#fcc419,#fab005)", status: "pending", statusText: "На рассмотрении", balance: 5000, phone: "+7 (999) 345-67-89", email: "sidorov@example.com", address: "г. Новосибирск, ул. Ленина, д. 5", joinDate: "-", lastTransaction: "Заявление о вступлении подано", lastTime: "Пт", operations: [{ id: 7, type: "Вступительный взнос", amount: 5000, date: "2024-01-13", description: "Вступительный взнос", status: "pending" }] },
+            { id: 4, name: "Козлова Елена Владимировна", avatar: "КЕ", color: "linear-gradient(135deg,#74c0fc,#4dabf7)", status: "active", statusText: "Активен", balance: 18000, phone: "+7 (999) 456-78-90", email: "kozlova@example.com", address: "г. Екатеринбург, ул. Малышева, д. 20", joinDate: "10.03.2023", lastTransaction: "Получены дивиденды 3 500 ₽", lastTime: "Чт", operations: [{ id: 8, type: "Паевой взнос", amount: 15000, date: "2024-01-12", description: "Паевой взнос", status: "paid" }] },
+            { id: 5, name: "Волков Сергей Николаевич", avatar: "ВС", color: "linear-gradient(135deg,#b197fc,#9775fa)", status: "active", statusText: "Активен", balance: 12000, phone: "+7 (999) 567-89-01", email: "volkov@example.com", address: "г. Казань, ул. Баумана, д. 15", joinDate: "05.04.2023", lastTransaction: "Заявление на выход", lastTime: "Ср", operations: [{ id: 10, type: "Заявка на выход", amount: 0, date: "2024-01-11", description: "Заявление о выходе", status: "pending" }] }
+        ];
+
+        // ДАННЫЕ ДЛЯ ПОДМЕНЮ ОТЧЕТОВ
+        const reportsSubmenuData = {
+            accounting: {
+                title: '📒 Бухгалтерский учет',
+                sections: [
+                    { title: 'Основные отчеты', reports: [
+                        { icon: '📊', color: '#e3f2fd', title: 'Оборотно-сальдовая ведомость', desc: 'Обороты и остатки по счетам', action: 'openOSV' },
+                        { icon: '📈', color: '#e3f2fd', title: 'Анализ счета', desc: 'Детализация по счету', action: 'openAccountAnalysis' },
+                        { icon: '📋', color: '#e3f2fd', title: 'Карточка счета', desc: 'Все проводки по счету', action: 'openAccountCard' }
+                    ]},
+                    { title: 'Регистры', reports: [
+                        { icon: '📖', color: '#fff3e0', title: 'Журнал-ордер', desc: 'Хронология проводок', action: 'openJournal' },
+                        { icon: '📒', color: '#fff3e0', title: 'Главная книга', desc: 'Сводный регистр', action: 'openMainBook' }
+                    ]},
+                    { title: 'Баланс', reports: [
+                        { icon: '⚖️', color: '#e8f5e9', title: 'Бухгалтерский баланс', desc: 'Форма №1', action: 'openBalance' }
+                    ]}
+                ]
+            },
+            tax: {
+                title: '📊 Налоговый учет',
+                sections: [
+                    { title: 'Декларации', reports: [
+                        { icon: '📋', color: '#fff3e0', title: 'Декларация по УСН', desc: 'Налоговая декларация', action: 'openUSN' },
+                        { icon: '📊', color: '#fff3e0', title: '6-НДФЛ', desc: 'Расчет налога', action: 'open6NDFL' }
+                    ]},
+                    { title: 'Регистры', reports: [
+                        { icon: '📖', color: '#e3f2fd', title: 'КУДиР', desc: 'Книга доходов/расходов', action: 'openKUDiR' }
+                    ]}
+                ]
+            },
+            management: {
+                title: '📈 Управленческий учет',
+                sections: [
+                    { title: 'Финансовые отчеты', reports: [
+                        { icon: '📊', color: '#e8f5e9', title: 'P&L', desc: 'Прибыли и убытки', action: 'openPL' },
+                        { icon: '💵', color: '#e8f5e9', title: 'Cash Flow', desc: 'Движение денег', action: 'openCashFlow' },
+                        { icon: '⚖️', color: '#e8f5e9', title: 'Баланс', desc: 'Управленческий баланс', action: 'openManagementBalance' }
+                    ]},
+                    { title: 'Аналитика', reports: [
+                        { icon: '📈', color: '#e3f2fd', title: 'Дебиторская задолженность', desc: 'Анализ долгов', action: 'openDebtors' },
+                        { icon: '📉', color: '#e3f2fd', title: 'Кредиторская задолженность', desc: 'Наши долги', action: 'openCreditors' }
+                    ]},
+                    { title: 'Реестры', reports: [
+                        { icon: '📋', color: '#fce4ec', title: 'Реестр пайщиков', desc: 'Полный список', action: 'openMembersRegistry' }
+                    ]}
+                ]
+            }
+        };
+
+        // КОНТЕНТ ДЛЯ ПАНЕЛЕЙ ЛЕВОГО МЕНЮ
+        const menuPanelContent = {
+            favorites: {
+                title: '📊 Избранное',
+                content: '<div style="margin-bottom:20px"><div style="padding:15px;background:#ffebee;border-radius:8px;margin-bottom:15px"><div style="font-size:16px;font-weight:600;margin-bottom:5px">⚠️ Просроченные взносы</div><div style="font-size:13px;color:#666">3 пайщика имеют задолженность</div></div><div style="padding:15px;background:#fff3e0;border-radius:8px;margin-bottom:15px"><div style="font-size:16px;font-weight:600;margin-bottom:5px">📝 Заявления на рассмотрении</div><div style="font-size:13px;color:#666">5 заявлений ожидают обработки</div></div><div style="padding:15px;background:#e8f5e9;border-radius:8px"><div style="font-size:16px;font-weight:600;margin-bottom:5px">🤝 Ближайшее заседание</div><div style="font-size:13px;color:#666">Завтра в 10:00 • Большой зал</div></div></div>'
+            },
+            applications: {
+                title: '📝 Заявления',
+                content: '<div style="margin-bottom:15px"><strong>5 заявлений</strong> на рассмотрении</div>' + members.slice(0,3).map(m => '<div style="padding:15px;background:#f5f7fa;border-radius:8px;margin-bottom:10px;cursor:pointer" onclick="selectMember('+m.id+')"><div style="font-weight:600">'+m.name+'</div><div style="font-size:13px;color:#666;margin-top:5px">'+m.lastTransaction+'</div></div>').join('')
+            },
+            meetings: {
+                title: '🤝 Заседания',
+                content: '<div style="padding:20px;background:#e8f5e9;border-radius:8px;margin-bottom:20px"><div style="font-size:16px;font-weight:600;margin-bottom:10px">📅 Ближайшее заседание</div><div style="font-size:14px;margin-bottom:5px"><strong>Дата:</strong> 17 февраля 2024</div><div style="font-size:14px;margin-bottom:5px"><strong>Время:</strong> 10:00</div><div style="font-size:14px"><strong>Место:</strong> Большой зал</div></div>'
+            },
+            documents: {
+                title: '📁 Документы',
+                content: '<div style="margin-bottom:15px"><button style="padding:10px 20px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-right:10px">📤 Загрузить</button></div><div style="padding:12px;background:#f5f7fa;border-radius:6px;margin-bottom:8px">📄 Устав кооператива.pdf</div><div style="padding:12px;background:#f5f7fa;border-radius:6px;margin-bottom:8px">📄 Протокол №1.docx</div>'
+            },
+            statements: {
+                title: '📄 Входящие заявления',
+                content: '<div style="margin-bottom:15px"><strong>5 заявлений</strong> требуют обработки</div>' + members.map(m => '<div style="padding:15px;background:#f5f7fa;border-radius:8px;margin-bottom:10px;cursor:pointer" onclick="selectMember('+m.id+')"><div style="font-weight:600">'+m.name+'</div><div style="font-size:12px;color:#666;margin-top:4px">'+m.lastTransaction+'</div></div>').join('')
+            },
+            reports: {
+                title: '📊 Отчеты',
+                content: '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px"><div style="padding:20px;background:#e3f2fd;border-radius:8px;cursor:pointer" onclick="openPL()"><div style="font-size:24px;margin-bottom:8px">📈</div><div style="font-weight:600">P&L</div><div style="font-size:12px;color:#666">Прибыли и убытки</div></div><div style="padding:20px;background:#e8f5e9;border-radius:8px;cursor:pointer" onclick="openCashFlow()"><div style="font-size:24px;margin-bottom:8px">💵</div><div style="font-weight:600">Cash Flow</div><div style="font-size:12px;color:#666">Движение денег</div></div><div style="padding:20px;background:#fff3e0;border-radius:8px;cursor:pointer" onclick="openOSV()"><div style="font-size:24px;margin-bottom:8px">📊</div><div style="font-weight:600">ОСВ</div><div style="font-size:12px;color:#666">Оборотно-сальдовая</div></div><div style="padding:20px;background:#fce4ec;border-radius:8px;cursor:pointer" onclick="openMembersRegistry()"><div style="font-size:24px;margin-bottom:8px">📋</div><div style="font-weight:600">Реестр</div><div style="font-size:12px;color:#666">Пайщики</div></div></div>'
+            },
+            profile: {
+                title: '👤 Профиль',
+                content: '<div style="text-align:center;margin-bottom:20px"><div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#0088cc,#0066aa);color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:bold;margin:0 auto 15px">А</div><div style="font-size:18px;font-weight:600">Администратор</div><div style="font-size:13px;color:#666">admin@coop.ru</div></div>'
+            },
+            backup: {
+                title: '💾 Резервное копирование',
+                content: '<div style="padding:20px;background:#e3f2fd;border-radius:8px;margin-bottom:20px"><div style="font-size:16px;font-weight:600;margin-bottom:10px">Последняя резервная копия</div><div style="font-size:14px"><strong>Дата:</strong> 16 февраля 2024, 03:00</div></div><button style="width:100%;padding:15px;background:#0088cc;color:#fff;border:none;border-radius:8px;cursor:pointer">💾 Создать резервную копию</button>'
+            }
+        };
+
+        let currentMember = null;
+        let fabExpanded = false;
+
+        // ИНИЦИАЛИЗАЦИЯ
+        function init() {
+            renderChats();
+            if (members.length > 0) selectMember(members[0]);
+            setupEventListeners();
+        }
+
+        // Рендер чатов
+        function renderChats() {
+            const chatsList = document.getElementById('chatsList');
+            chatsList.innerHTML = members.map(m => {
+                const balanceClass = m.balance >= 0 ? 'positive' : 'negative';
+                const balanceText = m.balance >= 0 ? m.balance.toLocaleString() + ' ₽' : '−' + Math.abs(m.balance).toLocaleString() + ' ₽';
+                const icon = m.status === 'debt' ? '⚠' : m.status === 'pending' ? '📝' : '✓';
+                return '<div class="chat-item" data-id="' + m.id + '"><div class="avatar" style="background:' + m.color + '">' + m.avatar + '</div><div class="chat-info"><div class="chat-top"><span class="chat-name">' + m.name + '</span><span class="chat-time">' + m.lastTime + '</span></div><div class="chat-middle"><span class="status ' + m.status + '">' + m.statusText + '</span><span class="balance ' + balanceClass + '">' + balanceText + '</span></div><div class="last-message"><span class="icon">' + icon + '</span>' + m.lastTransaction + '</div></div></div>';
+            }).join('');
+            chatsList.querySelectorAll('.chat-item').forEach(item => {
+                item.addEventListener('click', () => selectMember(members.find(m => m.id == item.dataset.id)));
+            });
+        }
+
+        // Выбор пайщика
+        function selectMember(member) {
+            currentMember = member;
+            document.getElementById('currentName').textContent = member.name;
+            document.getElementById('currentAvatar').textContent = member.avatar;
+            document.getElementById('currentAvatar').style.background = member.color;
+            document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+            const activeItem = document.querySelector('.chat-item[data-id="' + member.id + '"]');
+            if (activeItem) activeItem.classList.add('active');
+            renderMessages(member.operations);
+            document.getElementById('sidebarRight').classList.remove('visible');
+            document.getElementById('operationDetailsPanel').classList.remove('visible');
+            document.getElementById('menuContentPanel').classList.remove('visible');
+        }
+
+        // Рендер сообщений
+        function renderMessages(operations) {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = operations.map(op => {
+                const statusIcon = op.status === 'paid' ? '✓' : op.status === 'overdue' ? '⚠' : '⏳';
+                return '<div class="message received" onclick="showOperationDetails(' + op.id + ')"><div class="message-type">' + op.type + '</div><div class="message-content">' + op.description + '</div>' + (op.amount ? '<div class="message-amount">' + op.amount.toLocaleString() + ' ₽</div>' : '') + '<div class="message-time">' + op.date + ' ' + statusIcon + '</div></div>';
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Открыть подменю отчетов
+        function openReportsSubmenu(type) {
+            const data = reportsSubmenuData[type];
+            if (!data) return;
+            document.getElementById('submenuTitle').textContent = data.title;
+            const content = document.getElementById('submenuContent');
+            content.innerHTML = data.sections.map(section => 
+                '<div class="submenu-section"><div class="submenu-section-title">' + section.title + '</div>' + 
+                section.reports.map(report => 
+                    '<div class="report-card" onclick="' + report.action + '()"><div class="report-card-icon" style="background:' + report.color + '">' + report.icon + '</div><div class="report-card-info"><div class="report-card-title">' + report.title + '</div><div class="report-card-desc">' + report.desc + '</div></div></div>'
+                ).join('') + 
+                '</div>'
+            ).join('');
+            document.getElementById('reportsSubmenu').classList.add('visible');
+        }
+
+        function closeReportsSubmenu() {
+            document.getElementById('reportsSubmenu').classList.remove('visible');
+        }
+
+        // Открыть панель контента левого меню
+        function openMenuPanel(panelType) {
+            const panel = menuPanelContent[panelType];
+            if (!panel) return;
+            document.getElementById('menuPanelTitle').textContent = panel.title;
+            document.getElementById('menuPanelContent').innerHTML = panel.content;
+            document.getElementById('menuContentPanel').classList.add('visible');
+        }
+
+        // Показать инфо о пайщике
+        function showMemberInfo() {
+            if (!currentMember) return;
+            const m = currentMember;
+            const statusClass = m.status === 'active' ? 'positive' : m.status === 'debt' ? 'negative' : '';
+            const balanceClass = m.balance >= 0 ? '' : 'style="color:#ffcdd2"';
+            const content = '<div class="member-avatar-large" style="background:' + m.color + '">' + m.avatar + '</div><div class="member-name-large">' + m.name + '</div><div class="member-status-large">● <span class="' + statusClass + '">' + m.statusText + '</span></div><div class="balance-card"><div class="balance-label">Баланс пайщика</div><div class="balance-amount" ' + balanceClass + '>' + (m.balance >= 0 ? '+' : '') + m.balance.toLocaleString() + ' ₽</div></div><div class="info-section"><div class="info-section-title">📋 Персональные данные</div><div class="info-row"><span class="info-label">Телефон</span><span class="info-value">' + m.phone + '</span></div><div class="info-row"><span class="info-label">Email</span><span class="info-value">' + m.email + '</span></div><div class="info-row"><span class="info-label">Адрес</span><span class="info-value">' + m.address + '</span></div></div><div class="info-section"><div class="info-section-title">📊 Членство</div><div class="info-row"><span class="info-label">Дата вступления</span><span class="info-value">' + m.joinDate + '</span></div><div class="info-row"><span class="info-label">Статус</span><span class="info-value">' + m.statusText + '</span></div><div class="info-row"><span class="info-label">Баланс</span><span class="info-value" ' + balanceClass + '>' + (m.balance >= 0 ? '+' : '') + m.balance.toLocaleString() + ' ₽</span></div></div><div class="info-actions"><button class="info-action-btn primary">📄 Выписка по счету</button><button class="info-action-btn secondary">✉️ Уведомление</button><button class="info-action-btn danger">⚠️ Исключить</button></div>';
+            document.getElementById('memberInfoContent').innerHTML = content;
+            document.getElementById('sidebarRight').classList.add('visible');
+        }
+
+        // Детали операции
+        function showOperationDetails(opId) {
+            const op = currentMember.operations.find(o => o.id === opId);
+            if (!op) return;
+            const statusText = op.status === 'paid' ? '✓ Оплачено' : op.status === 'overdue' ? '⚠ Просрочено' : '⏳ Ожидается';
+            const content = '<div class="detail-tabs"><button class="detail-tab active" onclick="switchTab(\'main\')">Основное</button><button class="detail-tab" onclick="switchTab(\'accounting\')">Бухгалтерия</button></div><div class="tab-content active" id="tab-main"><div class="detail-item"><div class="detail-label">Тип операции</div><div class="detail-value highlight">' + op.type + '</div></div><div class="detail-item"><div class="detail-label">Сумма</div><div class="detail-value highlight">' + (op.amount ? op.amount.toLocaleString() + ' ₽' : '—') + '</div></div><div class="detail-item"><div class="detail-label">Дата</div><div class="detail-value">' + op.date + '</div></div><div class="detail-item"><div class="detail-label">Описание</div><div class="detail-value">' + op.description + '</div></div><div class="detail-item"><div class="detail-label">Статус</div><div class="detail-value">' + statusText + '</div></div><div class="action-buttons"><button class="action-btn primary">📄 Печать</button><button class="action-btn secondary">✏️ Редактировать</button><button class="action-btn danger">↩️ Возврат</button></div></div><div class="tab-content" id="tab-accounting"><div class="detail-item"><div class="detail-label">Проводки</div><div class="detail-value">Дт 50 - Кт 86-1: ' + (op.amount || 0) + ' ₽</div></div></div>';
+            document.getElementById('detailsTitle').textContent = 'Детали операции';
+            document.getElementById('detailsContent').innerHTML = content;
+            document.getElementById('operationDetailsPanel').classList.add('visible');
+        }
+
+        // Переключение вкладок
+        function switchTab(tab) {
+            document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        // Открыть большой отчет
+        function openLargeReport(title, content) {
+            document.getElementById('largeReportTitle').textContent = title;
+            document.getElementById('largeReportContent').innerHTML = content;
+            document.getElementById('largeReportPanel').classList.add('visible');
+            document.getElementById('reportsSubmenu').classList.remove('visible');
+        }
+
+        function closeLargeReport() {
+            document.getElementById('largeReportPanel').classList.remove('visible');
+        }
+
+        // FAB кнопка - переключатель
+        function toggleFab() {
+            fabExpanded = !fabExpanded;
+            const fabMain = document.getElementById('fabMain');
+            const fabMenu = document.getElementById('fabMenu');
+            if (fabExpanded) {
+                fabMain.classList.add('close');
+                fabMenu.classList.add('expanded');
+            } else {
+                fabMain.classList.remove('close');
+                fabMenu.classList.remove('expanded');
+            }
+        }
+
+        // Создание нового
+        function createNew(type) {
+            const titles = {
+                member: 'Создание пайщика',
+                payment: 'Внесение взноса',
+                transaction: 'Создание проводки',
+                document: 'Загрузка документа',
+                application: 'Создание заявления'
+            };
+            alert(titles[type] || 'Создание');
+            toggleFab();
+        }
+
+        // ОТЧЕТЫ - функции
+        function openOSV() {
+            openLargeReport('Оборотно-сальдовая ведомость', '<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap"><button style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer">📊 Таблица</button><button style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer">📈 График</button><button style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer">📄 PDF</button></div><table style="width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:8px;overflow:hidden"><thead><tr style="background:#f5f7fa"><th style="padding:12px;text-align:left">Счет</th><th>Наименование</th><th>Вх. Дт</th><th>Вх. Кт</th><th>Оборот Дт</th><th>Оборот Кт</th></tr></thead><tbody><tr><td style="padding:12px">50</td><td>Касса</td><td>15 000</td><td>5 000</td><td>120 000</td><td>115 000</td></tr><tr style="background:#f9fafb"><td style="padding:12px">51</td><td>Расчетные счета</td><td>250 000</td><td>180 000</td><td>1 250 000</td><td>1 180 000</td></tr><tr><td style="padding:12px">86-1</td><td>Паевой фонд</td><td>500 000</td><td>450 000</td><td>50 000</td><td>45 000</td></tr><tr style="background:#e3f2fd;font-weight:600"><td colspan="2" style="padding:12px">ИТОГО</td><td>890 000</td><td>750 000</td><td>1 440 000</td><td>1 357 000</td></tr></tbody></table>');
+        }
+
+        function openPL() {
+            openLargeReport('P&L (Отчет о прибылях и убытках)', '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px"><div style="padding:20px;background:#e8f5e9;border-radius:12px"><div style="font-size:12px;color:#666;margin-bottom:8px">Доходы</div><div style="font-size:24px;font-weight:700">212 000 ₽</div><div style="font-size:12px;color:#4caf50;margin-top:8px">📈 +17.8%</div></div><div style="padding:20px;background:#ffebee;border-radius:12px"><div style="font-size:12px;color:#666;margin-bottom:8px">Расходы</div><div style="font-size:24px;font-weight:700">140 720 ₽</div><div style="font-size:12px;color:#4caf50;margin-top:8px">📉 -1.5%</div></div><div style="padding:20px;background:#e3f2fd;border-radius:12px"><div style="font-size:12px;color:#666;margin-bottom:8px">Прибыль</div><div style="font-size:24px;font-weight:700">71 280 ₽</div><div style="font-size:12px;color:#4caf50;margin-top:8px">📈 +91.6%</div></div><div style="padding:20px;background:#fff3e0;border-radius:12px"><div style="font-size:12px;color:#666;margin-bottom:8px">Рентабельность</div><div style="font-size:24px;font-weight:700">33.6%</div><div style="font-size:12px;color:#4caf50;margin-top:8px">📈 +12.9 п.п.</div></div></div>');
+        }
+
+        function openCashFlow() {
+            openLargeReport('Cash Flow (Движение денежных средств)', '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-bottom:20px"><div style="padding:20px;background:#e8f5e9;border-radius:12px"><div style="font-size:12px;color:#666;margin-bottom:8px">Входящий поток</div><div style="font-size:24px;font-weight:700">222 000 ₽</div></div><div style="padding:20px;background:#ffebee;border-radius:12px"><div style="font-size:12px;color:#666;margin-bottom:8px">Исходящий поток</div><div style="font-size:24px;font-weight:700">338 000 ₽</div></div><div style="padding:20px;background:#ffebee;border-radius:12px"><div style="font-size:12px;color:#666;margin-bottom:8px">Сальдо за период</div><div style="font-size:24px;font-weight:700;color:#f44336">−116 000 ₽</div></div><div style="padding:20px;background:#e3f2fd;border-radius:12px"><div style="font-size:12px;color:#666;margin-bottom:8px">Остаток на конец</div><div style="font-size:24px;font-weight:700">334 000 ₽</div></div></div>');
+        }
+
+        function openAccountAnalysis() { openLargeReport('Анализ счета', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📈</div><div style="font-size:16px;color:#666">Выберите счет для анализа</div></div>'); }
+        function openAccountCard() { openLargeReport('Карточка счета', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📋</div><div style="font-size:16px;color:#666">Выберите счет и период</div></div>'); }
+        function openJournal() { openLargeReport('Журнал-ордер', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📖</div><div style="font-size:16px;color:#666">Журнал-ордер за Январь 2024</div></div>'); }
+        function openMainBook() { openLargeReport('Главная книга', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📒</div><div style="font-size:16px;color:#666">Главная книга за 2024 год</div></div>'); }
+        function openBalance() { openLargeReport('Бухгалтерский баланс (Ф-1)', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">⚖️</div><div style="font-size:16px;color:#666">Баланс на 31.12.2023</div></div>'); }
+        function openUSN() { openLargeReport('Декларация по УСН', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📋</div><div style="font-size:16px;color:#666">Декларация за 2023 год</div></div>'); }
+        function openKUDiR() { openLargeReport('КУДиР', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📖</div><div style="font-size:16px;color:#666">Книга доходов и расходов за 2024 год</div></div>'); }
+        function open6NDFL() { openLargeReport('6-НДФЛ', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📊</div><div style="font-size:16px;color:#666">Расчет 6-НДФЛ за 2024 год</div></div>'); }
+        function openManagementBalance() { openLargeReport('Управленческий баланс', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">⚖️</div><div style="font-size:16px;color:#666">Баланс на 31.01.2024</div></div>'); }
+        function openDebtors() { openLargeReport('Дебиторская задолженность', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📈</div><div style="font-size:16px;color:#666">Анализ дебиторской задолженности</div></div>'); }
+        function openCreditors() { openLargeReport('Кредиторская задолженность', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📉</div><div style="font-size:16px;color:#666">Анализ кредиторской задолженности</div></div>'); }
+        function openMembersRegistry() { openLargeReport('Реестр пайщиков', '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📋</div><div style="font-size:16px;color:#666">Полный реестр пайщиков кооператива</div></div>'); }
+
+        // Обработчики событий
+        function setupEventListeners() {
+            // Бургер меню - открыть левое меню
+            document.getElementById('burgerBtn').addEventListener('click', function() {
+                document.getElementById('sidebarMenu').classList.add('visible');
+                document.getElementById('chatsPanel').classList.add('hidden');
+            });
+
+            // Закрыть левое меню
+            document.getElementById('menuCloseBtn').addEventListener('click', function() {
+                document.getElementById('sidebarMenu').classList.remove('visible');
+                document.getElementById('chatsPanel').classList.remove('hidden');
+            });
+
+            // Отправка сообщения
+            document.getElementById('sendButton').addEventListener('click', sendMessage);
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            // Закрыть детали операции
+            document.getElementById('closeDetailsBtn').addEventListener('click', function() {
+                document.getElementById('operationDetailsPanel').classList.remove('visible');
+            });
+
+            // Закрыть инфо о пайщике
+            document.getElementById('closeInfoBtn').addEventListener('click', function() {
+                document.getElementById('sidebarRight').classList.remove('visible');
+            });
+
+            // Закрыть панель контента
+            document.getElementById('closePanelBtn').addEventListener('click', function() {
+                document.getElementById('menuContentPanel').classList.remove('visible');
+            });
+
+            // Открыть инфо о пайщике (3 точки)
+            document.getElementById('menuMoreBtn').addEventListener('click', showMemberInfo);
+
+            // FAB кнопка - переключатель
+            document.getElementById('fabMain').addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleFab();
+            });
+
+            // Поиск
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase();
+                document.querySelectorAll('.chat-item').forEach(item => {
+                    const name = item.querySelector('.chat-name');
+                    if (name) {
+                        const nameText = name.textContent.toLowerCase();
+                        item.style.display = nameText.includes(term) ? 'flex' : 'none';
+                    }
+                });
+            });
+
+            // Фильтры
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Клик вне FAB закрывает меню
+            document.addEventListener('click', function(e) {
+                if (fabExpanded && !e.target.closest('.fab-container')) {
+                    toggleFab();
+                }
+            });
+
+            // Клик вне подменю закрывает его
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.reports-submenu') && !e.target.closest('.sidebar-menu')) {
+                    closeReportsSubmenu();
+                }
+            });
+        }
+
+        function sendMessage() {
+            const text = document.getElementById('messageInput').value.trim();
+            if (!text || !currentMember) return;
+            currentMember.operations.push({ id: Date.now(), type: "Сообщение", amount: 0, date: new Date().toISOString().split('T')[0], description: text, status: "paid" });
+            renderMessages(currentMember.operations);
+            document.getElementById('messageInput').value = '';
+        }
+
+        // Запуск при загрузке
+        init();
+    </script>
+</body>
+</html>

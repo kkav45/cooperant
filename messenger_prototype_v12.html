@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кооперативный Мессенджер v12 - Новое меню отчетов</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        html, body { height: 100%; margin: 0; overflow: hidden; background: #f0f2f5; }
+        .container { display: flex; height: 100%; position: relative; }
+        
+        /* ЛЕВОЕ МЕНЮ НАВИГАЦИИ */
+        .sidebar-menu {
+            width: 400px;
+            min-width: 400px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            z-index: 200;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        .sidebar-menu.visible { transform: translateX(0); }
+        
+        .menu-header {
+            padding: 20px 15px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .menu-title { font-size: 18px; font-weight: bold; }
+        .menu-close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .menu-content { flex: 1; overflow-y: auto; }
+        .menu-section { padding: 15px 0; border-bottom: 1px solid #f0f0f0; }
+        .menu-section-title {
+            padding: 0 20px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .menu-item:hover { background: #f5f7fa; }
+        .menu-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .menu-item-info { flex: 1; min-width: 0; }
+        .menu-item-name { font-weight: 500; font-size: 13px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .menu-item-subtitle { font-size: 11px; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .menu-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            background: #e0e0e0;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+        .menu-badge.alert { background: #ffebee; color: #c62828; }
+        .menu-badge.success { background: #e8f5e9; color: #2e7d32; }
+        .menu-arrow { color: #ccc; margin-left: 8px; font-size: 14px; }
+        
+        /* ПОДМЕНЮ ОТЧЕТОВ */
+        .reports-submenu {
+            width: 400px;
+            min-width: 400px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            z-index: 50;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        .reports-submenu.visible { transform: translateX(0); }
+        
+        .submenu-header {
+            padding: 20px 15px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .submenu-title { font-size: 16px; font-weight: 600; }
+        .submenu-back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .submenu-content { flex: 1; overflow-y: auto; padding: 15px; }
+        .submenu-section { margin-bottom: 20px; }
+        .submenu-section-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            padding-left: 10px;
+            letter-spacing: 0.5px;
+        }
+        .report-card {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .report-card:hover { background: #e3f2fd; transform: translateX(4px); }
+        .report-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .report-card-info { flex: 1; min-width: 0; }
+        .report-card-title { font-weight: 600; font-size: 13px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .report-card-desc { font-size: 11px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* СПИСОК ЧАТОВ - ВСЕГДА НА МЕСТЕ */
+        .chats-panel {
+            width: 400px;
+            min-width: 400px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            z-index: 50;
+            position: relative;
+        }
+        
+        .chats-header {
+            padding: 15px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .burger-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f7fa;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .burger-btn:hover { background: #e0e0e0; }
+        
+        .cooperative-info { flex: 1; }
+        .cooperative-name { font-weight: 600; font-size: 14px; }
+        .cooperative-stats { font-size: 12px; color: #666; }
+        
+        .search-section {
+            padding: 12px 15px;
+            background: #f5f7fa;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 20px;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+        }
+        .search-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+        .quick-filters {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-chip {
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .filter-chip.active { background: #0088cc; color: #fff; border-color: #0088cc; }
+        
+        .chats-list { flex: 1; overflow-y: auto; }
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f2f5;
+            cursor: pointer;
+        }
+        .chat-item:hover { background: #f5f7fa; }
+        .chat-item.active { background: #e3f2fd; }
+        .chat-item .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .chat-item .chat-info {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .chat-item .chat-top, .chat-item .chat-middle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        .chat-item .chat-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chat-item .chat-time { font-size: 11px; color: #999; }
+        .chat-item .status { font-size: 11px; }
+        .chat-item .status::before { content: '●'; margin-right: 4px; }
+        .chat-item .status.active { color: #4caf50; }
+        .chat-item .status.debt { color: #f44336; }
+        .chat-item .status.pending { color: #ff9800; }
+        .chat-item .balance { font-size: 12px; font-weight: 600; }
+        .chat-item .balance.positive { color: #4caf50; }
+        .chat-item .balance.negative { color: #f44336; }
+        .chat-item .last-message {
+            font-size: 13px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* ЦЕНТРАЛЬНАЯ ЧАСТЬ */
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f0f2f5;
+            min-height: 0;
+            position: relative;
+        }
+        .chat-header {
+            padding: 15px 20px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .chat-header-left { display: flex; align-items: center; flex: 1; }
+        .chat-header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        .chat-header-name { font-weight: 600; font-size: 16px; }
+        .chat-header-status { font-size: 12px; color: #4caf50; margin-top: 2px; }
+        .chat-header-actions { display: flex; gap: 8px; }
+        .header-action-btn, .menu-more-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f7fa;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .message {
+            max-width: 600px;
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            background: #fff;
+            align-self: flex-start;
+            border-top-left-radius: 4px;
+        }
+        .message.sent {
+            background: #d9fdd3;
+            align-self: flex-end;
+            border-top-right-radius: 4px;
+        }
+        .message-type { font-size: 11px; color: #0088cc; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; }
+        .message-content { font-size: 14px; color: #333; margin-bottom: 6px; }
+        .message-amount { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .message-time { font-size: 11px; color: #666; text-align: right; }
+        .message-input-wrapper {
+            background: #fff;
+            border-top: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .message-input-area {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .attach-btn, .voice-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #f5f7fa;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 24px;
+            outline: none;
+            font-size: 14px;
+        }
+        .send-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        /* БОЛЬШАЯ ПРАВАЯ ПАНЕЛЬ (отчеты) */
+        .large-report-panel {
+            position: absolute;
+            left: 400px;
+            right: 0;
+            top: 0;
+            height: 100%;
+            background: #f5f7fa;
+            z-index: 97;
+            display: none;
+            flex-direction: column;
+        }
+        .large-report-panel.visible { display: flex; }
+        .large-report-header {
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .large-report-title { font-size: 18px; font-weight: 600; }
+        .close-large-report-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .large-report-content { flex: 1; overflow-y: auto; padding: 30px; }
+        
+        /* ПРАВАЯ ПАНЕЛЬ (инфо о пайщике, детали) */
+        .sidebar-right, .operation-details-panel, .menu-content-panel {
+            width: 400px;
+            min-width: 400px;
+            background: #fff;
+            border-left: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        .sidebar-right.visible, .operation-details-panel.visible, .menu-content-panel.visible {
+            transform: translateX(0);
+        }
+        .member-info-header, .details-header, .menu-panel-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .close-info-btn, .close-details-btn, .close-panel-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .member-info-content, .details-content, .menu-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* Детали операции */
+        .detail-tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 20px; }
+        .detail-tab {
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .detail-tab.active { color: #0088cc; border-bottom-color: #0088cc; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .detail-item { margin-bottom: 16px; }
+        .detail-label { font-size: 12px; color: #666; margin-bottom: 6px; font-weight: 500; }
+        .detail-value { padding: 10px 12px; background: #f5f7fa; border-radius: 8px; font-size: 14px; }
+        .detail-value.highlight { background: #e3f2fd; color: #0088cc; font-weight: 600; }
+        .action-buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+        .action-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .action-btn.primary { background: linear-gradient(135deg, #0088cc, #0066aa); color: #fff; }
+        .action-btn.secondary { background: #f5f7fa; color: #333; }
+        .action-btn.danger { background: #ffebee; color: #c62828; }
+        
+        /* Инфо о пайщике */
+        .member-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: bold;
+            font-size: 32px;
+            margin: 0 auto 15px;
+        }
+        .member-name-large { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 5px; }
+        .member-status-large { text-align: center; font-size: 13px; color: #666; margin-bottom: 20px; }
+        .balance-card {
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .balance-label { font-size: 13px; opacity: 0.9; margin-bottom: 8px; }
+        .balance-amount { font-size: 28px; font-weight: 700; }
+        .info-section { margin-bottom: 25px; }
+        .info-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f7fa;
+        }
+        .info-label { font-size: 13px; color: #666; }
+        .info-value { font-size: 13px; font-weight: 500; color: #333; }
+        .info-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+        .info-action-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .info-action-btn.primary { background: linear-gradient(135deg, #0088cc, #0066aa); color: #fff; }
+        .info-action-btn.secondary { background: #f5f7fa; color: #333; }
+        .info-action-btn.danger { background: #ffebee; color: #c62828; }
+        
+        /* FAB КНОПКА */
+        .fab-container {
+            position: fixed;
+            right: 20px;
+            bottom: 90px;
+            z-index: 1000;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .fab-container.hidden {
+            opacity: 0;
+            transform: scale(0);
+            pointer-events: none;
+        }
+        .fab-main {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0088cc, #0066aa);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,136,204,0.4);
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fab-main:hover { transform: scale(1.1); }
+        .fab-main.close { transform: rotate(45deg); }
+        .fab-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 12px;
+            pointer-events: none;
+        }
+        .fab-menu.expanded { pointer-events: all; }
+        .fab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .fab-menu.expanded .fab-item {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        .fab-item-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fab-item-label {
+            margin-top: 4px;
+            font-size: 11px;
+            color: #333;
+            background: rgba(255,255,255,0.95);
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 1024px) {
+            .sidebar-menu, .reports-submenu, .chats-panel { width: 350px; min-width: 350px; }
+            .sidebar-right, .operation-details-panel, .menu-content-panel, .large-report-panel { width: 350px; min-width: 350px; left: 350px; }
+            .message { max-width: 600px; }
+        }
+        @media (max-width: 768px) {
+            .sidebar-menu, .reports-submenu, .chats-panel { width: 80%; min-width: 80%; }
+            .sidebar-right, .operation-details-panel, .menu-content-panel, .large-report-panel { width: 100%; min-width: 100%; left: 0; }
+            .fab-container { bottom: 100px; right: 15px; }
+            .fab-main { width: 48px; height: 48px; }
+            .message { max-width: 600px; }
+        }
+        @media (max-width: 480px) {
+            .sidebar-menu, .reports-submenu, .chats-panel { width: 100%; min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ЛЕВОЕ МЕНЮ НАВИГАЦИИ -->
+        <div class="sidebar-menu" id="sidebarMenu">
+            <div class="menu-header">
+                <div class="menu-title">🏠 Кооператив</div>
+                <button class="menu-close-btn" id="menuCloseBtn">◀</button>
+            </div>
+            <div class="menu-content">
+                <!-- БЫСТРЫЙ ДОСТУП -->
+                <div class="menu-section">
+                    <div class="menu-section-title">⚡ Быстрый доступ</div>
+                    <div class="menu-item" data-panel="favorites">
+                        <div class="menu-item-icon" style="background:#fff3e0">⭐</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Избранное</div>
+                            <div class="menu-item-subtitle">Частые операции</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-panel="calendar">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📅</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Календарь событий</div>
+                            <div class="menu-item-subtitle">Планы и сроки</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ПАЙЩИКИ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">👥 Пайщики</div>
+                    <div class="menu-item" data-panel="members-registry">
+                        <div class="menu-item-icon" style="background:#e8f5e9">📋</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Реестр членов</div>
+                            <div class="menu-item-subtitle">Список пайщиков</div>
+                        </div>
+                        <span class="menu-badge success">12</span>
+                    </div>
+                    <div class="menu-item" data-panel="certificates">
+                        <div class="menu-item-icon" style="background:#fce4ec">📜</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Удостоверения</div>
+                            <div class="menu-item-subtitle">Выданные бланки</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- БУХГАЛТЕРСКИЙ УЧЁТ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📘 Бухгалтерский учёт</div>
+                    <div class="menu-item" data-action="pko">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📄</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">ПКО</div>
+                            <div class="menu-item-subtitle">Приходный ордер</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="rko">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📄</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">РКО</div>
+                            <div class="menu-item-subtitle">Расходный ордер</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="certificate">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📄</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Бухгалтерская справка</div>
+                            <div class="menu-item-subtitle">Справка-расчёт</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-submenu="accounting-reports">
+                        <div class="menu-item-icon" style="background:#fff3e0">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Отчёты</div>
+                            <div class="menu-item-subtitle">ОСВ, балансы, регистры</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                </div>
+                
+                <!-- НАЛОГОВЫЙ УЧЁТ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📙 Налоговый учёт</div>
+                    <div class="menu-item" data-action="kudir">
+                        <div class="menu-item-icon" style="background:#fff3e0">📖</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">КУДиР</div>
+                            <div class="menu-item-subtitle">Книга учёта</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="usn">
+                        <div class="menu-item-icon" style="background:#fff3e0">📋</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Декларация УСН</div>
+                            <div class="menu-item-subtitle">Налоговая отчётность</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="zero">
+                        <div class="menu-item-icon" style="background:#f5f5f5">∅</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Нулевая отчётность</div>
+                            <div class="menu-item-subtitle">При отсутствии деятельности</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- УПРАВЛЕНЧЕСКИЙ УЧЁТ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📗 Управленческий учёт</div>
+                    <div class="menu-item" data-submenu="analytics">
+                        <div class="menu-item-icon" style="background:#e8f5e9">📈</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Аналитика</div>
+                            <div class="menu-item-subtitle">Отчёты, графики</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <div class="menu-item" data-submenu="meetings">
+                        <div class="menu-item-icon" style="background:#e8f5e9">📝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Собрания</div>
+                            <div class="menu-item-subtitle">Протоколы, регистрация</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <div class="menu-item" data-submenu="control">
+                        <div class="menu-item-icon" style="background:#e8f5e9">⏰</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Контроль</div>
+                            <div class="menu-item-subtitle">Сроки, напоминания</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                </div>
+                
+                <!-- НАСТРОЙКИ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">⚙️ Настройки</div>
+                    <div class="menu-item" data-panel="profile">
+                        <div class="menu-item-icon" style="background:#e0e0e0">👤</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Профиль</div>
+                            <div class="menu-item-subtitle">Пользователь</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-panel="backup">
+                        <div class="menu-item-icon" style="background:#e0e0e0">💾</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Резервное копирование</div>
+                            <div class="menu-item-subtitle">Сохранение данных</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ПОДМЕНЮ ОТЧЕТОВ -->
+        <div class="reports-submenu" id="reportsSubmenu">
+            <div class="submenu-header">
+                <button class="submenu-back-btn" id="submenuBackBtn">← Назад</button>
+                <div class="submenu-title" id="submenuTitle">Отчеты</div>
+                <div style="width:80px"></div>
+            </div>
+            <div class="submenu-content" id="submenuContent"></div>
+        </div>
+        
+        <!-- СПИСОК ЧАТОВ - ВСЕГДА НА МЕСТЕ -->
+        <div class="chats-panel" id="chatsPanel">
+            <div class="chats-header">
+                <button class="burger-btn" id="burgerBtn">☰</button>
+                <div class="cooperative-info">
+                    <div class="cooperative-name">Потребительский кооператив</div>
+                    <div class="cooperative-stats">12 пайщиков • 9 активных</div>
+                </div>
+            </div>
+            <div class="search-section">
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Поиск пайщиков..." id="searchInput">
+                </div>
+                <div class="quick-filters">
+                    <button class="filter-chip active">Все</button>
+                    <button class="filter-chip">🔴 Должники</button>
+                    <button class="filter-chip">🟢 Активные</button>
+                </div>
+            </div>
+            <div class="chats-list" id="chatsList"></div>
+        </div>
+        
+        <!-- ЦЕНТРАЛЬНАЯ ЧАСТЬ -->
+        <div class="main-chat">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <div class="chat-header-avatar" id="currentAvatar">ИИ</div>
+                    <div>
+                        <div class="chat-header-name" id="currentName">Иванов Иван Иванович</div>
+                        <div class="chat-header-status">● Активен</div>
+                    </div>
+                </div>
+                <div class="chat-header-actions">
+                    <button class="header-action-btn" title="Позвонить">📞</button>
+                    <button class="header-action-btn" title="Email">✉️</button>
+                    <button class="menu-more-btn" id="menuMoreBtn" title="Информация">⋮</button>
+                </div>
+            </div>
+            <div class="messages-container" id="messagesContainer"></div>
+            <div class="message-input-wrapper">
+                <div class="message-input-area">
+                    <button class="attach-btn">📎</button>
+                    <input type="text" class="message-input" placeholder="Добавить операцию..." id="messageInput">
+                    <button class="voice-btn">🎤</button>
+                    <button class="send-button" id="sendButton">➤</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- БОЛЬШАЯ ПРАВАЯ ПАНЕЛЬ (отчеты) -->
+        <div class="large-report-panel" id="largeReportPanel">
+            <div class="large-report-header">
+                <div class="large-report-title" id="largeReportTitle">Отчет</div>
+                <button class="close-large-report-btn" id="closeLargeReportBtn">✕</button>
+            </div>
+            <div class="large-report-content" id="largeReportContent"></div>
+        </div>
+        
+        <!-- ПРАВАЯ ПАНЕЛЬ (инфо о пайщике) -->
+        <div class="sidebar-right" id="sidebarRight">
+            <div class="member-info-header">
+                <h3>Информация о пайщике</h3>
+                <button class="close-info-btn" id="closeInfoBtn">✕</button>
+            </div>
+            <div class="member-info-content" id="memberInfoContent"></div>
+        </div>
+        
+        <!-- ПРАВАЯ ПАНЕЛЬ (детали операции) -->
+        <div class="operation-details-panel" id="operationDetailsPanel">
+            <div class="details-header">
+                <h3 id="detailsTitle">Детали операции</h3>
+                <button class="close-details-btn" id="closeDetailsBtn">✕</button>
+            </div>
+            <div class="details-content" id="detailsContent"></div>
+        </div>
+        
+        <!-- ПРАВАЯ ПАНЕЛЬ (контент левого меню) -->
+        <div class="menu-content-panel" id="menuContentPanel">
+            <div class="menu-panel-header">
+                <h3 id="menuPanelTitle">Раздел</h3>
+                <button class="close-panel-btn" id="closePanelBtn">✕</button>
+            </div>
+            <div class="menu-panel-content" id="menuPanelContent"></div>
+        </div>
+        
+        <!-- FAB КНОПКА -->
+        <div class="fab-container" id="fabContainer">
+            <div class="fab-menu" id="fabMenu">
+                <div class="fab-item" data-action="application">
+                    <div class="fab-item-btn" style="background:#f44336">📝</div>
+                    <span class="fab-item-label">Заявление</span>
+                </div>
+                <div class="fab-item" data-action="document">
+                    <div class="fab-item-btn" style="background:#9c27b0">📁</div>
+                    <span class="fab-item-label">Документ</span>
+                </div>
+                <div class="fab-item" data-action="transaction">
+                    <div class="fab-item-btn" style="background:#ff9800">📒</div>
+                    <span class="fab-item-label">Проводка</span>
+                </div>
+                <div class="fab-item" data-action="payment">
+                    <div class="fab-item-btn" style="background:#2196f3">💳</div>
+                    <span class="fab-item-label">Взнос</span>
+                </div>
+                <div class="fab-item" data-action="member">
+                    <div class="fab-item-btn" style="background:#4caf50">👤</div>
+                    <span class="fab-item-label">Пайщик</span>
+                </div>
+            </div>
+            <button class="fab-main" id="fabMain">+</button>
+        </div>
+    </div>
+
+    <script>
+        // ДЕМО ДАННЫЕ
+        const members = [
+            { id: 1, name: "Иванов Иван Иванович", avatar: "ИИ", color: "linear-gradient(135deg,#ff6b6b,#ee5a5a)", status: "debt", statusText: "Должник", balance: -2000, phone: "+7 (999) 123-45-67", email: "ivanov@example.com", address: "г. Москва, ул. Примерная, д. 1", joinDate: "15.01.2023", lastTransaction: "Просрочен членский взнос (2 мес)", lastTime: "10:30", operations: [{ id: 1, type: "Внесение пая", amount: 5000, date: "2024-01-15", description: "Ежегодный паевой взнос", status: "paid" }, { id: 2, type: "Членский взнос", amount: 1000, date: "2024-02-01", description: "Членский взнос за февраль", status: "overdue" }] },
+            { id: 2, name: "Петрова Мария Сергеевна", avatar: "ПМ", color: "linear-gradient(135deg,#51cf66,#40c057)", status: "active", statusText: "Активен", balance: 25000, phone: "+7 (999) 234-56-78", email: "petrova@example.com", address: "г. Санкт-Петербург, пр. Невский, д. 10", joinDate: "20.02.2023", lastTransaction: "Внесён паевой взнос 10 000 ₽", lastTime: "Вчера", operations: [{ id: 4, type: "Внесение пая", amount: 10000, date: "2024-01-14", description: "Дополнительный паевой взнос", status: "paid" }, { id: 5, type: "Вступительный взнос", amount: 5000, date: "2023-12-10", description: "Вступительный взнос", status: "paid" }] },
+            { id: 3, name: "Сидоров Дмитрий Петрович", avatar: "СД", color: "linear-gradient(135deg,#fcc419,#fab005)", status: "pending", statusText: "На рассмотрении", balance: 5000, phone: "+7 (999) 345-67-89", email: "sidorov@example.com", address: "г. Новосибирск, ул. Ленина, д. 5", joinDate: "-", lastTransaction: "Заявление о вступлении подано", lastTime: "Пт", operations: [{ id: 7, type: "Вступительный взнос", amount: 5000, date: "2024-01-13", description: "Вступительный взнос", status: "pending" }] },
+            { id: 4, name: "Козлова Елена Владимировна", avatar: "КЕ", color: "linear-gradient(135deg,#74c0fc,#4dabf7)", status: "active", statusText: "Активен", balance: 18000, phone: "+7 (999) 456-78-90", email: "kozlova@example.com", address: "г. Екатеринбург, ул. Малышева, д. 20", joinDate: "10.03.2023", lastTransaction: "Получены дивиденды 3 500 ₽", lastTime: "Чт", operations: [{ id: 8, type: "Паевой взнос", amount: 15000, date: "2024-01-12", description: "Паевой взнос", status: "paid" }] },
+            { id: 5, name: "Волков Сергей Николаевич", avatar: "ВС", color: "linear-gradient(135deg,#b197fc,#9775fa)", status: "active", statusText: "Активен", balance: 12000, phone: "+7 (999) 567-89-01", email: "volkov@example.com", address: "г. Казань, ул. Баумана, д. 15", joinDate: "05.04.2023", lastTransaction: "Заявление на выход", lastTime: "Ср", operations: [{ id: 10, type: "Заявка на выход", amount: 0, date: "2024-01-11", description: "Заявление о выходе", status: "pending" }] }
+        ];
+
+        // ДАННЫЕ ДЛЯ ПОДМЕНЮ ОТЧЕТОВ - ИЗ КАТАЛОГА
+        const reportsMenus = {
+            'accounting-reports': {
+                title: '📘 Бухгалтерские отчёты',
+                sections: [
+                    {
+                        title: '📊 Официальные формы',
+                        reports: [
+                            { id: 'balance', icon: '⚖️', color: '#e3f2fd', title: 'Бухгалтерский баланс', desc: 'Форма №1 (ОКУД 0710001)' },
+                            { id: 'profit-loss', icon: '📈', color: '#e3f2fd', title: 'Отчёт о фин. результатах', desc: 'Форма №2 (ОКУД 0710002)' },
+                            { id: 'target-use', icon: '🎯', color: '#e3f2fd', title: 'Отчёт о целевом использовании', desc: 'Форма №3 (ОКУД 0710003)' }
+                        ]
+                    },
+                    {
+                        title: '📋 Регистры и ведомости',
+                        reports: [
+                            { id: 'osv', icon: '📊', color: '#fff3e0', title: 'Оборотно-сальдовая ведомость', desc: 'Обороты и остатки по счетам' },
+                            { id: 'journal-target', icon: '📖', color: '#fff3e0', title: 'Журнал целевого использования', desc: 'Операции по фондам' },
+                            { id: 'funds-movement', icon: '📉', color: '#fff3e0', title: 'Ведомость движения фондов', desc: 'Поступления и выбытие' }
+                        ]
+                    },
+                    {
+                        title: '💰 Отчёты по фондам',
+                        reports: [
+                            { id: 'annual-funds', icon: '📊', color: '#e8f5e9', title: 'Годовой отчёт по фондам', desc: '5 фондов за год' },
+                            { id: 'share-card', icon: '📇', color: '#e8f5e9', title: 'Карточка паевого взноса', desc: 'История по пайщику' }
+                        ]
+                    }
+                ]
+            },
+            'analytics': {
+                title: '📈 Аналитика',
+                sections: [
+                    {
+                        title: '📊 Стандартные отчёты',
+                        reports: [
+                            { id: 'members-report', icon: '📋', color: '#e8f5e9', title: 'Отчёт по пайщикам', desc: 'Реестр, статистика' },
+                            { id: 'payments-report', icon: '💳', color: '#e8f5e9', title: 'Отчёт по паевым взносам', desc: 'Поступления взносов' },
+                            { id: 'financial-report', icon: '📈', color: '#e8f5e9', title: 'Финансовый отчёт', desc: 'Баланс, ДДС, результаты' }
+                        ]
+                    },
+                    {
+                        title: '📉 Дополнительные отчёты',
+                        reports: [
+                            { id: 'debt-report', icon: '⚠️', color: '#fff3e0', title: 'Отчёт о задолженностях', desc: 'Список должников' },
+                            { id: 'share-return', icon: '↩️', color: '#fff3e0', title: 'Отчёт о возвратах паев', desc: 'Возвращённые взносы' },
+                            { id: 'share-value', icon: '🧮', color: '#fff3e0', title: 'Расчёт стоимости пая', desc: 'Действительная стоимость' }
+                        ]
+                    },
+                    {
+                        title: '📊 Аналитические отчёты',
+                        reports: [
+                            { id: 'analytics', icon: '📈', color: '#fce4ec', title: 'Аналитические отчёты', desc: 'Динамика, графики' },
+                            { id: 'members-registry', icon: '📋', color: '#fce4ec', title: 'Реестр членов', desc: 'Полный список пайщиков' }
+                        ]
+                    }
+                ]
+            },
+            'meetings': {
+                title: '📝 Собрания и протоколы',
+                sections: [
+                    {
+                        title: '📋 Документы собраний',
+                        reports: [
+                            { id: 'meeting-protocol', icon: '📝', color: '#e8f5e9', title: 'Протокол общего собрания', desc: 'Форма протокола' },
+                            { id: 'attendance-list', icon: '✍️', color: '#e8f5e9', title: 'Лист регистрации', desc: 'Явка участников' },
+                            { id: 'board-protocol', icon: '📋', color: '#e8f5e9', title: 'Протокол правления', desc: 'Заседания правления' }
+                        ]
+                    },
+                    {
+                        title: '📊 Отчёты ревизионной комиссии',
+                        reports: [
+                            { id: 'supervision-report', icon: '✅', color: '#fff3e0', title: 'Заключение ревизионной комиссии', desc: 'Итоги проверки' }
+                        ]
+                    }
+                ]
+            },
+            'control': {
+                title: '⏰ Контроль сроков',
+                sections: [
+                    {
+                        title: '📅 Календари и напоминания',
+                        reports: [
+                            { id: 'calendar', icon: '📅', color: '#e3f2fd', title: 'Календарь событий', desc: 'Собрания, платежи, сроки' },
+                            { id: 'control-dashboard', icon: '⏰', color: '#e3f2fd', title: 'Контроль сроков', desc: 'Истекающие сроки' },
+                            { id: 'retention-settings', icon: '⚙️', color: '#e3f2fd', title: 'Настройки сроков хранения', desc: 'Периоды хранения документов' }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // КОНТЕНТ ДЛЯ ПАНЕЛЕЙ
+        const menuPanelContent = {
+            favorites: {
+                title: '⭐ Избранное',
+                content: '<div style="margin-bottom:20px"><div style="padding:15px;background:#ffebee;border-radius:8px;margin-bottom:15px"><div style="font-size:16px;font-weight:600;margin-bottom:5px">⚠️ Просроченные взносы</div><div style="font-size:13px;color:#666">3 пайщика имеют задолженность</div></div><div style="padding:15px;background:#fff3e0;border-radius:8px;margin-bottom:15px"><div style="font-size:16px;font-weight:600;margin-bottom:5px">📝 Заявления на рассмотрении</div><div style="font-size:13px;color:#666">5 заявлений ожидают обработки</div></div><div style="padding:15px;background:#e8f5e9;border-radius:8px"><div style="font-size:16px;font-weight:600;margin-bottom:5px">🤝 Ближайшее заседание</div><div style="font-size:13px;color:#666">Завтра в 10:00 • Большой зал</div></div></div>'
+            },
+            calendar: {
+                title: '📅 Календарь событий',
+                content: '<div style="padding:20px;background:#e3f2fd;border-radius:8px;margin-bottom:20px"><div style="font-size:16px;font-weight:600;margin-bottom:10px">📅 Февраль 2024</div><div style="font-size:14px;margin-bottom:5px"><strong>17 февраля:</strong> Общее собрание (10:00)</div><div style="font-size:14px;margin-bottom:5px"><strong>28 февраля:</strong> Срок сдачи УСН</div><div style="font-size:14px"><strong>1 марта:</strong> Платёж по кредиту</div></div>'
+            },
+            'members-registry': {
+                title: '📋 Реестр членов кооператива',
+                content: '<div style="margin-bottom:15px"><strong>12 пайщиков</strong> в реестре</div>' + members.map(m => '<div style="padding:15px;background:#f5f7fa;border-radius:8px;margin-bottom:10px;cursor:pointer" onclick="selectMember('+m.id+')"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600">'+m.name+'</div><span style="background:'+(m.status==='active'?'#e8f5e9':'#ffebee')+';color:'+(m.status==='active'?'#2e7d32':'#c62828')+';padding:4px 8px;border-radius:4px;font-size:11px">'+m.statusText+'</span></div><div style="font-size:12px;color:#666;margin-top:5px">Баланс: <strong style="color:'+(m.balance>=0?'#4caf50':'#f44336')+'">'+(m.balance>=0?'+':'')+m.balance.toLocaleString()+' ₽</strong></div></div>').join('')
+            },
+            certificates: {
+                title: '📜 Реестр выданных удостоверений',
+                content: '<div style="margin-bottom:15px"><strong>9 действующих</strong> удостоверений</div><div style="padding:15px;background:#f5f7fa;border-radius:8px;margin-bottom:10px"><div style="font-weight:600">Удостоверение №001</div><div style="font-size:12px;color:#666;margin-top:5px">Выдано: Иванов И.И. | 15.01.2023</div></div><div style="padding:15px;background:#f5f7fa;border-radius:8px;margin-bottom:10px"><div style="font-weight:600">Удостоверение №002</div><div style="font-size:12px;color:#666;margin-top:5px">Выдано: Петрова М.С. | 20.02.2023</div></div>'
+            },
+            profile: {
+                title: '👤 Профиль',
+                content: '<div style="text-align:center;margin-bottom:20px"><div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#0088cc,#0066aa);color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:bold;margin:0 auto 15px">А</div><div style="font-size:18px;font-weight:600">Администратор</div><div style="font-size:13px;color:#666">admin@coop.ru</div></div>'
+            },
+            backup: {
+                title: '💾 Резервное копирование',
+                content: '<div style="padding:20px;background:#e3f2fd;border-radius:8px;margin-bottom:20px"><div style="font-size:16px;font-weight:600;margin-bottom:10px">Последняя резервная копия</div><div style="font-size:14px"><strong>Дата:</strong> 16 февраля 2024, 03:00</div><div style="font-size:14px"><strong>Размер:</strong> 24.5 МБ</div></div><button style="width:100%;padding:15px;background:#0088cc;color:#fff;border:none;border-radius:8px;cursor:pointer">💾 Создать резервную копию</button>'
+            }
+        };
+
+        // ОТЧЕТЫ - контент
+        const reportsContent = {
+            'balance': { title: 'Бухгалтерский баланс (Форма №1)', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">⚖️</div><div style="font-size:16px;color:#666">Баланс на 31.12.2023</div></div>' },
+            'profit-loss': { title: 'Отчёт о финансовых результатах (Форма №2)', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📈</div><div style="font-size:16px;color:#666">Отчёт за 2023 год</div></div>' },
+            'target-use': { title: 'Отчёт о целевом использовании средств', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">🎯</div><div style="font-size:16px;color:#666">Отчёт за 2023 год</div></div>' },
+            'osv': { title: 'Оборотно-сальдовая ведомость', html: '<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap"><button style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer">📊 Таблица</button><button style="padding:8px 16px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer">📈 График</button></div><table style="width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:8px;overflow:hidden"><thead><tr style="background:#f5f7fa"><th style="padding:12px;text-align:left">Счет</th><th>Наименование</th><th>Вх. Дт</th><th>Вх. Кт</th><th>Оборот Дт</th><th>Оборот Кт</th></tr></thead><tbody><tr><td style="padding:12px">50</td><td>Касса</td><td>15 000</td><td>5 000</td><td>120 000</td><td>115 000</td></tr><tr style="background:#f9fafb"><td style="padding:12px">51</td><td>Расчетные счета</td><td>250 000</td><td>180 000</td><td>1 250 000</td><td>1 180 000</td></tr><tr><td style="padding:12px">86-1</td><td>Паевой фонд</td><td>500 000</td><td>450 000</td><td>50 000</td><td>45 000</td></tr><tr style="background:#e3f2fd;font-weight:600"><td colspan="2" style="padding:12px">ИТОГО</td><td>890 000</td><td>750 000</td><td>1 440 000</td><td>1 357 000</td></tr></tbody></table>' },
+            'journal-target': { title: 'Журнал целевого использования средств', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📖</div><div style="font-size:16px;color:#666">Журнал за 2024 год</div></div>' },
+            'funds-movement': { title: 'Ведомость движения фондов', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📉</div><div style="font-size:16px;color:#666">Ведомость за Январь 2024</div></div>' },
+            'annual-funds': { title: 'Годовой отчёт по фондам', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📊</div><div style="font-size:16px;color:#666">Отчёт за 2023 год</div></div>' },
+            'share-card': { title: 'Карточка паевого взноса', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📇</div><div style="font-size:16px;color:#666">Выберите пайщика</div></div>' },
+            'members-report': { title: 'Отчёт по пайщикам', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📋</div><div style="font-size:16px;color:#666">Реестр членов кооператива</div></div>' },
+            'payments-report': { title: 'Отчёт по паевым взносам', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">💳</div><div style="font-size:16px;color:#666">Поступления взносов</div></div>' },
+            'financial-report': { title: 'Финансовый отчёт', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📈</div><div style="font-size:16px;color:#666">Финансовые результаты</div></div>' },
+            'debt-report': { title: 'Отчёт о задолженностях', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">⚠️</div><div style="font-size:16px;color:#666">Список должников</div></div>' },
+            'share-return': { title: 'Отчёт о возвратах паевых взносов', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">↩️</div><div style="font-size:16px;color:#666">Возвращённые взносы</div></div>' },
+            'share-value': { title: 'Расчёт стоимости пая', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">🧮</div><div style="font-size:16px;color:#666">Действительная стоимость пая</div></div>' },
+            'analytics': { title: 'Аналитические отчёты', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📊</div><div style="font-size:16px;color:#666">Динамика и графики</div></div>' },
+            'members-registry': { title: 'Реестр членов кооператива', html: menuPanelContent['members-registry'].content },
+            'meeting-protocol': { title: 'Протокол общего собрания', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📝</div><div style="font-size:16px;color:#666">Форма протокола</div></div>' },
+            'attendance-list': { title: 'Лист регистрации участников', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">✍️</div><div style="font-size:16px;color:#666">Список для подписи</div></div>' },
+            'board-protocol': { title: 'Протокол заседания правления', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📋</div><div style="font-size:16px;color:#666">Протокол правления</div></div>' },
+            'supervision-report': { title: 'Заключение ревизионной комиссии', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">✅</div><div style="font-size:16px;color:#666">Заключение за 2023 год</div></div>' },
+            'calendar': { title: 'Календарь событий', html: menuPanelContent['calendar'].content },
+            'control-dashboard': { title: 'Контроль сроков', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">⏰</div><div style="font-size:16px;color:#666">Истекающие сроки</div></div>' },
+            'retention-settings': { title: 'Настройки сроков хранения', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">⚙️</div><div style="font-size:16px;color:#666">Периоды хранения</div></div>' }
+        };
+
+        let currentMember = null;
+        let fabExpanded = false;
+
+        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+        function init() {
+            renderChats();
+            if (members.length > 0) selectMember(members[0]);
+            setupEventListeners();
+        }
+
+        // Рендер чатов
+        function renderChats() {
+            const chatsList = document.getElementById('chatsList');
+            chatsList.innerHTML = members.map(m => {
+                const balanceClass = m.balance >= 0 ? 'positive' : 'negative';
+                const balanceText = m.balance >= 0 ? m.balance.toLocaleString() + ' ₽' : '−' + Math.abs(m.balance).toLocaleString() + ' ₽';
+                const icon = m.status === 'debt' ? '⚠' : m.status === 'pending' ? '📝' : '✓';
+                return '<div class="chat-item" data-id="' + m.id + '"><div class="avatar" style="background:' + m.color + '">' + m.avatar + '</div><div class="chat-info"><div class="chat-top"><span class="chat-name">' + m.name + '</span><span class="chat-time">' + m.lastTime + '</span></div><div class="chat-middle"><span class="status ' + m.status + '">' + m.statusText + '</span><span class="balance ' + balanceClass + '">' + balanceText + '</span></div><div class="last-message"><span class="icon">' + icon + '</span>' + m.lastTransaction + '</div></div></div>';
+            }).join('');
+            chatsList.querySelectorAll('.chat-item').forEach(item => {
+                item.addEventListener('click', () => selectMember(members.find(m => m.id == item.dataset.id)));
+            });
+        }
+
+        // Выбор пайщика
+        function selectMember(member) {
+            currentMember = member;
+            document.getElementById('currentName').textContent = member.name;
+            document.getElementById('currentAvatar').textContent = member.avatar;
+            document.getElementById('currentAvatar').style.background = member.color;
+            document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+            const activeItem = document.querySelector('.chat-item[data-id="' + member.id + '"]');
+            if (activeItem) activeItem.classList.add('active');
+            renderMessages(member.operations);
+            hideAllRightPanels();
+        }
+
+        // Рендер сообщений
+        function renderMessages(operations) {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = operations.map(op => {
+                const statusIcon = op.status === 'paid' ? '✓' : op.status === 'overdue' ? '⚠' : '⏳';
+                return '<div class="message received" onclick="showOperationDetails(' + op.id + ')"><div class="message-type">' + op.type + '</div><div class="message-content">' + op.description + '</div>' + (op.amount ? '<div class="message-amount">' + op.amount.toLocaleString() + ' ₽</div>' : '') + '<div class="message-time">' + op.date + ' ' + statusIcon + '</div></div>';
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Скрыть все правые панели
+        function hideAllRightPanels() {
+            document.getElementById('sidebarRight').classList.remove('visible');
+            document.getElementById('operationDetailsPanel').classList.remove('visible');
+            document.getElementById('menuContentPanel').classList.remove('visible');
+            document.getElementById('largeReportPanel').classList.remove('visible');
+        }
+
+        // Показать/скрыть FAB кнопку
+        function showFab() {
+            document.getElementById('fabContainer').classList.remove('hidden');
+        }
+
+        function hideFab() {
+            document.getElementById('fabContainer').classList.add('hidden');
+            fabExpanded = false;
+            document.getElementById('fabMain').classList.remove('close');
+            document.getElementById('fabMenu').classList.remove('expanded');
+        }
+
+        // ==================== ОТЧЕТЫ - НОВАЯ РЕАЛИЗАЦИЯ ====================
+        
+        // Функция открытия отчета - доступна глобально
+        window.openReportById = function(reportId) {
+            console.log('=== ОТКРЫТИЕ ОТЧЕТА ===', reportId);
+            const report = reportsContent[reportId];
+            if (!report) {
+                console.error('Отчет не найден:', reportId);
+                alert('Отчет не найден: ' + reportId);
+                return;
+            }
+            console.log('Отчет найден:', report.title);
+            openLargeReport(report.title, report.html);
+        };
+
+        function openReportsSubmenu(menuType) {
+            console.log('=== ОТКРЫТИЕ ПОДМЕНЮ ===', menuType);
+            const data = reportsMenus[menuType];
+            if (!data) {
+                console.error('Меню не найдено:', menuType);
+                return;
+            }
+            
+            document.getElementById('submenuTitle').textContent = data.title;
+            const content = document.getElementById('submenuContent');
+            
+            // Генерируем HTML для отчетов
+            let html = '';
+            data.sections.forEach(section => {
+                html += '<div class="submenu-section"><div class="submenu-section-title">' + section.title + '</div>';
+                section.reports.forEach(report => {
+                    html += '<div class="report-card" data-report-id="' + report.id + '">' +
+                        '<div class="report-card-icon" style="background:' + report.color + '">' + report.icon + '</div>' +
+                        '<div class="report-card-info">' +
+                        '<div class="report-card-title">' + report.title + '</div>' +
+                        '<div class="report-card-desc">' + report.desc + '</div>' +
+                        '</div></div>';
+                });
+                html += '</div>';
+            });
+            
+            content.innerHTML = html;
+            
+            // ВАЖНО: Вешаем обработчики ПОСЛЕ генерации HTML
+            content.querySelectorAll('.report-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const reportId = this.getAttribute('data-report-id');
+                    console.log('Клик по отчету:', reportId);
+                    openReportById(reportId);
+                });
+            });
+            
+            document.getElementById('reportsSubmenu').classList.add('visible');
+            document.getElementById('sidebarMenu').classList.remove('visible');
+        }
+
+        function closeReportsSubmenu() {
+            document.getElementById('reportsSubmenu').classList.remove('visible');
+        }
+
+        function openMenuPanel(panelType) {
+            const panel = menuPanelContent[panelType];
+            if (!panel) return;
+            document.getElementById('menuPanelTitle').textContent = panel.title;
+            document.getElementById('menuPanelContent').innerHTML = panel.content;
+            document.getElementById('menuContentPanel').classList.add('visible');
+            document.getElementById('sidebarMenu').classList.remove('visible');
+        }
+
+        // Обработка действий из меню
+        function handleMenuAction(action) {
+            console.log('Действие меню:', action);
+            const actions = {
+                'pko': { title: 'ПКО', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📄</div><div style="font-size:16px;color:#666">Приходный кассовый ордер (КО-1)</div></div>' },
+                'rko': { title: 'РКО', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📄</div><div style="font-size:16px;color:#666">Расходный кассовый ордер (КО-2)</div></div>' },
+                'certificate': { title: 'Бухгалтерская справка', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📄</div><div style="font-size:16px;color:#666">Бухгалтерская справка</div></div>' },
+                'kudir': { title: 'КУДиР', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📖</div><div style="font-size:16px;color:#666">Книга учёта доходов и расходов</div></div>' },
+                'usn': { title: 'Декларация УСН', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">📋</div><div style="font-size:16px;color:#666">Декларация по УСН за 2023 год</div></div>' },
+                'zero': { title: 'Нулевая отчётность', html: '<div style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:20px">∅</div><div style="font-size:16px;color:#666">Нулевая декларация УСН</div></div>' }
+            };
+            const actionData = actions[action];
+            if (actionData) {
+                openLargeReport(actionData.title, actionData.html);
+            }
+        }
+
+        function showMemberInfo() {
+            if (!currentMember) return;
+            const m = currentMember;
+            const statusClass = m.status === 'active' ? 'positive' : m.status === 'debt' ? 'negative' : '';
+            const balanceClass = m.balance >= 0 ? '' : 'style="color:#ffcdd2"';
+            const content = '<div class="member-avatar-large" style="background:' + m.color + '">' + m.avatar + '</div><div class="member-name-large">' + m.name + '</div><div class="member-status-large">● <span class="' + statusClass + '">' + m.statusText + '</span></div><div class="balance-card"><div class="balance-label">Баланс пайщика</div><div class="balance-amount" ' + balanceClass + '>' + (m.balance >= 0 ? '+' : '') + m.balance.toLocaleString() + ' ₽</div></div><div class="info-section"><div class="info-section-title">📋 Персональные данные</div><div class="info-row"><span class="info-label">Телефон</span><span class="info-value">' + m.phone + '</span></div><div class="info-row"><span class="info-label">Email</span><span class="info-value">' + m.email + '</span></div><div class="info-row"><span class="info-label">Адрес</span><span class="info-value">' + m.address + '</span></div></div><div class="info-section"><div class="info-section-title">📊 Членство</div><div class="info-row"><span class="info-label">Дата вступления</span><span class="info-value">' + m.joinDate + '</span></div><div class="info-row"><span class="info-label">Статус</span><span class="info-value">' + m.statusText + '</span></div><div class="info-row"><span class="info-label">Баланс</span><span class="info-value" ' + balanceClass + '>' + (m.balance >= 0 ? '+' : '') + m.balance.toLocaleString() + ' ₽</span></div></div><div class="info-actions"><button class="info-action-btn primary">📄 Выписка по счету</button><button class="info-action-btn secondary">✉️ Уведомление</button><button class="info-action-btn danger">⚠️ Исключить</button></div>';
+            document.getElementById('memberInfoContent').innerHTML = content;
+            document.getElementById('sidebarRight').classList.add('visible');
+            hideFab();
+        }
+
+        function showOperationDetails(opId) {
+            const op = currentMember.operations.find(o => o.id === opId);
+            if (!op) return;
+            const statusText = op.status === 'paid' ? '✓ Оплачено' : op.status === 'overdue' ? '⚠ Просрочено' : '⏳ Ожидается';
+            const content = '<div class="detail-tabs"><button class="detail-tab active" onclick="switchTab(\'main\')">Основное</button><button class="detail-tab" onclick="switchTab(\'accounting\')">Бухгалтерия</button></div><div class="tab-content active" id="tab-main"><div class="detail-item"><div class="detail-label">Тип операции</div><div class="detail-value highlight">' + op.type + '</div></div><div class="detail-item"><div class="detail-label">Сумма</div><div class="detail-value highlight">' + (op.amount ? op.amount.toLocaleString() + ' ₽' : '—') + '</div></div><div class="detail-item"><div class="detail-label">Дата</div><div class="detail-value">' + op.date + '</div></div><div class="detail-item"><div class="detail-label">Описание</div><div class="detail-value">' + op.description + '</div></div><div class="detail-item"><div class="detail-label">Статус</div><div class="detail-value">' + statusText + '</div></div><div class="action-buttons"><button class="action-btn primary">📄 Печать</button><button class="action-btn secondary">✏️ Редактировать</button><button class="action-btn danger">↩️ Возврат</button></div></div><div class="tab-content" id="tab-accounting"><div class="detail-item"><div class="detail-label">Проводки</div><div class="detail-value">Дт 50 - Кт 86-1: ' + (op.amount || 0) + ' ₽</div></div></div>';
+            document.getElementById('detailsTitle').textContent = 'Детали операции';
+            document.getElementById('detailsContent').innerHTML = content;
+            document.getElementById('operationDetailsPanel').classList.add('visible');
+            hideFab();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        function openLargeReport(title, content) {
+            document.getElementById('largeReportTitle').textContent = title;
+            document.getElementById('largeReportContent').innerHTML = content;
+            document.getElementById('largeReportPanel').classList.add('visible');
+            document.getElementById('reportsSubmenu').classList.remove('visible');
+            hideFab();
+        }
+
+        function closeLargeReport() {
+            document.getElementById('largeReportPanel').classList.remove('visible');
+            showFab();
+        }
+
+        // FAB кнопка
+        function toggleFab() {
+            fabExpanded = !fabExpanded;
+            const fabMain = document.getElementById('fabMain');
+            const fabMenu = document.getElementById('fabMenu');
+            if (fabExpanded) {
+                fabMain.classList.add('close');
+                fabMenu.classList.add('expanded');
+            } else {
+                fabMain.classList.remove('close');
+                fabMenu.classList.remove('expanded');
+            }
+        }
+
+        function createNew(type) {
+            const titles = {
+                member: 'Создание пайщика',
+                payment: 'Внесение взноса',
+                transaction: 'Создание проводки',
+                document: 'Загрузка документа',
+                application: 'Создание заявления'
+            };
+            alert(titles[type] || 'Создание');
+            toggleFab();
+        }
+
+        // Обработчики событий
+        function setupEventListeners() {
+            // Бургер меню
+            document.getElementById('burgerBtn').addEventListener('click', function() {
+                document.getElementById('sidebarMenu').classList.add('visible');
+            });
+
+            // Закрыть левое меню
+            document.getElementById('menuCloseBtn').addEventListener('click', function() {
+                document.getElementById('sidebarMenu').classList.remove('visible');
+            });
+
+            // Клик по пунктам левого меню
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const panel = this.dataset.panel;
+                    const submenu = this.dataset.submenu;
+                    const action = this.dataset.action;
+                    if (panel) {
+                        openMenuPanel(panel);
+                    } else if (submenu) {
+                        openReportsSubmenu(submenu);
+                    } else if (action) {
+                        handleMenuAction(action);
+                    }
+                });
+            });
+
+            // Назад из подменю
+            document.getElementById('submenuBackBtn').addEventListener('click', function() {
+                closeReportsSubmenu();
+            });
+
+            // Отправка сообщения
+            document.getElementById('sendButton').addEventListener('click', sendMessage);
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            // Закрыть детали операции
+            document.getElementById('closeDetailsBtn').addEventListener('click', function() {
+                document.getElementById('operationDetailsPanel').classList.remove('visible');
+                showFab();
+            });
+
+            // Закрыть инфо о пайщике
+            document.getElementById('closeInfoBtn').addEventListener('click', function() {
+                document.getElementById('sidebarRight').classList.remove('visible');
+                showFab();
+            });
+
+            // Закрыть панель контента
+            document.getElementById('closePanelBtn').addEventListener('click', function() {
+                document.getElementById('menuContentPanel').classList.remove('visible');
+                showFab();
+            });
+
+            // Открыть инфо о пайщике (3 точки)
+            document.getElementById('menuMoreBtn').addEventListener('click', showMemberInfo);
+
+            // FAB кнопка
+            document.getElementById('fabMain').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleFab();
+                return false;
+            });
+
+            // Клик по FAB элементам
+            document.querySelectorAll('.fab-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const action = this.dataset.action;
+                    createNew(action);
+                });
+            });
+
+            // Поиск
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase();
+                document.querySelectorAll('.chat-item').forEach(item => {
+                    const name = item.querySelector('.chat-name');
+                    if (name) {
+                        const nameText = name.textContent.toLowerCase();
+                        item.style.display = nameText.includes(term) ? 'flex' : 'none';
+                    }
+                });
+            });
+
+            // Фильтры
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Клик вне FAB закрывает меню
+            document.addEventListener('click', function(e) {
+                if (fabExpanded && !e.target.closest('.fab-container')) {
+                    toggleFab();
+                }
+            });
+        }
+
+        function sendMessage() {
+            const text = document.getElementById('messageInput').value.trim();
+            if (!text || !currentMember) return;
+            currentMember.operations.push({ id: Date.now(), type: "Сообщение", amount: 0, date: new Date().toISOString().split('T')[0], description: text, status: "paid" });
+            renderMessages(currentMember.operations);
+            document.getElementById('messageInput').value = '';
+        }
+
+        // Запуск
+        init();
+    </script>
+</body>
+</html>

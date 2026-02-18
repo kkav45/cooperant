@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест отображения баланса</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест отображения баланса в форме возврата взноса</h1>
+    
+    <div class="form-group">
+        <label for="return-payment-member">Пайщик *</label>
+        <select id="return-payment-member" required onchange="updateMemberBalance()">
+            <option value="">Выберите пайщика</option>
+            <option value="member1">Иванов Иван Иванович</option>
+            <option value="member2">Петров Петр Петрович</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label>Баланс паевых взносов</label>
+        <input type="text" id="member-balance-display" value="0 ₽" readonly style="background-color: #f0f0f0; border: 1px solid #ccc; padding: 8px; border-radius: 4px; width: 100%;">
+    </div>
+    
+    <script>
+        // Имитация данных
+        const members = [
+            {id: 'member1', name: 'Иванов Иван Иванович'},
+            {id: 'member2', name: 'Петров Петр Петрович'}
+        ];
+        
+        const payments = [
+            {memberId: 'member1', type: 'share', paid: true, amount: 15000},
+            {memberId: 'member1', type: 'share', paid: true, amount: 5000},
+            {memberId: 'member1', type: 'membership', paid: true, amount: 1000},
+            {memberId: 'member2', type: 'share', paid: true, amount: 20000},
+            {memberId: 'member2', type: 'share', paid: false, amount: 3000} // Неоплаченный взнос
+        ];
+        
+        // Функция для обновления баланса пайщика
+        function updateMemberBalance() {
+            const memberId = document.getElementById('return-payment-member').value;
+            if (!memberId) {
+                document.getElementById('member-balance-display').value = '0 ₽';
+                return;
+            }
+
+            // Рассчитываем общий баланс паевых взносов пайщика
+            const allSharePayments = payments.filter(p =>
+                p.memberId === memberId &&
+                p.type === 'share' &&
+                p.paid === true
+            );
+            const totalShareBalance = allSharePayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+            
+            document.getElementById('member-balance-display').value = totalShareBalance.toLocaleString() + ' ₽';
+            
+            console.log(`Баланс для пайщика ${memberId}: ${totalShareBalance} ₽`);
+            console.log(`Найденные платежи:`, allSharePayments);
+        }
+        
+        // Инициализация
+        console.log('Данные для тестирования:');
+        console.log('Пайщики:', members);
+        console.log('Платежи:', payments);
+    </script>
+</body>
+</html>

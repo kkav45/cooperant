@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест исправленного отображения баланса</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        select, input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .info-box {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+        }
+        .balance-display {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            font-weight: bold;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Тест исправленного отображения баланса</h1>
+        
+        <div class="info-box">
+            <h3>Тестовые данные:</h3>
+            <p>Всего пайщиков: <span id="member-count">-</span></p>
+            <p>Всего платежей: <span id="payment-count">-</span></p>
+            <p>Паевые взносы: <span id="share-payments-count">-</span></p>
+            <p>Возвраты паевых взносов: <span id="return-payments-count">-</span></p>
+        </div>
+        
+        <div class="form-group">
+            <label for="return-payment-member">Пайщик *</label>
+            <select id="return-payment-member" required onchange="updateMemberBalance()">
+                <option value="">Выберите пайщика</option>
+            </select>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label>Доступный баланс</label>
+                <input type="text" id="member-balance-display" class="balance-display" value="0 ₽" readonly>
+            </div>
+            <div class="form-group">
+                <label>Общий баланс паевых взносов</label>
+                <input type="text" id="total-share-balance" class="balance-display" value="0 ₽" readonly>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Уже возвращено</label>
+            <input type="text" id="total-returned-amount" class="balance-display" value="0 ₽" readonly>
+        </div>
+        
+        <div class="info-box">
+            <h3>Дебаг-информация:</h3>
+            <pre id="debug-info"></pre>
+        </div>
+        
+        <button onclick="testWithSampleData()">Тест с примером данных</button>
+        <button onclick="resetForm()">Сброс</button>
+    </div>
+    
+    <script>
+        // Имитация данных из реального приложения
+        let members = [
+            {id: 'member1', name: 'Иванов Иван Иванович'},
+            {id: 'member2', name: 'Петров Петр Петрович'},
+            {id: 'member3', name: 'Сидоров Сидор Сидорович'},
+            {id: 'member4', name: 'Козлов Алексей Сергеевич'}
+        ];
+        
+        let payments = [
+            // Паевые взносы для первого пайщика
+            {id: 'p1', memberId: 'member1', type: 'share', paid: true, amount: 15000, description: 'Первоначальный паевой взнос'},
+            {id: 'p2', memberId: 'member1', type: 'share', paid: true, amount: 5000, description: 'Дополнительный паевой взнос'},
+            {id: 'p3', memberId: 'member1', type: 'return_share', amount: 3000, description: 'Возврат части паевого взноса'},
+            
+            // Паевые взносы для второго пайщика
+            {id: 'p4', memberId: 'member2', type: 'share', paid: true, amount: 20000, description: 'Первоначальный паевой взнос'},
+            {id: 'p5', memberId: 'member2', type: 'membership', paid: true, amount: 1000, description: 'Членский взнос'},
+            
+            // Паевые взносы для третьего пайщика
+            {id: 'p6', memberId: 'member3', type: 'share', paid: true, amount: 30000, description: 'Первоначальный паевой взнос'},
+            {id: 'p7', memberId: 'member3', type: 'share', paid: true, amount: 10000, description: 'Дополнительный паевой взнос'},
+            {id: 'p8', memberId: 'member3', type: 'return_share', amount: 5000, description: 'Возврат паевого взноса'},
+            {id: 'p9', memberId: 'member3', type: 'return_share', amount: 2000, description: 'Повторный возврат'},
+            
+            // Четвертый пайщик без взносов (для тестирования)
+            // (нет записей с memberId: 'member4')
+        ];
+        
+        // Заполняем выпадающий список пайщиков
+        function populateMemberSelect() {
+            const memberSelect = document.getElementById('return-payment-member');
+            memberSelect.innerHTML = '<option value="">Выберите пайщика</option>';
+            
+            members.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.id;
+                option.textContent = member.name;
+                memberSelect.appendChild(option);
+            });
+        }
+        
+        // Обновляем информацию о данных
+        function updateDataInfo() {
+            document.getElementById('member-count').textContent = members ? members.length : 0;
+            document.getElementById('payment-count').textContent = payments ? payments.length : 0;
+            document.getElementById('share-payments-count').textContent = payments ? payments.filter(p => p.type === 'share' && p.paid === true).length : 0;
+            document.getElementById('return-payments-count').textContent = payments ? payments.filter(p => p.type === 'return_share').length : 0;
+        }
+        
+        // Функция для обновления баланса пайщика (копия из app.js с улучшениями)
+        function updateMemberBalance() {
+            // Проверяем наличие необходимых данных
+            if (typeof payments === 'undefined' || !Array.isArray(payments)) {
+                console.error('Переменная payments не определена или не является массивом');
+                document.getElementById('member-balance-display').value = 'Ошибка: данные не загружены';
+                if (document.getElementById('total-share-balance')) {
+                    document.getElementById('total-share-balance').value = 'Ошибка: данные не загружены';
+                }
+                if (document.getElementById('total-returned-amount')) {
+                    document.getElementById('total-returned-amount').value = 'Ошибка: данные не загружены';
+                }
+                return;
+            }
+            
+            const memberId = document.getElementById('return-payment-member').value;
+            const debugInfo = [];
+            
+            if (!memberId) {
+                document.getElementById('member-balance-display').value = '0 ₽';
+                document.getElementById('total-share-balance').value = '0 ₽';
+                document.getElementById('total-returned-amount').value = '0 ₽';
+                
+                debugInfo.push('Пайщик не выбран');
+                document.getElementById('debug-info').textContent = debugInfo.join('\n');
+                return;
+            }
+
+            debugInfo.push(`Выбран пайщик: ${memberId}`);
+            
+            // Рассчитываем общий баланс паевых взносов пайщика
+            const allSharePayments = payments.filter(p => {
+                const match = p.memberId === memberId && p.type === 'share' && p.paid === true;
+                if (match) debugInfo.push(`Найден паевой взнос: ${p.amount} ₽, id: ${p.id}`);
+                return match;
+            });
+            
+            debugInfo.push(`Найдено паевых взносов: ${allSharePayments.length}`);
+            
+            const totalShareBalance = allSharePayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+            debugInfo.push(`Общий баланс паевых взносов: ${totalShareBalance} ₽`);
+            
+            // Рассчитываем сумму уже возвращенных паевых взносов
+            const returnPayments = payments.filter(p => {
+                const match = p.memberId === memberId && p.type === 'return_share';
+                if (match) debugInfo.push(`Найден возврат: ${p.amount} ₽, id: ${p.id}`);
+                return match;
+            });
+            
+            debugInfo.push(`Найдено возвратов: ${returnPayments.length}`);
+            
+            const totalReturnedAmount = returnPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+            debugInfo.push(`Всего возвращено: ${totalReturnedAmount} ₽`);
+            
+            // Доступный баланс для возврата
+            const availableBalance = Math.max(0, totalShareBalance - totalReturnedAmount);
+            debugInfo.push(`Доступный баланс: ${availableBalance} ₽`);
+            
+            document.getElementById('member-balance-display').value = availableBalance.toLocaleString() + ' ₽';
+            document.getElementById('total-share-balance').value = totalShareBalance.toLocaleString() + ' ₽';
+            document.getElementById('total-returned-amount').value = totalReturnedAmount.toLocaleString() + ' ₽';
+            
+            document.getElementById('debug-info').textContent = debugInfo.join('\n');
+        }
+        
+        // Тест с примером данных
+        function testWithSampleData() {
+            // Обновляем информацию о данных
+            updateDataInfo();
+            
+            // Выбираем первого пайщика для демонстрации
+            document.getElementById('return-payment-member').value = 'member1';
+            updateMemberBalance();
+        }
+        
+        // Сброс формы
+        function resetForm() {
+            document.getElementById('return-payment-member').value = '';
+            document.getElementById('member-balance-display').value = '0 ₽';
+            document.getElementById('total-share-balance').value = '0 ₽';
+            document.getElementById('total-returned-amount').value = '0 ₽';
+            document.getElementById('debug-info').textContent = '';
+        }
+        
+        // Инициализация
+        window.onload = function() {
+            populateMemberSelect();
+            updateDataInfo();
+            console.log('Тестовая страница загружена');
+            console.log('Пайщики:', members);
+            console.log('Платежи:', payments);
+        };
+    </script>
+</body>
+</html>

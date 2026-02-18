@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App — Тест интеграции</title>
+    
+    <!-- Telegram Web Apps SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Стили Telegram Mini App -->
+    <link rel="stylesheet" href="telegram-mini-app-styles.css">
+    
+    <style>
+        body {
+            padding: 20px;
+            font-family: var(--tg-theme-font-family);
+            background: var(--tg-theme-secondary-bg-color);
+            color: var(--tg-theme-text-color);
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            background: var(--tg-theme-bg-color);
+            border: 1px solid var(--tg-theme-border-color);
+            border-radius: var(--tg-border-radius);
+            padding: var(--tg-spacing-lg);
+            margin-bottom: var(--tg-spacing-lg);
+        }
+        
+        .test-section h2 {
+            font-size: var(--tg-font-size-medium);
+            margin-bottom: var(--tg-spacing-md);
+            color: var(--tg-theme-text-color);
+        }
+        
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--tg-spacing-md) 0;
+            border-bottom: 1px solid var(--tg-theme-border-light);
+        }
+        
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        
+        .test-label {
+            font-size: var(--tg-font-size-normal);
+            color: var(--tg-theme-text-color);
+        }
+        
+        .test-value {
+            font-size: var(--tg-font-size-small);
+            color: var(--tg-theme-hint-color);
+            font-family: monospace;
+        }
+        
+        .test-value.success {
+            color: var(--tg-theme-positive-color);
+            font-weight: 600;
+        }
+        
+        .test-value.error {
+            color: var(--tg-theme-negative-color);
+            font-weight: 600;
+        }
+        
+        .test-button {
+            min-width: var(--tg-touch-size);
+            min-height: var(--tg-touch-size);
+            padding: var(--tg-spacing-sm) var(--tg-spacing-lg);
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            border-radius: var(--tg-border-radius);
+            font-size: var(--tg-font-size-normal);
+            font-family: var(--tg-theme-font-family);
+            cursor: pointer;
+            margin: var(--tg-spacing-xs);
+        }
+        
+        .test-button:hover {
+            opacity: 0.9;
+        }
+        
+        .test-button:active {
+            opacity: 0.8;
+        }
+        
+        .color-sample {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--tg-border-radius-small);
+            border: 1px solid var(--tg-theme-border-color);
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: var(--tg-spacing-sm);
+        }
+        
+        .status-badge {
+            padding: var(--tg-spacing-xs) var(--tg-spacing-sm);
+            border-radius: var(--tg-border-radius-small);
+            font-size: var(--tg-font-size-tiny);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.passed {
+            background: var(--tg-theme-status-active-bg);
+            color: var(--tg-theme-status-active-text);
+        }
+        
+        .status-badge.failed {
+            background: var(--tg-theme-status-debt-bg);
+            color: var(--tg-theme-status-debt-text);
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: var(--tg-spacing-md) 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--tg-theme-button-color), var(--tg-theme-positive-color));
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 style="text-align: center; margin-bottom: 20px; font-size: var(--tg-font-size-title);">
+            🧪 Тест интеграции Telegram Mini App
+        </h1>
+        
+        <!-- Общая информация -->
+        <div class="test-section">
+            <h2>📊 Общая информация</h2>
+            <div class="test-item">
+                <span class="test-label">Telegram WebApp SDK</span>
+                <span class="test-value" id="sdkStatus">Проверка...</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Платформа</span>
+                <span class="test-value" id="platform">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Версия Telegram</span>
+                <span class="test-value" id="version">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Цветовая схема</span>
+                <span class="test-value" id="colorScheme">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Развёрнуто</span>
+                <span class="test-value" id="isExpanded">—</span>
+            </div>
+        </div>
+        
+        <!-- ThemeParams -->
+        <div class="test-section">
+            <h2>🎨 ThemeParams (цветовая схема)</h2>
+            <div class="test-item">
+                <span class="test-label">
+                    <span class="color-sample" id="sampleBg"></span>
+                    Background Color
+                </span>
+                <span class="test-value" id="bgColor">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">
+                    <span class="color-sample" id="sampleText"></span>
+                    Text Color
+                </span>
+                <span class="test-value" id="textColor">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">
+                    <span class="color-sample" id="sampleButton"></span>
+                    Button Color
+                </span>
+                <span class="test-value" id="buttonColor">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Secondary Background</span>
+                <span class="test-value" id="secondaryBg">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Hint Color</span>
+                <span class="test-value" id="hintColor">—</span>
+            </div>
+        </div>
+        
+        <!-- Данные пользователя -->
+        <div class="test-section">
+            <h2>👤 Данные пользователя</h2>
+            <div class="test-item">
+                <span class="test-label">ID</span>
+                <span class="test-value" id="userId">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Имя</span>
+                <span class="test-value" id="firstName">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Фамилия</span>
+                <span class="test-value" id="lastName">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Username</span>
+                <span class="test-value" id="username">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Язык</span>
+                <span class="test-value" id="languageCode">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Premium</span>
+                <span class="test-value" id="isPremium">—</span>
+            </div>
+        </div>
+        
+        <!-- Тесты функциональности -->
+        <div class="test-section">
+            <h2>✅ Тесты функциональности</h2>
+            
+            <div class="test-item">
+                <span class="test-label">Инициализация SDK</span>
+                <span class="status-badge" id="testInit">Ожидание</span>
+            </div>
+            
+            <div class="test-item">
+                <span class="test-label">Применение themeParams</span>
+                <span class="status-badge" id="testTheme">Ожидание</span>
+            </div>
+            
+            <div class="test-item">
+                <span class="test-label">Haptic Feedback</span>
+                <span class="status-badge" id="testHaptic">Ожидание</span>
+            </div>
+            
+            <div class="test-item">
+                <span class="test-label">MainButton</span>
+                <span class="status-badge" id="testMainButton">Ожидание</span>
+            </div>
+            
+            <div class="test-item">
+                <span class="test-label">BackButton</span>
+                <span class="status-badge" id="testBackButton">Ожидание</span>
+            </div>
+            
+            <div class="test-item">
+                <span class="test-label">Viewport</span>
+                <span class="status-badge" id="testViewport">Ожидание</span>
+            </div>
+        </div>
+        
+        <!-- Прогресс тестов -->
+        <div class="test-section">
+            <h2>📈 Прогресс тестов</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div style="text-align: center; font-size: var(--tg-font-size-small); color: var(--tg-theme-hint-color);">
+                <span id="passedTests">0</span> из <span id="totalTests">6</span> тестов пройдено
+            </div>
+        </div>
+        
+        <!-- Кнопки для тестирования -->
+        <div class="test-section">
+            <h2>🎮 Ручное тестирование</h2>
+            
+            <div style="margin-bottom: var(--tg-spacing-md);">
+                <strong style="display: block; margin-bottom: var(--tg-spacing-sm);">Тактильный отклик:</strong>
+                <button class="test-button" onclick="testHaptic('light')">Light</button>
+                <button class="test-button" onclick="testHaptic('medium')">Medium</button>
+                <button class="test-button" onclick="testHaptic('heavy')">Heavy</button>
+                <button class="test-button" onclick="testHaptic('success')">Success</button>
+                <button class="test-button" onclick="testHaptic('warning')">Warning</button>
+                <button class="test-button" onclick="testHaptic('error')">Error</button>
+            </div>
+            
+            <div style="margin-bottom: var(--tg-spacing-md);">
+                <strong style="display: block; margin-bottom: var(--tg-spacing-sm);">Диалоги:</strong>
+                <button class="test-button" onclick="testAlert()">Show Alert</button>
+                <button class="test-button" onclick="testConfirm()">Show Confirm</button>
+                <button class="test-button" onclick="testPopup()">Show Popup</button>
+            </div>
+            
+            <div style="margin-bottom: var(--tg-spacing-md);">
+                <strong style="display: block; margin-bottom: var(--tg-spacing-sm);">MainButton:</strong>
+                <button class="test-button" onclick="testShowMainButton()">Показать</button>
+                <button class="test-button" onclick="testHideMainButton()">Скрыть</button>
+            </div>
+            
+            <div style="margin-bottom: var(--tg-spacing-md);">
+                <strong style="display: block; margin-bottom: var(--tg-spacing-sm);">BackButton:</strong>
+                <button class="test-button" onclick="testShowBackButton()">Показать</button>
+                <button class="test-button" onclick="testHideBackButton()">Скрыть</button>
+            </div>
+            
+            <div>
+                <strong style="display: block; margin-bottom: var(--tg-spacing-sm);">Viewport:</strong>
+                <button class="test-button" onclick="testExpand()">Expand</button>
+                <button class="test-button" onclick="testClose()">Close</button>
+            </div>
+        </div>
+        
+        <!-- CSS переменные -->
+        <div class="test-section">
+            <h2>🎨 CSS переменные</h2>
+            <div class="test-item">
+                <span class="test-label">--tg-touch-size</span>
+                <span class="test-value" id="cssTouchSize">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">--tg-font-size-normal</span>
+                <span class="test-value" id="cssFontSize">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">--tg-border-radius</span>
+                <span class="test-value" id="cssBorderRadius">—</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">--tg-spacing-lg</span>
+                <span class="test-value" id="cssSpacing">—</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Telegram Mini App Integration -->
+    <script src="telegram-mini-app.js"></script>
+    
+    <script>
+        let testsPassed = 0;
+        const totalTests = 6;
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', async () => {
+            await runTests();
+        });
+        
+        async function runTests() {
+            // Тест 1: Инициализация
+            try {
+                const isTelegram = await window.TelegramMiniApp.init();
+                updateTestStatus('testInit', isTelegram ? 'passed' : 'warning', isTelegram ? '✓' : '⚠');
+                if (isTelegram) testsPassed++;
+                
+                // Обновляем общую информацию
+                const tg = window.TelegramMiniApp.getTelegram();
+                if (tg) {
+                    document.getElementById('sdkStatus').textContent = 'Подключён';
+                    document.getElementById('sdkStatus').className = 'test-value success';
+                    document.getElementById('platform').textContent = tg.platform || '—';
+                    document.getElementById('version').textContent = tg.version || '—';
+                    document.getElementById('colorScheme').textContent = tg.colorScheme || '—';
+                    document.getElementById('isExpanded').textContent = tg.isExpanded ? 'Да' : 'Нет';
+                } else {
+                    document.getElementById('sdkStatus').textContent = 'Режим совместимости';
+                    document.getElementById('sdkStatus').className = 'test-value warning';
+                }
+                
+            } catch (e) {
+                updateTestStatus('testInit', 'failed', '✗');
+                document.getElementById('sdkStatus').textContent = 'Ошибка: ' + e.message;
+                document.getElementById('sdkStatus').className = 'test-value error';
+            }
+            
+            // Тест 2: ThemeParams
+            try {
+                const themeParams = window.TelegramMiniApp.getThemeParams();
+                if (themeParams && Object.keys(themeParams).length > 0) {
+                    updateTestStatus('testTheme', 'passed', '✓');
+                    testsPassed++;
+                    
+                    // Отображаем цвета
+                    if (themeParams.bg_color) {
+                        document.getElementById('bgColor').textContent = themeParams.bg_color;
+                        document.getElementById('sampleBg').style.background = themeParams.bg_color;
+                    }
+                    if (themeParams.text_color) {
+                        document.getElementById('textColor').textContent = themeParams.text_color;
+                        document.getElementById('sampleText').style.background = themeParams.text_color;
+                    }
+                    if (themeParams.button_color) {
+                        document.getElementById('buttonColor').textContent = themeParams.button_color;
+                        document.getElementById('sampleButton').style.background = themeParams.button_color;
+                    }
+                    if (themeParams.secondary_bg_color) {
+                        document.getElementById('secondaryBg').textContent = themeParams.secondary_bg_color;
+                    }
+                    if (themeParams.hint_color) {
+                        document.getElementById('hintColor').textContent = themeParams.hint_color;
+                    }
+                } else {
+                    updateTestStatus('testTheme', 'warning', '⚠');
+                }
+            } catch (e) {
+                updateTestStatus('testTheme', 'failed', '✗');
+            }
+            
+            // Тест 3: Haptic Feedback
+            try {
+                if (window.TelegramMiniApp.hapticFeedback) {
+                    updateTestStatus('testHaptic', 'passed', '✓');
+                    testsPassed++;
+                } else {
+                    updateTestStatus('testHaptic', 'failed', '✗');
+                }
+            } catch (e) {
+                updateTestStatus('testHaptic', 'failed', '✗');
+            }
+            
+            // Тест 4: MainButton
+            try {
+                const tg = window.TelegramMiniApp.getTelegram();
+                if (tg && tg.MainButton) {
+                    updateTestStatus('testMainButton', 'passed', '✓');
+                    testsPassed++;
+                } else {
+                    updateTestStatus('testMainButton', 'warning', '⚠');
+                }
+            } catch (e) {
+                updateTestStatus('testMainButton', 'failed', '✗');
+            }
+            
+            // Тест 5: BackButton
+            try {
+                const tg = window.TelegramMiniApp.getTelegram();
+                if (tg && tg.BackButton) {
+                    updateTestStatus('testBackButton', 'passed', '✓');
+                    testsPassed++;
+                } else {
+                    updateTestStatus('testBackButton', 'warning', '⚠');
+                }
+            } catch (e) {
+                updateTestStatus('testBackButton', 'failed', '✗');
+            }
+            
+            // Тест 6: Viewport
+            try {
+                const viewportHeight = window.TelegramMiniApp.viewportHeight;
+                if (viewportHeight > 0) {
+                    updateTestStatus('testViewport', 'passed', '✓');
+                    testsPassed++;
+                    document.getElementById('userId').textContent = viewportHeight + 'px';
+                } else {
+                    updateTestStatus('testViewport', 'warning', '⚠');
+                }
+            } catch (e) {
+                updateTestStatus('testViewport', 'failed', '✗');
+            }
+            
+            // Обновляем прогресс
+            updateProgress();
+            
+            // Отображаем данные пользователя
+            displayUserData();
+            
+            // Отображаем CSS переменные
+            displayCSSVariables();
+        }
+        
+        function updateTestStatus(testId, status, text) {
+            const element = document.getElementById(testId);
+            element.textContent = text;
+            element.className = 'status-badge ' + status;
+        }
+        
+        function updateProgress() {
+            const percentage = (testsPassed / totalTests) * 100;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('passedTests').textContent = testsPassed;
+            document.getElementById('totalTests').textContent = totalTests;
+        }
+        
+        function displayUserData() {
+            const userData = window.TelegramMiniApp.getUserData();
+            if (userData) {
+                document.getElementById('userId').textContent = userData.id || '—';
+                document.getElementById('firstName').textContent = userData.firstName || '—';
+                document.getElementById('lastName').textContent = userData.lastName || '—';
+                document.getElementById('username').textContent = userData.username || '—';
+                document.getElementById('languageCode').textContent = userData.languageCode || '—';
+                document.getElementById('isPremium').textContent = userData.isPremium ? 'Да ✓' : 'Нет';
+            }
+        }
+        
+        function displayCSSVariables() {
+            const root = getComputedStyle(document.documentElement);
+            document.getElementById('cssTouchSize').textContent = root.getPropertyValue('--tg-touch-size').trim();
+            document.getElementById('cssFontSize').textContent = root.getPropertyValue('--tg-font-size-normal').trim();
+            document.getElementById('cssBorderRadius').textContent = root.getPropertyValue('--tg-border-radius').trim();
+            document.getElementById('cssSpacing').textContent = root.getPropertyValue('--tg-spacing-lg').trim();
+        }
+        
+        // Ручное тестирование
+        
+        function testHaptic(type) {
+            window.TelegramMiniApp.hapticFeedback(type);
+        }
+        
+        function testAlert() {
+            window.TelegramMiniApp.showAlert('Это тестовое уведомление!');
+        }
+        
+        function testConfirm() {
+            window.TelegramMiniApp.showConfirm('Вы уверены?', (result) => {
+                console.log('Confirm result:', result);
+            });
+        }
+        
+        function testPopup() {
+            window.TelegramMiniApp.showPopup({
+                title: 'Тестовый Popup',
+                message: 'Выберите кнопку:',
+                buttons: [
+                    {id: 'ok', type: 'default', text: 'OK'},
+                    {id: 'cancel', type: 'destructive', text: 'Отмена'}
+                ]
+            }, (buttonId) => {
+                console.log('Popup result:', buttonId);
+            });
+        }
+        
+        function testShowMainButton() {
+            window.TelegramMiniApp.showMainButton('ТЕСТОВАЯ КНОПКА');
+            window.TelegramMiniApp.handleMainButtonClick = () => {
+                window.TelegramMiniApp.hapticFeedback('success');
+                window.TelegramMiniApp.hideMainButton();
+            };
+        }
+        
+        function testHideMainButton() {
+            window.TelegramMiniApp.hideMainButton();
+        }
+        
+        function testShowBackButton() {
+            window.TelegramMiniApp.showBackButton();
+            window.TelegramMiniApp.addBackHandler(() => {
+                console.log('Back pressed');
+                window.TelegramMiniApp.hideBackButton();
+                window.TelegramMiniApp.removeBackHandler();
+            });
+        }
+        
+        function testHideBackButton() {
+            window.TelegramMiniApp.hideBackButton();
+            window.TelegramMiniApp.removeBackHandler();
+        }
+        
+        function testExpand() {
+            window.TelegramMiniApp.expand();
+        }
+        
+        function testClose() {
+            if (confirm('Закрыть приложение?')) {
+                window.TelegramMiniApp.close();
+            }
+        }
+    </script>
+</body>
+</html>
