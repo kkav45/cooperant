@@ -777,6 +777,10 @@ async function syncFileToYandex(key, fileName, subfolder = 'Data') {
 // АВТОСОХРАНЕНИЕ
 // ============================================
 
+// Глобальная переменная для таймера резервного копирования
+let backupTimer = null;
+let lastBackupDate = null;
+
 /**
  * Запуск автосохранения
  */
@@ -813,6 +817,39 @@ function startAutoSaveYandex() {
     }, YANDEX_DISK_CONFIG.AUTO_SAVE_INTERVAL);
 
     Logger.success(`⏰ Автосохранение запущено (интервал: ${YANDEX_DISK_CONFIG.AUTO_SAVE_INTERVAL / 1000} сек)`);
+    
+    // Запускаем автоматическое резервное копирование
+    startAutoBackup();
+}
+
+/**
+ * Автоматическое резервное копирование (раз в 24 часа)
+ */
+function startAutoBackup() {
+    if (backupTimer) {
+        clearInterval(backupTimer);
+    }
+    
+    // Проверяем последнюю дату резервной копии
+    lastBackupDate = localStorage.getItem('yandexLastBackupDate');
+    
+    backupTimer = setInterval(async () => {
+        const today = new Date().toDateString();
+        
+        // Если сегодня ещё не было резервной копии
+        if (lastBackupDate !== today && cooperativFolderId && yandexDiskToken) {
+            Logger.info('📦 Создание ежедневной резервной копии...');
+            
+            const result = await createBackupYandex();
+            
+            if (result) {
+                localStorage.setItem('yandexLastBackupDate', today);
+                Logger.success('✅ Ежедневная резервная копия создана');
+            }
+        }
+    }, 3600000); // Проверяем каждый час
+    
+    Logger.success('🕐 Автоматическое резервное копирование запущено (проверка каждый час)');
 }
 
 /**
@@ -1056,6 +1093,94 @@ function getTelegramUserInfo() {
 }
 
 // ============================================
+// МИГРАЦИЯ ДАННЫХ ИЗ LOCALSTORAGE
+// ============================================
+
+/**
+ * Миграция данных из localStorage в Яндекс.Диск
+ * Выполняется один раз при первой авторизации
+ */
+async function migrateDataFromLocalStorage() {
+    try {
+        Logger.info('🔄 Начало миграции данных из localStorage...');
+        
+        const dataTypes = [
+            { key: 'members', name: 'Пайщики' },
+            { key: 'payments', name: 'Взносы' },
+            { key: 'transactions', name: 'Проводки' },
+            { key: 'documents', name: 'Документы' },
+            { key: 'applications', name: 'Заявления' },
+            { key: 'meetings', name: 'Заседания' },
+            { key: 'certificates', name: 'Удостоверения' },
+            { key: 'coopSettings', name: 'Настройки' }
+        ];
+        
+        let migratedCount = 0;
+        let totalCount = 0;
+        
+        for (const dataType of dataTypes) {
+            const data = localStorage.getItem(`coop_${dataType.key}`);
+            
+            if (data && data !== '[]' && data !== '{}') {
+                try {
+                    const parsed = JSON.parse(data);
+                    
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        Logger.info(`📦 Миграция: ${dataType.name} (${parsed.length} записей)`);
+                        
+                        const fileName = `coop_${dataType.key}.json`;
+                        const result = await saveFileToYandex(fileName, parsed, 'Data');
+                        
+                        if (result) {
+                            migratedCount++;
+                            Logger.success(`✅ ${dataType.name} мигрирован`);
+                        }
+                        
+                        totalCount += parsed.length;
+                    } else if (typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+                        Logger.info(`📦 Миграция: ${dataType.name} (объект)`);
+                        
+                        const fileName = `coop_${dataType.key}.json`;
+                        const result = await saveFileToYandex(fileName, parsed, 'Data');
+                        
+                        if (result) {
+                            migratedCount++;
+                            Logger.success(`✅ ${dataType.name} мигрирован`);
+                        }
+                    }
+                } catch (error) {
+                    Logger.error(`❌ Ошибка миграции ${dataType.name}:`, error);
+                }
+            }
+        }
+        
+        Logger.success(`🎉 Миграция завершена! Мигрировано типов данных: ${migratedCount}/${dataTypes.length}, всего записей: ${totalCount}`);
+        
+        // Показываем уведомление
+        if (typeof window.showToast === 'function') {
+            window.showToast({
+                type: 'success',
+                message: `Мигрировано ${totalCount} записей в Яндекс.Диск`,
+                duration: 5000
+            });
+        }
+        
+        return {
+            success: true,
+            migratedTypes: migratedCount,
+            totalRecords: totalCount
+        };
+        
+    } catch (error) {
+        Logger.error('❌ Ошибка миграции данных:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// ============================================
 // ИНИЦИАЛИЗАЦИЯ ИНТЕГРАЦИИ
 // ============================================
 
@@ -1087,6 +1212,20 @@ async function initYandexDiskIntegration() {
             Logger.info('Яндекс Диск авторизован, загружаем данные...');
             yandexDiskToken = token;
             cooperativFolderId = folderId;
+
+            // Проверяем, была ли уже миграция
+            const migrationDone = localStorage.getItem('yandexMigrationDone');
+            
+            if (!migrationDone) {
+                // Запускаем миграцию данных из localStorage
+                Logger.info('🔄 Первая авторизация, запускаем миграцию...');
+                const migrationResult = await migrateDataFromLocalStorage();
+                
+                if (migrationResult.success) {
+                    localStorage.setItem('yandexMigrationDone', 'true');
+                    Logger.success('✅ Миграция данных завершена');
+                }
+            }
 
             // Загружаем данные
             await loadAllDataFromYandex();
@@ -1316,6 +1455,9 @@ window.updateItem = updateItem;
 window.deleteItem = deleteItem;
 window.findItemById = findItemById;
 window.findItems = findItems;
+
+// Миграция
+window.migrateDataFromLocalStorage = migrateDataFromLocalStorage;
 
 // Утилиты
 window.getYandexSyncStatus = getYandexSyncStatus;
