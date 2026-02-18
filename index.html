@@ -2043,53 +2043,70 @@
         // ============================================
         const PanelManager = {
             currentPanel: null,
-            overlay: document.getElementById('panelOverlay'),
+            overlay: null,  // Инициализируем позже
             
+            // Инициализация
+            init() {
+                this.overlay = document.getElementById('panelOverlay');
+                if (this.overlay) {
+                    this.overlay.addEventListener('click', () => {
+                        this.closeAll();
+                    });
+                }
+            },
+
             open(panelId) {
+                // Инициализируем если нужно
+                if (!this.overlay) this.init();
+                
                 // Закрыть все открытые панели
                 this.closeAll();
-                
+
                 // Открыть нужную
                 const panel = document.getElementById(panelId);
                 if (panel) {
                     panel.classList.add('visible');
-                    this.overlay.classList.add('active');
+                    if (this.overlay) {
+                        this.overlay.classList.add('active');
+                    }
                     this.currentPanel = panelId;
-                    
+
                     // Haptic feedback
                     if (tg.HapticFeedback) {
                         tg.HapticFeedback.impactOccurred('light');
                     }
                 }
             },
-            
+
             close(panelId) {
                 const panel = document.getElementById(panelId);
                 if (panel) {
                     panel.classList.remove('visible');
-                    
+
                     // Если это была последняя панель, скрыть overlay
                     if (!document.querySelector('.panel.visible')) {
-                        this.overlay.classList.remove('active');
+                        if (this.overlay) {
+                            this.overlay.classList.remove('active');
+                        }
                     }
-                    
+
                     this.currentPanel = null;
                 }
             },
-            
+
             closeAll() {
                 document.querySelectorAll('.panel.visible').forEach(panel => {
                     panel.classList.remove('visible');
                 });
-                this.overlay.classList.remove('active');
+                if (this.overlay) {
+                    this.overlay.classList.remove('active');
+                }
                 this.currentPanel = null;
             }
         };
         
-        // Закрытие по клику на overlay
-        document.getElementById('panelOverlay').addEventListener('click', () => {
-            PanelManager.closeAll();
-        });
+        // Инициализируем PanelManager
+        PanelManager.init();
         
         // ============================================
         // SWIPE GESTURES
