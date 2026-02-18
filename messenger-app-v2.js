@@ -126,21 +126,16 @@ function syncDataFromApp() {
 function loadData() {
     try {
         Logger.info('Загрузка данных...');
-        
+
         // Проверяем window.members
         if (window.members && Security.validateArray(window.members)) {
             Logger.info('Использованы данные из window', { count: window.members.length });
         } else {
-            // Используем демо-данные
-            if (Security.validateArray(demoMembers)) {
-                window.members = JSON.parse(JSON.stringify(demoMembers));
-                Logger.info('Использованы демо-данные', { count: window.members.length });
-            } else {
-                window.members = [];
-                Logger.warn('Демо-данные отсутствуют');
-            }
+            // Данные не загружены
+            window.members = [];
+            Logger.warn('Данные не загружены. Список пайщиков пуст.');
         }
-        
+
         updateStats();
     } catch (error) {
         Logger.error('Ошибка загрузки данных', error);
@@ -168,18 +163,19 @@ function saveData() {
 function renderChats() {
     try {
         Logger.info('Рендер чатов...', { count: window.members?.length || 0 });
-        
+
         const chatsList = document.getElementById('chatsList');
         if (!chatsList) {
             Logger.error('Элемент chatsList не найден');
             return;
         }
-        
+
         if (!window.members || window.members.length === 0) {
-            Logger.warn('Список пайщиков пуст, используем демо-данные');
-            window.members = JSON.parse(JSON.stringify(demoMembers));
+            Logger.warn('Список пайщиков пуст');
+            chatsList.innerHTML = '<div style="padding:20px;text-align:center;color:#999">Список пайщиков пуст. Добавьте первого пайщика через меню.</div>';
+            return;
         }
-        
+
         // Валидация данных
         const validMembers = window.members.filter(m => Security.validateMember(m));
         if (validMembers.length !== window.members.length) {
@@ -2149,7 +2145,7 @@ function getReportData(reportId) {
         
         // STEP 7.14: РКО (Расходный кассовый ордер)
         'rko': {
-            title: 'Расходный кассовый ордер (РКО)',
+            title: 'Ра��ходный кассовый ордер (РКО)',
             content: `
                 <div style="padding:30px">
                     <h2 style="text-align:center;margin-bottom:10px">РАСХОДНЫЙ КАССОВЫЙ ОРДЕР</h2>
@@ -3370,7 +3366,7 @@ function saveReturnPayment(event) {
             renderChats();
             updateStats();
             
-            Logger.info('Возврат оформлен', { memberId, amount });
+            Logger.info('Возвр��т оформлен', { memberId, amount });
             showToast({ type: 'success', message: `Возврат ${amount.toLocaleString()} ₽ оформлен!` });
             closeSideMenu();
         }

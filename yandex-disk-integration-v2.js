@@ -35,6 +35,21 @@ if (typeof Logger === 'undefined') {
             console.log('%c[Yandex] ' + msg, 'color: #4caf50; font-weight: bold;');
         };
     }
+    if (!Logger.info) {
+        Logger.info = function(msg, data) {
+            console.log('[Yandex] ' + msg, data || '');
+        };
+    }
+    if (!Logger.error) {
+        Logger.error = function(msg, error) {
+            console.error('[Yandex] ' + msg, error || '');
+        };
+    }
+    if (!Logger.warn) {
+        Logger.warn = function(msg, data) {
+            console.warn('[Yandex] ' + msg, data || '');
+        };
+    }
 }
 
 // ============================================
