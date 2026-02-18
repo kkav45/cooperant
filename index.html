@@ -2119,6 +2119,40 @@
             }
         }
         
+        // ============================================
+        // ФУНКЦИИ ОБРАБОТКИ МЕНЮ (ГЛОБАЛЬНЫЕ)
+        // ============================================
+        
+        // Открытие отчёта по имени
+        window.openReportByName = function(reportName) {
+            console.log('📊 Открытие отчёта:', reportName);
+            
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'info',
+                    message: 'Отчёт "' + reportName + '" в разработке',
+                    duration: 3000
+                });
+            } else {
+                alert('Отчёт: ' + reportName + ' (в разработке)');
+            }
+        };
+        
+        // Обработка действий меню
+        window.handleMenuAction = function(actionName) {
+            console.log('⚙️ Действие меню:', actionName);
+            
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'info',
+                    message: 'Действие "' + actionName + '" в разработке',
+                    duration: 3000
+                });
+            } else {
+                alert('Действие: ' + actionName + ' (в разработке)');
+            }
+        };
+
         // Обновляем обработчики кнопок для использования PanelManager
         document.addEventListener('DOMContentLoaded', () => {
             // Кнопка закрытия левого меню
@@ -2138,69 +2172,48 @@
             }
             
             // ============================================
-            // ФУНКЦИИ ОБРАБОТКИ МЕНЮ
-            // ============================================
-            
-            // Открытие отчёта по имени
-            function openReportByName(reportName) {
-                Logger.info('📊 Открытие отчёта:', reportName);
-                
-                if (typeof window.showToast === 'function') {
-                    window.showToast({
-                        type: 'info',
-                        message: 'Отчёт "' + reportName + '" в разработке',
-                        duration: 3000
-                    });
-                }
-            }
-            
-            // Обработка действий меню
-            function handleMenuAction(actionName) {
-                Logger.info('⚙️ Действие меню:', actionName);
-                
-                if (typeof window.showToast === 'function') {
-                    window.showToast({
-                        type: 'info',
-                        message: 'Действие "' + actionName + '" в разработке',
-                        duration: 3000
-                    });
-                }
-            }
-            
-            // ============================================
             // ОБРАБОТЧИКИ КНОПОК МЕНЮ
             // ============================================
             const menuItems = document.querySelectorAll('.menu-item[data-panel], .menu-item[data-report], .menu-item[data-action]');
             
+            console.log('✅ Найдено кнопок меню:', menuItems.length);
+            
             menuItems.forEach(item => {
-                item.addEventListener('click', function() {
+                item.style.cursor = 'pointer'; // Показываем что можно кликнуть
+                
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
                     const panel = this.dataset.panel;
                     const report = this.dataset.report;
                     const action = this.dataset.action;
                     
+                    console.log('🖱️ Клик по меню:', { panel, report, action });
+
                     // Тактильный отклик
                     if (tg.HapticFeedback) {
                         tg.HapticFeedback.impactOccurred('light');
                     }
-                    
+
                     if (panel) {
                         // Открытие панели
                         PanelManager.open(panel);
-                        Logger.info('Открыта панель:', panel);
+                        console.log('✅ Открыта панель:', panel);
                     } else if (report) {
                         // Открытие отчёта
-                        openReportByName(report);
+                        window.openReportByName(report);
                     } else if (action) {
                         // Выполнение действия
-                        handleMenuAction(action);
+                        window.handleMenuAction(action);
                     }
-                    
+
                     // Закрыть меню
                     PanelManager.close('sidebarMenu');
                 });
             });
             
-            Logger.info('Обработчики кнопок меню настроены:', menuItems.length, 'кнопок');
+            Logger.info('✅ Обработчики кнопок меню настроены');
         });
         
         console.log('🚀 Telegram Mini App запущен');
