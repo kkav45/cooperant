@@ -936,95 +936,45 @@ function printAccountingCertificate(number, date, subject, content, debit, credi
     printWindow.print();
 }
 
-// ==================== ЗАГРУЗКА ДЕМО-ДАННЫХ ====================
+// ==================== ЗАГРУЗКА ДАННЫХ ИЗ ЯНДЕКС.ДИСКА ====================
 
-// Функция загрузки демо-данных из demo_data.json при первом запуске
-async function loadDemoDataIfNeeded() {
-    const savedMembers = localStorage.getItem('coop_members');
-    
-    // Если данные уже есть в localStorage, не загружаем демо
-    if (savedMembers && JSON.parse(savedMembers).length > 0) {
-        console.log('✅ Данные найдены в localStorage, загрузка демо не требуется');
-        return false;
-    }
-    
+// Функция загрузки данных из Яндекс.Диска
+async function loadDataFromYandexDisk() {
     try {
-        console.log('📥 Загрузка демо-данных из demo_data.json...');
-        const response = await fetch('demo_data.json');
-        
-        if (!response.ok) {
-            throw new Error('Файл demo_data.json не найден');
+        console.log('[Yandex] Загрузка данных из Яндекс.Диска...');
+
+        // Проверяем авторизацию
+        const token = localStorage.getItem('yandexDiskToken');
+        if (!token) {
+            console.log('[Yandex] Авторизация не выполнена. Данные не загружены.');
+            return false;
         }
-        
-        const data = await response.json();
-        
-        // Загружаем данные только если они пустые
-        if (data.members && (!savedMembers || JSON.parse(savedMembers).length === 0)) {
-            members = data.members;
-            localStorage.setItem('coop_members', JSON.stringify(members));
-            console.log('✅ Загружено пайщиков из demo_data.json:', members.length);
-        }
-        
-        if (data.payments) {
-            const savedPayments = localStorage.getItem('coop_payments');
-            if (!savedPayments || JSON.parse(savedPayments).length === 0) {
-                payments = data.payments;
-                localStorage.setItem('coop_payments', JSON.stringify(payments));
-                console.log('✅ Загружено взносов из demo_data.json:', payments.length);
+
+        // Загружаем данные через yandex-disk-integration-v2.js
+        if (typeof loadAllDataFromYandex === 'function') {
+            const result = await loadAllDataFromYandex();
+            if (result) {
+                console.log('[Yandex] Данные успешно загружены!');
+                return true;
             }
         }
-        
-        if (data.transactions) {
-            const savedTransactions = localStorage.getItem('coop_transactions');
-            if (!savedTransactions || JSON.parse(savedTransactions).length === 0) {
-                transactions = data.transactions;
-                localStorage.setItem('coop_transactions', JSON.stringify(transactions));
-                console.log('✅ Загружено проводок из demo_data.json:', transactions.length);
-            }
-        }
-        
-        if (data.documents) {
-            const savedDocuments = localStorage.getItem('coop_documents');
-            if (!savedDocuments || JSON.parse(savedDocuments).length === 0) {
-                documents = data.documents;
-                localStorage.setItem('coop_documents', JSON.stringify(documents));
-                console.log('✅ Загружено документов из demo_data.json:', documents.length);
-            }
-        }
-        
-        if (data.applications) {
-            applications = data.applications;
-            localStorage.setItem('coop_applications', JSON.stringify(applications));
-            console.log('✅ Загружено заявлений из demo_data.json:', applications.length);
-        }
-        
-        if (data.meetings) {
-            meetings = data.meetings;
-            localStorage.setItem('coop_meetings', JSON.stringify(meetings));
-            console.log('✅ Загружено заседаний из demo_data.json:', meetings.length);
-        }
-        
-        if (data.certificates) {
-            certificates = data.certificates;
-            localStorage.setItem('coop_certificates', JSON.stringify(certificates));
-            console.log('✅ Загружено удостоверений из demo_data.json:', certificates.length);
-        }
-        
-        console.log('🎉 Демо-данные успешно загружены!');
-        return true;
-        
+
+        return false;
+
     } catch (error) {
-        console.error('❌ Ошибка загрузки demo_data.json:', error.message);
-        console.log('⚠️ Приложение будет работать с пустыми данными');
+        console.error('[Yandex] Ошибка загрузки данных:', error.message);
         return false;
     }
 }
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', async function() {
-    // Сначала загружаем демо-данные если нужно
-    await loadDemoDataIfNeeded();
-    
+    // Загружаем данные из Яндекс.Диска если авторизованы
+    const yandexToken = localStorage.getItem('yandexDiskToken');
+    if (yandexToken) {
+        await loadDataFromYandexDisk();
+    }
+
     // Проверяем, настроена ли папка C:\КООПЕРАНТ
     if (!localStorage.getItem('coopDirectoryConfigured')) {
         // Показываем модальное окно с инструкцией

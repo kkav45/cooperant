@@ -51,35 +51,14 @@ const Security = {
 var currentMember = null;
 var fabExpanded = false;
 
-// ==================== ДЕМО ДАННЫЕ ====================
-const demoMembers = [
-    { id: 1, name: "Иванов Иван Иванович", avatar: "ИИ", color: "linear-gradient(135deg,#ff6b6b,#ee5a5a)", status: "debt", statusText: "Должник", balance: -2000, phone: "+7 (999) 123-45-67", email: "ivanov@example.com", joinDate: "15.01.2023", lastTransaction: "Просрочен членский взнос (2 мес)", lastTime: "10:30", operations: [
-        { id: 1, type: "Внесение пая", amount: 5000, date: "2024-01-15", description: "Ежегодный паевой взнос", status: "paid" },
-        { id: 2, type: "Членский взнос", amount: 1000, date: "2024-02-01", description: "Членский взнос за февраль", status: "overdue" },
-        { id: 3, type: "Членский взнос", amount: 1000, date: "2024-01-01", description: "Членский взнос за январь", status: "overdue" }
-    ]},
-    { id: 2, name: "Петрова Мария Сергеевна", avatar: "ПМ", color: "linear-gradient(135deg,#51cf66,#40c057)", status: "active", statusText: "Активен", balance: 25000, phone: "+7 (999) 234-56-78", email: "petrova@example.com", joinDate: "20.02.2023", lastTransaction: "Внесён паевой взнос 10 000 ₽", lastTime: "Вчера", operations: [
-        { id: 4, type: "Внесение пая", amount: 10000, date: "2024-01-14", description: "Дополнительный паевой взнос", status: "paid" },
-        { id: 5, type: "Вступительный взнос", amount: 5000, date: "2023-12-10", description: "Вступительный взнос", status: "paid" },
-        { id: 6, type: "Выплата дивидендов", amount: 3500, date: "2024-01-05", description: "Дивиденды за 4 квартал", status: "paid" }
-    ]},
-    { id: 3, name: "Сидоров Дмитрий Петрович", avatar: "СД", color: "linear-gradient(135deg,#fcc419,#fab005)", status: "pending", statusText: "На рассмотрении", balance: 5000, phone: "+7 (999) 345-67-89", email: "sidorov@example.com", joinDate: "-", lastTransaction: "Заявление о вступлении подано", lastTime: "Пт", operations: [
-        { id: 7, type: "Вступительный взнос", amount: 5000, date: "2024-01-13", description: "Вступительный взнос", status: "pending" }
-    ]},
-    { id: 4, name: "Козлова Елена Владимировна", avatar: "КЕ", color: "linear-gradient(135deg,#74c0fc,#4dabf7)", status: "active", statusText: "Активен", balance: 18000, phone: "+7 (999) 456-78-90", email: "kozlova@example.com", joinDate: "10.03.2023", lastTransaction: "Получены дивиденды 3 500 ₽", lastTime: "Чт", operations: [
-        { id: 8, type: "Паевой взнос", amount: 15000, date: "2024-01-12", description: "Паевой взнос", status: "paid" },
-        { id: 9, type: "Выплата дивидендов", amount: 3500, date: "2024-01-05", description: "Дивиденды", status: "paid" }
-    ]},
-    { id: 5, name: "Волков Сергей Николаевич", avatar: "ВС", color: "linear-gradient(135deg,#b197fc,#9775fa)", status: "active", statusText: "Активен", balance: 12000, phone: "+7 (999) 567-89-01", email: "volkov@example.com", joinDate: "05.04.2023", lastTransaction: "Заявление на выход", lastTime: "Ср", operations: [
-        { id: 10, type: "Заявка на выход", amount: 0, date: "2024-01-11", description: "Заявление о выходе", status: "pending" },
-        { id: 11, type: "Возврат пая", amount: 12000, date: "2024-01-10", description: "Возврат паевого взноса", status: "pending" }
-    ]}
-];
+// ==================== ДАННЫЕ ====================
+// Данные загружаются из Яндекс.Диска или app.js
+let membersData = []; // Изначально пустой массив
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 try {
     Logger.info('Messenger App v2 запущен');
-    
+
     // Проверяем готовность DOM
     if (document.readyState === 'loading') {
         Logger.info('Ожидание загрузки DOM...');
@@ -104,22 +83,22 @@ function initMessenger() {
         // Инициализация тёмной темы
         initDarkMode();
 
-        // Синхронизация с app.js
+        // Синхронизация с app.js (данные загружаются из Яндекс.Диска)
         syncDataFromApp();
-        
+
         // Загрузка данных
         loadData();
-        
+
         // Рендер чатов
         renderChats();
-        
+
         // Настройка обработчиков
         setupEventListeners();
-        
+
         // Обновление статистики
         updateStats();
         updateDashboard();
-        
+
         Logger.info('Инициализация завершена успешно');
     } catch (error) {
         Logger.error('Ошибка инициализации', error);
@@ -130,11 +109,13 @@ function initMessenger() {
 function syncDataFromApp() {
     try {
         Logger.info('Синхронизация данных из app.js...');
-        
+
         if (window.members && Security.validateArray(window.members)) {
-            Logger.info('Данные получены из app.js', { count: window.members.length });
+            membersData = window.members;
+            Logger.info('Данные получены из app.js', { count: membersData.length });
         } else {
-            Logger.warn('Данные в app.js отсутствуют, будут использованы демо-данные');
+            Logger.warn('Данные в app.js отсутствуют. Ожидание загрузки из Яндекс.Диска...');
+            membersData = [];
         }
     } catch (error) {
         Logger.error('Ошибка синхронизации', error);

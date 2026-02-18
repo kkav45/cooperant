@@ -1706,6 +1706,141 @@
         });
 
         // ============================================
+        // ЯНДЕКС.ДИСК - АВТОМАТИЧЕСКАЯ ИНИЦИАЛИЗАЦИЯ
+        // ============================================
+        
+        // Автоматическая инициализация Яндекс.Диска
+        async function initYandexDiskAuto() {
+            try {
+                console.log('[Yandex] Начало инициализации...');
+                
+                // Проверяем токен
+                const token = localStorage.getItem('yandexDiskToken');
+                
+                if (token) {
+                    console.log('[Yandex] Токен найден, загружаем данные...');
+                    
+                    // Загружаем данные из Яндекс.Диска
+                    if (typeof loadAllDataFromYandex === 'function') {
+                        const result = await loadAllDataFromYandex();
+                        if (result) {
+                            console.log('[Yandex] Данные успешно загружены!');
+                            
+                            // Обновляем UI
+                            if (typeof updateYandexDiskIndicator === 'function') {
+                                updateYandexDiskIndicator();
+                            }
+                            
+                            // Запускаем автосохранение
+                            if (typeof startAutoSaveYandex === 'function') {
+                                startAutoSaveYandex();
+                            }
+                        }
+                    }
+                } else {
+                    console.log('[Yandex] Токен не найден. Ожидание авторизации...');
+                }
+                
+            } catch (error) {
+                console.error('[Yandex] Ошибка инициализации:', error.message);
+            }
+        }
+
+        // Запускаем инициализацию после загрузки страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                initYandexDiskAuto();
+            }, 500);
+        });
+
+        // ============================================
+        // ОБРАБОТКА ТОКЕНА ПОСЛЕ АВТОРИЗАЦИИ
+        // ============================================
+        
+        // Обработка токена из Яндекс.Диска (после возврата из браузера)
+        function handleYandexCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hash = window.location.hash;
+            
+            let token = null;
+            
+            // Пробуем получить из hash
+            if (hash && hash.includes('access_token')) {
+                const hashParams = new URLSearchParams(hash.substring(1));
+                token = hashParams.get('access_token');
+            }
+            
+            // Пробуем получить из search
+            if (!token && urlParams.get('access_token')) {
+                token = urlParams.get('access_token');
+            }
+            
+            if (token) {
+                console.log('[Yandex] Токен получен из URL');
+                
+                // Сохраняем токен
+                localStorage.setItem('yandexDiskToken', token);
+                
+                // Очищаем URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // Показываем успех
+                if (typeof showToast === 'function') {
+                    showToast({
+                        type: 'success',
+                        message: '✓ Яндекс.Диск подключён!',
+                        duration: 5000
+                    });
+                }
+                
+                // Тактильный отклик
+                if (window.TelegramMiniApp) {
+                    window.TelegramMiniApp.hapticFeedback('success');
+                }
+                
+                // Загружаем данные
+                setTimeout(() => {
+                    initYandexDiskAuto();
+                }, 1000);
+            }
+        }
+
+        // Обработка сообщений от callback окна
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'YANDEX_TOKEN') {
+                const token = event.data.token;
+                if (token) {
+                    console.log('[Yandex] Токен получен из postMessage');
+                    
+                    localStorage.setItem('yandexDiskToken', token);
+                    
+                    if (typeof showToast === 'function') {
+                        showToast({
+                            type: 'success',
+                            message: '✓ Яндекс.Диск подключён!',
+                            duration: 5000
+                        });
+                    }
+                    
+                    if (window.TelegramMiniApp) {
+                        window.TelegramMiniApp.hapticFeedback('success');
+                    }
+                    
+                    setTimeout(() => {
+                        initYandexDiskAuto();
+                    }, 1000);
+                }
+            }
+        });
+
+        // Вызываем обработку токена при загрузке
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                handleYandexCallback();
+            }, 500);
+        });
+
+        // ============================================
         // ЯНДЕКС.ДИСК ФУНКЦИИ
         // ============================================
 
