@@ -244,19 +244,22 @@ async function initYandexDiskAfterAuth() {
     try {
         // Находим или создаём папку
         const folderId = await findOrCreateYandexCooperativFolder();
-        
+
         if (folderId) {
             cooperativFolderId = folderId;
             localStorage.setItem('yandexCooperativFolderId', folderId);
-            
+
             Logger.success('Папка КООПЕРАНТ готова');
-            
+
+            // Инициализируем файлы данных (создаём пустые если нет)
+            await initializeDataFiles();
+
             // Загружаем данные
             await loadAllDataFromYandex();
-            
+
             // Запускаем автосохранение
             startAutoSaveYandex();
-            
+
             // Показываем уведомление
             if (typeof window.showToast === 'function') {
                 window.showToast({
@@ -265,7 +268,7 @@ async function initYandexDiskAfterAuth() {
                     duration: 3000
                 });
             }
-            
+
             // Тактильный отклик для Telegram
             if (window.TelegramMiniApp) {
                 window.TelegramMiniApp.hapticFeedback('success');
@@ -274,6 +277,43 @@ async function initYandexDiskAfterAuth() {
     } catch (error) {
         Logger.error('Ошибка инициализации после авторизации', error);
     }
+}
+
+/**
+ * Инициализация файлов данных (создание пустых файлов если не существуют)
+ */
+async function initializeDataFiles() {
+    const files = [
+        { name: 'coop_members.json', data: [] },
+        { name: 'coop_payments.json', data: [] },
+        { name: 'coop_transactions.json', data: [] },
+        { name: 'coop_documents.json', data: [] },
+        { name: 'coop_applications.json', data: [] },
+        { name: 'coop_meetings.json', data: [] },
+        { name: 'coop_certificates.json', data: [] },
+        { name: 'coop_settings.json', data: {} }
+    ];
+    
+    Logger.info('📁 Инициализация файлов данных...');
+    
+    for (const file of files) {
+        try {
+            // Проверяем существует ли файл
+            const existing = await loadFileFromYandex(file.name, 'Data');
+            
+            if (!existing) {
+                // Файл не существует, создаём пустой
+                await saveFileToYandex(file.name, file.data, 'Data');
+                Logger.success(`✅ Создан файл: ${file.name}`);
+            } else {
+                Logger.info(`✅ Файл существует: ${file.name}`);
+            }
+        } catch (error) {
+            Logger.error(`Ошибка инициализации ${file.name}:`, error);
+        }
+    }
+    
+    Logger.success('✅ Все файлы данных инициализированы');
 }
 
 /**
