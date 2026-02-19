@@ -2166,6 +2166,10 @@
                     showOSVReport();
                     break;
                     
+                case 'kudir':
+                    showKUDiRReport();
+                    break;
+                    
                 default:
                     // Показываем уведомление для остальных отчётов
                     if (typeof window.showToast === 'function') {
@@ -3024,6 +3028,114 @@
                     </table>
                     
                     <div style="margin-top:20px;text-align:center">
+                        <button onclick="closeModalYandex()"
+                                style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            showModalYandex(content);
+        };
+        
+        // ============================================
+        // ОТЧЁТ: КУДиР УСН (КНИГА УЧЁТА ДОХОДОВ И РАСХОДОВ)
+        // ============================================
+        
+        // Показать КУДиР
+        window.showKUDiRReport = function() {
+            const currentYear = new Date().getFullYear();
+            
+            // Получаем данные из проводок и платежей
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            
+            // Фильтруем за текущий год
+            const yearTransactions = transactions.filter(t => t.date.startsWith(currentYear));
+            const yearPayments = payments.filter(p => p.date.startsWith(currentYear));
+            
+            // Доходы (вступительные, паевые, членские взносы)
+            const incomes = yearPayments.filter(p => ['entrance', 'share', 'membership'].includes(p.type));
+            const totalIncomes = incomes.reduce((sum, p) => sum + p.amount, 0);
+            
+            // Расходы (из проводок по счетам 20, 26, 44)
+            const expenseAccounts = ['20', '26', '44'];
+            const expenses = yearTransactions.filter(t => expenseAccounts.includes(t.creditAccount));
+            const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+            
+            // Финансовый результат
+            const financialResult = totalIncomes - totalExpenses;
+            
+            let incomeRowsHTML = '';
+            if (incomes.length === 0) {
+                incomeRowsHTML = '<tr><td colspan="4" style="padding:12px;text-align:center;color:#999">Доходов нет</td></tr>';
+            } else {
+                incomes.forEach((inc, idx) => {
+                    incomeRowsHTML += `
+                        <tr style="border-bottom:1px solid #eee">
+                            <td style="padding:10px;text-align:center">${idx + 1}</td>
+                            <td style="padding:10px">${inc.date || '—'}</td>
+                            <td style="padding:10px">${inc.memberName || '—'}</td>
+                            <td style="padding:10px;text-align:right;font-weight:600;color:#4caf50">${inc.amount.toLocaleString()} ₽</td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            const content = `
+                <div style="padding:30px;max-width:900px;margin:0 auto">
+                    <h2 style="margin-bottom:10px;font-size:20px;font-weight:600;text-align:center">📊 КУДиР УСН</h2>
+                    <p style="text-align:center;color:#999;margin-bottom:20px">Книга учёта доходов и расходов за ${currentYear} год</p>
+                    
+                    <div style="background:#f5f7fa;padding:15px;border-radius:8px;margin-bottom:20px">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                            <div style="text-align:center">
+                                <div style="font-size:14px;color:#666">Доходы</div>
+                                <div style="font-size:24px;font-weight:700;color:#4caf50">${totalIncomes.toLocaleString()} ₽</div>
+                            </div>
+                            <div style="text-align:center">
+                                <div style="font-size:14px;color:#666">Расходы</div>
+                                <div style="font-size:24px;font-weight:700;color:#f44336">${totalExpenses.toLocaleString()} ₽</div>
+                            </div>
+                        </div>
+                        <div style="text-align:center;margin-top:15px;padding-top:15px;border-top:2px solid #ddd">
+                            <div style="font-size:16px;font-weight:600">Налоговая база</div>
+                            <div style="font-size:28px;font-weight:700;color:${financialResult >= 0 ? '#0088cc' : '#f44336'}">
+                                ${financialResult >= 0 ? '+' : ''}${financialResult.toLocaleString()} ₽
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-bottom:15px;font-size:16px;font-weight:600">📈 Доходы кооператива</h3>
+                    
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px">
+                        <thead>
+                            <tr style="background:#f5f7fa">
+                                <th style="padding:10px;border:1px solid #ddd;text-align:center" rowspan="2">№</th>
+                                <th style="padding:10px;border:1px solid #ddd;text-align:center" rowspan="2">Дата</th>
+                                <th style="padding:10px;border:1px solid #ddd;text-align:left" rowspan="2">Содержание операции</th>
+                                <th style="padding:10px;border:1px solid #ddd;text-align:right" rowspan="2">Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${incomeRowsHTML}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background:#f5f7fa;font-weight:600">
+                                <td style="padding:10px;border:1px solid #ddd;text-align:right" colspan="3">Итого доходов:</td>
+                                <td style="padding:10px;border:1px solid #ddd;text-align:right;color:#4caf50">${totalIncomes.toLocaleString()} ₽</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    
+                    <div style="background:#fff3cd;padding:15px;border-radius:8px;margin-bottom:20px;border-left:4px solid #ffc107">
+                        <div style="font-size:14px;color:#856404">
+                            <strong>⚠️ Примечание:</strong> Для корректного заполнения КУДиР необходимо вести бухгалтерский учёт с использованием счетов 20, 26, 44 для учёта расходов.
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top:20px;text-align:center">
                         <button onclick="closeModalYandex()" 
                                 style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
                             Закрыть
@@ -3034,7 +3146,7 @@
             
             showModalYandex(content);
         };
-        
+
         window.handleMenuAction = function(actionName) {
             console.log('⚙️ Действие меню:', actionName);
 
