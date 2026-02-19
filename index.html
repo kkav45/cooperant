@@ -2165,6 +2165,10 @@
                     showCreateMemberModal();
                     break;
                     
+                case 'create-payment':
+                    showCreatePaymentModal();
+                    break;
+                    
                 default:
                     // Показываем уведомление для остальных действий
                     if (typeof window.showToast === 'function') {
@@ -2282,6 +2286,142 @@
             // Обновляем список чатов в messenger
             if (typeof window.renderChats === 'function') {
                 window.renderChats();
+            }
+            
+            return false;
+        };
+        
+        // ============================================
+        // ФОРМА: ДОБАВИТЬ ВЗНОС
+        // ============================================
+        
+        // Показать форму добавления взноса
+        window.showCreatePaymentModal = function() {
+            const content = `
+                <div style="padding:30px;max-width:600px;margin:0 auto">
+                    <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">💳 Добавить взнос</h2>
+                    
+                    <form id="createPaymentForm" onsubmit="return handleCreatePayment(event)">
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Пайщик *</label>
+                            <select name="memberId" required 
+                                    style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                <option value="">Выберите пайщика</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Тип взноса *</label>
+                            <select name="type" required 
+                                    style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                <option value="">Выберите тип</option>
+                                <option value="entrance">Вступительный</option>
+                                <option value="membership">Членский</option>
+                                <option value="share">Паевой</option>
+                                <option value="additional">Дополнительный</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Сумма (₽) *</label>
+                            <input type="number" name="amount" required min="1" step="0.01"
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"
+                                   placeholder="5000">
+                        </div>
+                        
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Дата</label>
+                            <input type="date" name="date" 
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+                        
+                        <div style="margin-bottom:20px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Назначение</label>
+                            <textarea name="description" rows="3"
+                                      style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"
+                                      placeholder="Например: Вступительный взнос"></textarea>
+                        </div>
+                        
+                        <div style="display:flex;gap:10px;justify-content:flex-end">
+                            <button type="button" onclick="closeModalYandex()" 
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Отмена
+                            </button>
+                            <button type="submit" 
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                💳 Внести
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            showModalYandex(content);
+            
+            // Заполняем список пайщиков
+            setTimeout(() => {
+                const select = document.querySelector('select[name="memberId"]');
+                if (select) {
+                    const members = JSON.parse(localStorage.getItem('members') || '[]');
+                    members.forEach(member => {
+                        const option = document.createElement('option');
+                        option.value = member.id;
+                        option.textContent = member.name;
+                        select.appendChild(option);
+                    });
+                }
+            }, 100);
+        };
+        
+        // Обработка отправки формы взноса
+        window.handleCreatePayment = function(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const newPayment = {
+                memberId: formData.get('memberId'),
+                type: formData.get('type'),
+                amount: parseFloat(formData.get('amount')),
+                date: formData.get('date') || new Date().toISOString().split('T')[0],
+                description: formData.get('description'),
+                status: 'paid'
+            };
+            
+            // Находим имя пайщика
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+            const member = members.find(m => m.id == newPayment.memberId);
+            newPayment.memberName = member ? member.name : 'Неизвестно';
+            
+            console.log('💳 Новый взнос:', newPayment);
+            
+            // Сохраняем в localStorage
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            newPayment.id = Date.now();
+            newPayment.createdAt = new Date().toISOString();
+            payments.push(newPayment);
+            localStorage.setItem('payments', JSON.stringify(payments));
+            
+            console.log('✅ Взнос сохранён. Всего взносов:', payments.length);
+            
+            // Закрываем модальное окно
+            closeModalYandex();
+            
+            // Показываем уведомление
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'success',
+                    message: `✅ Взнос "${newPayment.memberName}" на сумму ${newPayment.amount}₽ внесён!`,
+                    duration: 3000
+                });
+            } else {
+                alert(`✅ Взнос "${newPayment.memberName}" на сумму ${newPayment.amount}₽ внесён!`);
+            }
+            
+            // Тактильный отклик
+            if (window.TelegramMiniApp) {
+                window.TelegramMiniApp.hapticFeedback('success');
             }
             
             return false;
