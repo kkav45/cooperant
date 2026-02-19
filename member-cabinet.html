@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет пайщика | КООПЕРАНТ</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --primary-dark: #1976D2;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --danger-color: #F44336;
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 16px 24px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-email {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: var(--card-bg);
+            padding: 8px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: var(--bg-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Cooperative Grid */
+        .coop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .coop-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .coop-card:hover {
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .coop-card-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .coop-card-body {
+            padding: 20px;
+        }
+
+        .coop-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .coop-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .status-pending {
+            background: #FFF3E0;
+            color: #EF6C00;
+        }
+
+        .status-suspended {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .coop-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .info-item {
+            font-size: 13px;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+        }
+
+        .info-value {
+            font-weight: 500;
+        }
+
+        .coop-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-select {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 14px;
+            background: var(--card-bg);
+            cursor: pointer;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        /* Notifications */
+        .notification-badge {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--danger-color);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .user-menu {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+
+            .coop-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Sync Status */
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .sync-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-color);
+        }
+
+        .sync-indicator.syncing {
+            background: var(--warning-color);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Discrepancy Alert */
+        .discrepancy-alert {
+            background: #FFF3E0;
+            border-left: 4px solid var(--warning-color);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+        }
+
+        .discrepancy-title {
+            font-weight: 600;
+            color: #EF6C00;
+            margin-bottom: 8px;
+        }
+
+        .discrepancy-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .discrepancy-table th,
+        .discrepancy-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #FFE0B2;
+        }
+
+        .discrepancy-table th {
+            color: #E65100;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🏠</span>
+                <span>КООПЕРАНТ</span>
+            </div>
+            <div class="user-menu">
+                <div class="notification-badge" onclick="showNotifications()">
+                    🔔
+                    <span class="notification-count" id="notifCount">3</span>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">Иванов Иван Иванович</div>
+                    <div class="user-email" id="userEmail">ivanov@yandex.ru</div>
+                </div>
+                <div class="avatar" onclick="showProfile()">👤</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('my')">📋 Мои кооперативы</button>
+            <button class="tab" onclick="switchTab('search')">🔍 Поиск кооператива</button>
+            <button class="tab" onclick="switchTab('applications')">📨 Мои заявления</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCoops">2</div>
+                <div class="stat-label">Кооперативов</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #4CAF50, #388E3C);">
+                <div class="stat-value" id="activeCoops">2</div>
+                <div class="stat-label">Активных</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #FF9800, #F57C00);">
+                <div class="stat-value" id="pendingApps">1</div>
+                <div class="stat-label">Заявлений</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #9C27B0, #7B1FA2);">
+                <div class="stat-value" id="totalInvested">160 000 ₽</div>
+                <div class="stat-label">Внесено</div>
+            </div>
+        </div>
+
+        <!-- Tab: My Cooperatives -->
+        <div id="tab-my" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Мои кооперативы</div>
+                        <div class="card-subtitle">Управляйте членством в кооперативах</div>
+                    </div>
+                    <div class="sync-status">
+                        <div class="sync-indicator" id="syncIndicator"></div>
+                        <span id="syncText">Синхронизировано: 2 часа назад</span>
+                        <button class="btn btn-sm btn-outline" onclick="syncAll()" style="margin-left: 12px;">
+                            🔄 Синхронизировать
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="coop-grid" id="myCoopsGrid">
+                <!-- Cooperative cards will be rendered here -->
+            </div>
+
+            <!-- Add New -->
+            <div class="card" style="text-align: center; padding: 40px;">
+                <div class="empty-icon">➕</div>
+                <div class="empty-title">Вступить в новый кооператив</div>
+                <p style="margin-bottom: 16px; color: var(--text-secondary);">
+                    Найдите кооператив в каталоге и подайте заявление
+                </p>
+                <button class="btn btn-primary" onclick="switchTab('search')">
+                    🔍 Найти кооператив
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab: Search -->
+        <div id="tab-search" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Поиск кооперативов</div>
+                        <div class="card-subtitle">Найдите кооператив для вступления</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" class="search-input" id="searchInput" 
+                       placeholder="Введите название, ИНН или регион..."
+                       oninput="searchCooperatives()">
+                <div class="search-filters">
+                    <select class="filter-select" id="regionFilter" onchange="searchCooperatives()">
+                        <option value="">Все регионы</option>
+                        <option value="Москва">Москва</option>
+                        <option value="Краснодарский край">Краснодарский край</option>
+                        <option value="Санкт-Петербург">Санкт-Петербург</option>
+                    </select>
+                    <select class="filter-select" id="typeFilter" onchange="searchCooperatives()">
+                        <option value="">Все типы</option>
+                        <option value="credit">Кредитные</option>
+                        <option value="agricultural">Сельскохозяйственные</option>
+                        <option value="housing">Жилищные</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="coop-grid" id="searchGrid">
+                <!-- Search results will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Tab: Applications -->
+        <div id="tab-applications" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Мои заявления</div>
+                        <div class="card-subtitle">Отслеживайте статус заявлений</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="applicationsList">
+                <!-- Applications will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Cooperative Detail -->
+    <div class="modal-overlay" id="coopModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modalCoopName">КПК "Первый"</div>
+                <button class="modal-close" onclick="closeModal('coopModal')">×</button>
+            </div>
+            <div class="modal-body" id="modalCoopBody">
+                <!-- Content will be rendered here -->
+            </div>
+            <div class="modal-footer" id="modalCoopFooter">
+                <!-- Actions will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Application Form -->
+    <div class="modal-overlay" id="applicationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Заявление на вступление</div>
+                <button class="modal-close" onclick="closeModal('applicationModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">ФИО *</label>
+                    <input type="text" class="form-input" id="appFullName" value="Иванов Иван Иванович">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Дата рождения *</label>
+                        <input type="date" class="form-input" id="appBirthDate" value="1980-05-15">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Телефон *</label>
+                        <input type="tel" class="form-input" id="appPhone" value="+79001234567">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email *</label>
+                    <input type="email" class="form-input" id="appEmail" value="ivanov@yandex.ru">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Адрес регистрации *</label>
+                    <input type="text" class="form-input" id="appAddress" value="г. Москва, ул. Примерная, д. 1, кв. 1">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Вступительный взнос</label>
+                        <input type="text" class="form-input" id="appEntranceFee" value="1 000 ₽" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Обязательный пай *</label>
+                        <input type="number" class="form-input" id="appShareAmount" value="10000" min="10000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="appAgree" checked>
+                        Я согласен с уставом кооператива и на обработку персональных данных *
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('applicationModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="submitApplication()">Отправить заявление</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Discrepancies -->
+    <div class="modal-overlay" id="discrepancyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">⚠️ Расхождения в данных</div>
+                <button class="modal-close" onclick="closeModal('discrepancyModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="discrepancy-alert">
+                    <div class="discrepancy-title">Обнаружены расхождения при синхронизации</div>
+                    <table class="discrepancy-table">
+                        <thead>
+                            <tr>
+                                <th>Поле</th>
+                                <th>У вас</th>
+                                <th>В кооперативе</th>
+                            </tr>
+                        </thead>
+                        <tbody id="discrepancyTableBody">
+                            <!-- Will be rendered here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 16px;">
+                    <p style="margin-bottom: 12px; font-weight: 500;">Что делать?</p>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button class="btn btn-primary btn-block" onclick="resolveDiscrepancy('accept')">
+                            ✅ Принять версию кооператива
+                        </button>
+                        <button class="btn btn-secondary btn-block" onclick="resolveDiscrepancy('request')">
+                            📝 Запросить исправление
+                        </button>
+                        <button class="btn btn-outline btn-block" onclick="resolveDiscrepancy('ignore')">
+                            ⏭️ Игнорировать
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // ДАННЫЕ (Demo)
+        // ============================================
+        
+        const cooperatives = [
+            {
+                id: 'coop_001',
+                name: 'КПК "Первый"',
+                inn: '1234567890',
+                region: 'Москва',
+                type: 'credit',
+                typeName: 'Кредитный',
+                status: 'active',
+                address: 'г. Москва, ул. Примерная, д. 1',
+                phone: '+7 (495) 123-45-67',
+                email: 'info@koop1.ru',
+                membersCount: 150,
+                shareCapital: 5000000,
+                foundedYear: 2020,
+                entranceFee: 1000,
+                minShare: 10000,
+                logo: '🏦'
+            },
+            {
+                id: 'coop_002',
+                name: 'СПК "Агро"',
+                inn: '9876543210',
+                region: 'Краснодарский край',
+                type: 'agricultural',
+                typeName: 'Сельскохозяйственный',
+                status: 'active',
+                address: 'г. Краснодар, ул. Сельская, д. 10',
+                phone: '+7 (861) 234-56-78',
+                email: 'info@agro-koop.ru',
+                membersCount: 75,
+                shareCapital: 2500000,
+                foundedYear: 2018,
+                entranceFee: 500,
+                minShare: 5000,
+                logo: '🌾'
+            },
+            {
+                id: 'coop_003',
+                name: 'ЖСК "Дом"',
+                inn: '1122334455',
+                region: 'Санкт-Петербург',
+                type: 'housing',
+                typeName: 'Жилищный',
+                status: 'active',
+                address: 'г. Санкт-Петербург, пр. Строителей, д. 5',
+                phone: '+7 (812) 345-67-89',
+                email: 'info@zhsk-dom.ru',
+                membersCount: 200,
+                shareCapital: 10000000,
+                foundedYear: 2015,
+                entranceFee: 2000,
+                minShare: 50000,
+                logo: '🏠'
+            }
+        ];
+
+        const myMemberships = [
+            {
+                cooperativeId: 'coop_001',
+                status: 'active',
+                joinDate: '2023-03-15',
+                shareAmount: 100000,
+                paidAmount: 100000,
+                debt: 0,
+                certificateNumber: '001-2023',
+                lastSync: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+                discrepancies: []
+            },
+            {
+                cooperativeId: 'coop_002',
+                status: 'active',
+                joinDate: '2024-06-20',
+                shareAmount: 50000,
+                paidAmount: 55000,
+                debt: 0,
+                certificateNumber: '025-2024',
+                lastSync: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+                discrepancies: []
+            }
+        ];
+
+        const applications = [
+            {
+                id: 'app_001',
+                cooperativeId: 'coop_003',
+                cooperativeName: 'ЖСК "Дом"',
+                type: 'join',
+                status: 'pending',
+                submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+                shareAmount: 50000
+            }
+        ];
+
+        let selectedCoopId = null;
+
+        // ============================================
+        // ИНИЦИАЛИЗАЦИЯ
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMyCooperatives();
+            renderSearchResults();
+            renderApplications();
+            updateStats();
+        });
+
+        // ============================================
+        // НАВИГАЦИЯ
+        // ============================================
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Remove active from all buttons
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`tab-${tabName}`).style.display = 'block';
+            
+            // Activate button
+            event.target.classList.add('active');
+        }
+
+        // ============================================
+        // РЕНДЕРИНГ
+        // ============================================
+
+        function renderMyCooperatives() {
+            const grid = document.getElementById('myCoopsGrid');
+            grid.innerHTML = '';
+
+            myMemberships.forEach(membership => {
+                const coop = cooperatives.find(c => c.id === membership.cooperativeId);
+                if (!coop) return;
+
+                const card = createCoopCard(coop, membership, true);
+                grid.appendChild(card);
+            });
+        }
+
+        function renderSearchResults() {
+            const grid = document.getElementById('searchGrid');
+            grid.innerHTML = '';
+
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const regionFilter = document.getElementById('regionFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+
+            const filtered = cooperatives.filter(coop => {
+                const matchesSearch = coop.name.toLowerCase().includes(searchTerm) ||
+                                     coop.inn.includes(searchTerm) ||
+                                     coop.region.toLowerCase().includes(searchTerm);
+                const matchesRegion = !regionFilter || coop.region === regionFilter;
+                const matchesType = !typeFilter || coop.type === typeFilter;
+                const isAlreadyMember = myMemberships.some(m => m.cooperativeId === coop.id);
+                
+                return matchesSearch && matchesRegion && matchesType && !isAlreadyMember;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-icon">🔍</div>
+                        <div class="empty-title">Ничего не найдено</div>
+                        <p>Попробуйте изменить параметры поиска</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(coop => {
+                const card = createCoopCard(coop, null, false);
+                grid.appendChild(card);
+            });
+        }
+
+        function createCoopCard(coop, membership, isMember) {
+            const card = document.createElement('div');
+            card.className = 'coop-card';
+
+            const statusClass = membership ? 
+                (membership.status === 'active' ? 'status-active' : 
+                 membership.status === 'pending' ? 'status-pending' : 'status-suspended') : 
+                'status-active';
+            
+            const statusText = membership ?
+                (membership.status === 'active' ? '✅ Активный' : 
+                 membership.status === 'pending' ? '⏳ Заявление' : '⛔ Приостановлен') :
+                '✅ Действующий';
+
+            const lastSyncText = membership ? 
+                formatLastSync(membership.lastSync) : '';
+
+            card.innerHTML = `
+                <div class="coop-card-header">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 32px;">${coop.logo}</span>
+                        <div>
+                            <div class="coop-name">${coop.name}</div>
+                            <span class="coop-status ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="coop-card-body">
+                    <div class="coop-info">
+                        <div class="info-item">
+                            <div class="info-label">Регион</div>
+                            <div class="info-value">${coop.region}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Тип</div>
+                            <div class="info-value">${coop.typeName}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Пайщиков</div>
+                            <div class="info-value">${coop.membersCount}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Паевой фонд</div>
+                            <div class="info-value">${formatMoney(coop.shareCapital)}</div>
+                        </div>
+                        ${membership ? `
+                        <div class="info-item">
+                            <div class="info-label">Внесено</div>
+                            <div class="info-value">${formatMoney(membership.paidAmount)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Синхронизация</div>
+                            <div class="info-value" style="font-size: 11px;">${lastSyncText}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="coop-actions">
+                        ${isMember ? `
+                            <button class="btn btn-primary btn-sm" onclick="openCoopDetail('${coop.id}', true)">
+                                📊 Подробнее
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="syncCooperative('${coop.id}')">
+                                🔄 Синхронизировать
+                            </button>
+                        ` : `
+                            <button class="btn btn-primary btn-sm" onclick="openCoopDetail('${coop.id}', false)">
+                                📋 Подробнее
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="openApplicationForm('${coop.id}')">
+                                📨 Подать заявление
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function renderApplications() {
+            const list = document.getElementById('applicationsList');
+            
+            if (applications.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📨</div>
+                        <div class="empty-title">Нет заявлений</div>
+                        <p>Подайте заявление на вступление в кооператив</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = applications.map(app => {
+                const statusClass = app.status === 'pending' ? 'status-pending' :
+                                   app.status === 'approved' ? 'status-active' : 'status-suspended';
+                const statusText = app.status === 'pending' ? '⏳ На рассмотрении' :
+                                   app.status === 'approved' ? '✅ Одобрено' : '❌ Отклонено';
+
+                return `
+                    <div class="card" style="margin-bottom: 16px;">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">${app.cooperativeName}</div>
+                                <div class="card-subtitle">Заявление от ${formatDate(app.submittedAt)}</div>
+                            </div>
+                            <span class="coop-status ${statusClass}">${statusText}</span>
+                        </div>
+                        <div style="display: flex; gap: 16px; margin-top: 16px;">
+                            <div class="info-item">
+                                <div class="info-label">Сумма пая</div>
+                                <div class="info-value">${formatMoney(app.shareAmount)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Вступительный взнос</div>
+                                <div class="info-value">${formatMoney(1000)}</div>
+                            </div>
+                        </div>
+                        ${app.status === 'pending' ? `
+                        <div class="coop-actions" style="border: none; padding-top: 16px;">
+                            <button class="btn btn-outline btn-sm">
+                                📄 Проверить статус
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="cancelApplication('${app.id}')">
+                                ❌ Отозвать
+                            </button>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('totalCoops').textContent = myMemberships.length;
+            document.getElementById('activeCoops').textContent = myMemberships.filter(m => m.status === 'active').length;
+            document.getElementById('pendingApps').textContent = applications.filter(a => a.status === 'pending').length;
+            
+            const total = myMemberships.reduce((sum, m) => sum + m.paidAmount, 0);
+            document.getElementById('totalInvested').textContent = formatMoney(total);
+        }
+
+        // ============================================
+        // ФУНКЦИИ
+        // ============================================
+
+        function searchCooperatives() {
+            renderSearchResults();
+        }
+
+        function openCoopDetail(coopId, isMember) {
+            selectedCoopId = coopId;
+            const coop = cooperatives.find(c => c.id === coopId);
+            const membership = myMemberships.find(m => m.cooperativeId === coopId);
+
+            const modal = document.getElementById('coopModal');
+            const body = document.getElementById('modalCoopBody');
+            const footer = document.getElementById('modalCoopFooter');
+
+            body.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 12px;">📊 Основная информация</h3>
+                    <div class="coop-info" style="grid-template-columns: 1fr;">
+                        <div class="info-item">
+                            <div class="info-label">ИНН</div>
+                            <div class="info-value">${coop.inn}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Адрес</div>
+                            <div class="info-value">${coop.address}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Телефон</div>
+                            <div class="info-value">${coop.phone}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email</div>
+                            <div class="info-value">${coop.email}</div>
+                        </div>
+                    </div>
+                </div>
+
+                ${isMember && membership ? `
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 12px;">💰 Мои взносы</h3>
+                    <div class="coop-info">
+                        <div class="info-item">
+                            <div class="info-label">Обязательный пай</div>
+                            <div class="info-value">${formatMoney(membership.shareAmount)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Внесено</div>
+                            <div class="info-value" style="color: var(--success-color);">${formatMoney(membership.paidAmount)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Задолженность</div>
+                            <div class="info-value" style="color: ${membership.debt > 0 ? 'var(--danger-color)' : 'var(--success-color)'};">
+                                ${formatMoney(membership.debt)}
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Удостоверение</div>
+                            <div class="info-value">№${membership.certificateNumber}</div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                <div>
+                    <h3 style="margin-bottom: 12px;">📋 Условия вступления</h3>
+                    <div class="coop-info">
+                        <div class="info-item">
+                            <div class="info-label">Вступительный взнос</div>
+                            <div class="info-value">${formatMoney(coop.entranceFee)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Минимальный пай</div>
+                            <div class="info-value">${formatMoney(coop.minShare)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            footer.innerHTML = isMember ? `
+                <button class="btn btn-secondary" onclick="closeModal('coopModal')">Закрыть</button>
+                <button class="btn btn-primary" onclick="showMemberDetail('${coopId}')">📇 Мои данные</button>
+            ` : `
+                <button class="btn btn-secondary" onclick="closeModal('coopModal')">Закрыть</button>
+                <button class="btn btn-primary" onclick="openApplicationForm('${coopId}')">📨 Подать заявление</button>
+            `;
+
+            modal.classList.add('active');
+        }
+
+        function openApplicationForm(coopId) {
+            selectedCoopId = coopId;
+            document.getElementById('applicationModal').classList.add('active');
+        }
+
+        function submitApplication() {
+            const coop = cooperatives.find(c => c.id === selectedCoopId);
+            const shareAmount = document.getElementById('appShareAmount').value;
+            const agree = document.getElementById('appAgree').checked;
+
+            if (!agree) {
+                alert('Необходимо согласие с уставом');
+                return;
+            }
+
+            applications.push({
+                id: `app_${Date.now()}`,
+                cooperativeId: coop.id,
+                cooperativeName: coop.name,
+                type: 'join',
+                status: 'pending',
+                submittedAt: new Date(),
+                shareAmount: parseInt(shareAmount)
+            });
+
+            closeModal('applicationModal');
+            renderApplications();
+            updateStats();
+            switchTab('applications');
+            
+            alert(`Заявление в "${coop.name}" отправлено!\n\nВы получите уведомление на email после рассмотрения.`);
+        }
+
+        function cancelApplication(appId) {
+            if (confirm('Отозвать заявление?')) {
+                const index = applications.findIndex(a => a.id === appId);
+                if (index > -1) {
+                    applications[index].status = 'cancelled';
+                    renderApplications();
+                    updateStats();
+                }
+            }
+        }
+
+        function syncCooperative(coopId) {
+            const indicator = document.getElementById('syncIndicator');
+            const text = document.getElementById('syncText');
+            
+            indicator.classList.add('syncing');
+            text.textContent = 'Синхронизация...';
+
+            setTimeout(() => {
+                indicator.classList.remove('syncing');
+                
+                // Имитация расхождений
+                const hasDiscrepancies = Math.random() > 0.7;
+                
+                if (hasDiscrepancies) {
+                    showDiscrepancies();
+                } else {
+                    const membership = myMemberships.find(m => m.cooperativeId === coopId);
+                    if (membership) {
+                        membership.lastSync = new Date();
+                    }
+                    text.textContent = `Синхронизировано: только что`;
+                    renderMyCooperatives();
+                    alert('✅ Синхронизация завершена успешно!\n\nДанные актуальны.');
+                }
+            }, 1500);
+        }
+
+        function syncAll() {
+            myMemberships.forEach((m, index) => {
+                setTimeout(() => syncCooperative(m.cooperativeId), index * 500);
+            });
+        }
+
+        function showDiscrepancies() {
+            const tbody = document.getElementById('discrepancyTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td>📞 Телефон</td>
+                    <td>+7 (900) 111-22-22</td>
+                    <td>+7 (900) 333-44-44</td>
+                </tr>
+                <tr>
+                    <td>✉️ Email</td>
+                    <td>old@mail.ru</td>
+                    <td>new@mail.ru</td>
+                </tr>
+            `;
+            
+            document.getElementById('discrepancyModal').classList.add('active');
+        }
+
+        function resolveDiscrepancy(action) {
+            closeModal('discrepancyModal');
+            
+            switch(action) {
+                case 'accept':
+                    alert('✅ Данные обновлены по версии кооператива');
+                    break;
+                case 'request':
+                    alert('📝 Запрос на исправление отправлен в кооператив\n\nОжидайте ответа в течение 3 дней');
+                    break;
+                case 'ignore':
+                    alert('⏭️ Расхождения сохранены. Напомнить позже?');
+                    break;
+            }
+        }
+
+        // ============================================
+        // УТИЛИТЫ
+        // ============================================
+
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('ru-RU', { 
+                style: 'currency', 
+                currency: 'RUB',
+                maximumFractionDigits: 0 
+            }).format(amount);
+        }
+
+        function formatDate(date) {
+            return new Intl.DateTimeFormat('ru-RU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            }).format(new Date(date));
+        }
+
+        function formatLastSync(date) {
+            const now = new Date();
+            const diff = now - date;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const days = Math.floor(hours / 24);
+            
+            if (hours < 1) return 'только что';
+            if (hours < 24) return `${hours} ч. назад`;
+            if (days === 1) return 'вчера';
+            return `${days} дн. назад`;
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showNotifications() {
+            alert('🔔 Уведомления:\n\n' +
+                  '1. ⚠️ Обнаружены расхождения в данных\n' +
+                  '2. 💰 Начислен членский взнос 5 000 ₽\n' +
+                  '3. 📅 Напоминание: собрание 15.03.2026');
+        }
+
+        function showProfile() {
+            alert('👤 Профиль пайщика\n\n' +
+                  'Иванов Иван Иванович\n' +
+                  'ID: 79001234567\n' +
+                  'Email: ivanov@yandex.ru\n\n' +
+                  '[Редактировать профиль]\n[Настройки]\n[Выход]');
+        }
+
+        function showMemberDetail(coopId) {
+            alert('📇 Детали членства\n\n' +
+                  'Здесь будет подробная информация:\n' +
+                  '• История взносов\n' +
+                  '• Документы\n' +
+                  '• Собрания\n' +
+                  '• Заявления');
+        }
+
+        // Закрытие модальных окон по клику вне
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

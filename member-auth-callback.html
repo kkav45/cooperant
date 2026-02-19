@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация | КООПЕРАНТ</title>
+    <style>
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+        }
+        
+        .logo {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        h1 {
+            color: #212121;
+            margin-bottom: 16px;
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        
+        .status.success {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        
+        .status.error {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        
+        .status.processing {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2196F3;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .btn {
+            background: #fc0;
+            color: #212121;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 16px;
+        }
+        
+        .btn:hover {
+            background: #f9a800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏠</div>
+        <h1>КООПЕРАНТ</h1>
+        
+        <div id="status" class="status processing">
+            <div class="spinner"></div>
+            <div>Обработка авторизации...</div>
+        </div>
+        
+        <div id="message" style="margin-top: 16px; color: #757575; font-size: 14px;">
+            Пожалуйста, подождите...
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Обработка авторизации Яндекс OAuth
+         */
+        (function() {
+            const statusEl = document.getElementById('status');
+            const messageEl = document.getElementById('message');
+            
+            // Получаем токен из URL (hash или query parameter)
+            const hash = window.location.hash;
+            const params = new URLSearchParams(window.location.search);
+            
+            let token = null;
+            
+            // Токен в hash (#token=xxx)
+            if (hash && hash.includes('access_token')) {
+                const hashParams = new URLSearchParams(hash.substring(1));
+                token = hashParams.get('access_token');
+            }
+            
+            // Токен в query (?token=xxx)
+            if (!token) {
+                token = params.get('token') || params.get('access_token');
+            }
+            
+            // Токен в localStorage (если уже был сохранён)
+            if (!token) {
+                token = localStorage.getItem('yandex_member_token');
+            }
+            
+            if (token) {
+                // Сохраняем токен
+                localStorage.setItem('yandex_member_token', token);
+                
+                statusEl.className = 'status success';
+                statusEl.innerHTML = '✅ Авторизация успешна!';
+                messageEl.textContent = 'Перенаправление в личный кабинет...';
+                
+                // Проверяем информацию о пользователе
+                fetch('https://login.yandex.ru/info', {
+                    headers: {
+                        'Authorization': `OAuth ${token}`
+                    }
+                })
+                .then(response => response.json())
+                .then(userInfo => {
+                    localStorage.setItem('yandex_member_user', JSON.stringify({
+                        email: userInfo.default_email,
+                        login: userInfo.login,
+                        name: userInfo.display_name
+                    }));
+                    
+                    console.log('[Auth] Пользователь:', userInfo);
+                    
+                    // Перенаправляем в личный кабинет
+                    setTimeout(() => {
+                        window.location.href = 'member-cabinet.html';
+                    }, 1500);
+                })
+                .catch(error => {
+                    console.error('[Auth] Ошибка получения информации:', error);
+                    showError('Ошибка получения данных пользователя');
+                });
+            } else {
+                // Токен не найден
+                showError('Токен авторизации не получен');
+            }
+            
+            function showError(message) {
+                statusEl.className = 'status error';
+                statusEl.innerHTML = '❌ Ошибка авторизации';
+                messageEl.textContent = message;
+                
+                // Показываем кнопку возврата
+                setTimeout(() => {
+                    messageEl.innerHTML = `
+                        <p>Вы можете попробовать ещё раз или вернуться на главную.</p>
+                        <a href="member-cabinet.html" class="btn">Вернуться в кабинет</a>
+                    `;
+                }, 1000);
+            }
+        })();
+    </script>
+</body>
+</html>

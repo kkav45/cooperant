@@ -4578,7 +4578,51 @@
                     PanelManager.open('sidebarMenu');
                 });
             }
-            
+
+            // ============================================
+            // ВОЗВРАТ ВЗНОСА
+            // ============================================
+
+            window.showReturnPaymentModal = function() {
+                const members = JSON.parse(localStorage.getItem('members') || '[]');
+                const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+
+                let memberOptions = '<option value="">Выберите пайщика</option>';
+                members.forEach(member => {
+                    const memberPayments = payments.filter(p => p.memberId == member.id);
+                    const totalPaid = memberPayments.reduce((sum, p) => sum + p.amount, 0);
+                    memberOptions += `<option value="${member.id}">${member.name} (внесено: ${totalPaid.toLocaleString()}₽)</option>`;
+                });
+
+                alert('Функция возврата взноса в разработке. Выберите пайщика: ' + memberOptions);
+            };
+
+            // ============================================
+            // ПОДАТЬ ЗАЯВЛЕНИЕ
+            // ============================================
+
+            window.showSubmitApplicationModal = function() {
+                alert('📝 Подать заявление - в разработке');
+            };
+
+            // ============================================
+            // РЕЕСТР ЗАЯВЛЕНИЙ
+            // ============================================
+
+            window.showApplicationsRegistry = function() {
+                const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+                alert('📋 Реестр заявлений: ' + applications.length + ' заявлений');
+            };
+
+            // ============================================
+            // СОБРАНИЯ И ПРОТОКОЛЫ
+            // ============================================
+
+            window.showMeetingsModal = function() {
+                const meetings = JSON.parse(localStorage.getItem('meetings') || '[]');
+                alert('🤝 Собрания: ' + meetings.length + ' протоколов');
+            };
+
             // ============================================
             // ОБРАБОТЧИКИ КНОПОК МЕНЮ
             // ============================================
