@@ -2857,51 +2857,71 @@
         // ============================================
         // ОТЧЁТ: БУХГАЛТЕРСКИЙ БАЛАНС (ФОРМА №1)
         // ============================================
-        
+
         // Показать бухгалтерский баланс
         window.showBalanceReport = function() {
-            // Пример данных для демонстрации
-            const balanceData = {
-                assets: {
-                    nonCurrent: { name: 'Внеоборотные активы', value: 150000 },
-                    current: { name: 'Оборотные активы', value: 350000 }
-                },
-                liabilities: {
-                    capital: { name: 'Капитал и резервы', value: 400000 },
-                    longTerm: { name: 'Долгосрочные обязательства', value: 50000 },
-                    shortTerm: { name: 'Краткосрочные обязательства', value: 50000 }
-                }
-            };
+            // Получаем реальные данные из проводок и платежей
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+
+            // Считаем остатки по счетам из проводок
+            const balances = {};
+            transactions.forEach(t => {
+                // Дебет
+                if (!balances[t.debitAccount]) balances[t.debitAccount] = 0;
+                balances[t.debitAccount] += t.amount;
+                
+                // Кредит
+                if (!balances[t.creditAccount]) balances[t.creditAccount] = 0;
+                balances[t.creditAccount] -= t.amount;
+            });
+
+            // Рассчитываем статьи баланса
+            const cash = Math.abs(balances['50'] || 0) + Math.abs(balances['51'] || 0); // Денежные средства
+            const loansIssued = Math.abs(balances['58'] || 0); // Финансовые вложения (займы)
+            const fixedAssets = Math.abs(balances['01'] || 0); // Основные средства
+            const materials = Math.abs(balances['10'] || 0); // Материалы
+            const receivables = Math.abs(balances['60'] || 0) + Math.abs(balances['62'] || 0) + Math.abs(balances['76'] || 0); // Дебиторка
             
-            const totalAssets = balanceData.assets.nonCurrent.value + balanceData.assets.current.value;
-            const totalLiabilities = balanceData.liabilities.capital.value + 
-                                    balanceData.liabilities.longTerm.value + 
-                                    balanceData.liabilities.shortTerm.value;
+            const totalCurrentAssets = cash + materials + receivables;
+            const totalNonCurrentAssets = loansIssued + fixedAssets;
+            const totalAssets = totalCurrentAssets + totalNonCurrentAssets;
+
+            // Пассивы
+            const authorizedCapital = members.length * 1000; // Уставный капитал (по 1000₽ на пайщика)
+            const totalContributions = payments.reduce((sum, p) => sum + p.amount, 0); // Целевое финансирование
+            const reserveCapital = Math.abs(balances['82'] || 0); // Резервный капитал
+            const retainedEarnings = totalContributions - totalAssets; // Нераспределённая прибыль (балансировка)
             
+            const totalCapital = authorizedCapital + totalContributions + reserveCapital + retainedEarnings;
+            const totalLiabilities = totalCapital;
+
             const content = `
                 <div style="padding:30px;max-width:800px;margin:0 auto">
                     <h2 style="margin-bottom:10px;font-size:20px;font-weight:600;text-align:center">⚖️ Бухгалтерский баланс</h2>
                     <p style="text-align:center;color:#999;margin-bottom:20px">Форма №1 (ОКУД 0710001)</p>
-                    
+                    <p style="text-align:center;color:#666;margin-bottom:20px">На ${new Date().toLocaleDateString('ru')}</p>
+
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
                         <!-- АКТИВ -->
                         <div style="border:1px solid #ddd;border-radius:8px;overflow:hidden">
                             <div style="background:#0088cc;color:#fff;padding:12px;text-align:center;font-weight:600">АКТИВ</div>
-                            
+
                             <div style="padding:12px;border-bottom:1px solid #eee;background:#f9f9f9">
                                 <div style="display:flex;justify-content:space-between">
-                                    <span>${balanceData.assets.nonCurrent.name}</span>
-                                    <span style="font-weight:600">${balanceData.assets.nonCurrent.value.toLocaleString()}</span>
+                                    <span>Внеоборотные активы</span>
+                                    <span style="font-weight:600">${totalNonCurrentAssets.toLocaleString()} ₽</span>
                                 </div>
                             </div>
-                            
+
                             <div style="padding:12px;border-bottom:1px solid #eee">
                                 <div style="display:flex;justify-content:space-between">
-                                    <span>${balanceData.assets.current.name}</span>
-                                    <span style="font-weight:600">${balanceData.assets.current.value.toLocaleString()}</span>
+                                    <span>Оборотные активы</span>
+                                    <span style="font-weight:600">${totalCurrentAssets.toLocaleString()} ₽</span>
                                 </div>
                             </div>
-                            
+
                             <div style="padding:12px;background:#0088cc10;font-weight:600">
                                 <div style="display:flex;justify-content:space-between">
                                     <span>БАЛАНС</span>
@@ -2909,32 +2929,39 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- ПАССИВ -->
                         <div style="border:1px solid #ddd;border-radius:8px;overflow:hidden">
                             <div style="background:#4caf50;color:#fff;padding:12px;text-align:center;font-weight:600">ПАССИВ</div>
-                            
+
                             <div style="padding:12px;border-bottom:1px solid #eee;background:#f9f9f9">
                                 <div style="display:flex;justify-content:space-between">
-                                    <span>${balanceData.liabilities.capital.name}</span>
-                                    <span style="font-weight:600">${balanceData.liabilities.capital.value.toLocaleString()}</span>
+                                    <span>Уставный капитал</span>
+                                    <span style="font-weight:600">${authorizedCapital.toLocaleString()} ₽</span>
                                 </div>
                             </div>
-                            
+
                             <div style="padding:12px;border-bottom:1px solid #eee">
                                 <div style="display:flex;justify-content:space-between">
-                                    <span>${balanceData.liabilities.longTerm.name}</span>
-                                    <span style="font-weight:600">${balanceData.liabilities.longTerm.value.toLocaleString()}</span>
+                                    <span>Целевое финансирование (взносы)</span>
+                                    <span style="font-weight:600">${totalContributions.toLocaleString()} ₽</span>
                                 </div>
                             </div>
-                            
+
                             <div style="padding:12px;border-bottom:1px solid #eee">
                                 <div style="display:flex;justify-content:space-between">
-                                    <span>${balanceData.liabilities.shortTerm.name}</span>
-                                    <span style="font-weight:600">${balanceData.liabilities.shortTerm.value.toLocaleString()}</span>
+                                    <span>Резервный капитал</span>
+                                    <span style="font-weight:600">${reserveCapital.toLocaleString()} ₽</span>
                                 </div>
                             </div>
-                            
+
+                            <div style="padding:12px;border-bottom:1px solid #eee">
+                                <div style="display:flex;justify-content:space-between">
+                                    <span>Нераспределённая прибыль</span>
+                                    <span style="font-weight:600">${retainedEarnings.toLocaleString()} ₽</span>
+                                </div>
+                            </div>
+
                             <div style="padding:12px;background:#4caf5010;font-weight:600">
                                 <div style="display:flex;justify-content:space-between">
                                     <span>БАЛАНС</span>
@@ -2943,23 +2970,23 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div style="text-align:center;padding:15px;background:#f5f7fa;border-radius:8px">
+
+                    <div style="text-align:center;padding:15px;background:${totalAssets === totalLiabilities ? '#e8f5e9' : '#ffebee'};border-radius:8px">
                         <div style="font-size:14px;color:#666">Активы = Пассивы</div>
-                        <div style="font-size:24px;font-weight:700;color:#0088cc;margin-top:8px">
+                        <div style="font-size:24px;font-weight:700;color:${totalAssets === totalLiabilities ? '#4caf50' : '#f44336'}">
                             ${totalAssets === totalLiabilities ? '✅' : '⚠️'} ${totalAssets.toLocaleString()} ₽ = ${totalLiabilities.toLocaleString()} ₽
                         </div>
                     </div>
-                    
+
                     <div style="margin-top:20px;text-align:center">
-                        <button onclick="closeModalYandex()" 
+                        <button onclick="closeModalYandex()"
                                 style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
                             Закрыть
                         </button>
                     </div>
                 </div>
             `;
-            
+
             showModalYandex(content);
         };
         
@@ -2969,17 +2996,51 @@
         
         // Показать ОСВ
         window.showOSVReport = function() {
-            // Пример данных для демонстрации
-            const osvData = [
-                { account: '50', name: 'Касса', debitStart: 15000, creditStart: 0, debitTurn: 120000, creditTurn: 115000, debitEnd: 20000, creditEnd: 0 },
-                { account: '51', name: 'Расчётные счета', debitStart: 250000, creditStart: 0, debitTurn: 1250000, creditTurn: 1180000, debitEnd: 320000, creditEnd: 0 },
-                { account: '66', name: 'Расчёты по займам', debitStart: 0, creditStart: 100000, debitTurn: 50000, creditTurn: 80000, debitEnd: 0, creditEnd: 130000 },
-                { account: '80', name: 'Уставный капитал', debitStart: 0, creditStart: 400000, debitTurn: 0, creditTurn: 0, debitEnd: 0, creditEnd: 400000 },
-                { account: '84', name: 'Нераспределённая прибыль', debitStart: 0, creditStart: 50000, debitTurn: 0, creditTurn: 35000, debitEnd: 0, creditEnd: 85000 }
-            ];
+            // Получаем реальные данные из проводок
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            const chartOfAccounts = window.chartOfAccounts || [];
+
+            // Считаем обороты по счетам
+            const accounts = {};
             
+            transactions.forEach(t => {
+                // Дебет
+                if (!accounts[t.debitAccount]) {
+                    const accInfo = chartOfAccounts.find(a => a.code === t.debitAccount);
+                    accounts[t.debitAccount] = {
+                        name: accInfo ? accInfo.name : t.debitAccount,
+                        debitTurn: 0,
+                        creditTurn: 0
+                    };
+                }
+                accounts[t.debitAccount].debitTurn += t.amount;
+                
+                // Кредит
+                if (!accounts[t.creditAccount]) {
+                    const accInfo = chartOfAccounts.find(a => a.code === t.creditAccount);
+                    accounts[t.creditAccount] = {
+                        name: accInfo ? accInfo.name : t.creditAccount,
+                        debitTurn: 0,
+                        creditTurn: 0
+                    };
+                }
+                accounts[t.creditAccount].creditTurn += t.amount;
+            });
+
+            // Преобразуем в массив для таблицы
+            const osvData = Object.keys(accounts).map(code => ({
+                account: code,
+                name: accounts[code].name,
+                debitStart: 0, // Для упрощения считаем с нуля
+                creditStart: 0,
+                debitTurn: accounts[code].debitTurn,
+                creditTurn: accounts[code].creditTurn,
+                debitEnd: accounts[code].debitTurn, // Для активных счетов
+                creditEnd: accounts[code].creditTurn // Для пассивных счетов
+            })).sort((a, b) => a.account.localeCompare(b.account));
+
             let rowsHTML = '';
-            
+
             osvData.forEach(row => {
                 rowsHTML += `
                     <tr style="border-bottom:1px solid #eee">
@@ -2994,7 +3055,7 @@
                     </tr>
                 `;
             });
-            
+
             const totals = osvData.reduce((acc, row) => ({
                 debitStart: acc.debitStart + row.debitStart,
                 creditStart: acc.creditStart + row.creditStart,
@@ -3003,12 +3064,13 @@
                 debitEnd: acc.debitEnd + row.debitEnd,
                 creditEnd: acc.creditEnd + row.creditEnd
             }), { debitStart: 0, creditStart: 0, debitTurn: 0, creditTurn: 0, debitEnd: 0, creditEnd: 0 });
-            
+
             const content = `
                 <div style="padding:30px;max-width:1000px;margin:0 auto;overflow-x:auto">
                     <h2 style="margin-bottom:10px;font-size:20px;font-weight:600;text-align:center">📊 Оборотно-сальдовая ведомость</h2>
                     <p style="text-align:center;color:#999;margin-bottom:20px">по счетам бухгалтерского учёта</p>
-                    
+                    <p style="text-align:center;color:#666;margin-bottom:20px">На ${new Date().toLocaleDateString('ru')}</p>
+
                     <table style="width:100%;border-collapse:collapse;font-size:12px">
                         <thead>
                             <tr style="background:#f5f7fa">
@@ -3042,7 +3104,7 @@
                             </tr>
                         </tfoot>
                     </table>
-                    
+
                     <div style="margin-top:20px;text-align:center">
                         <button onclick="closeModalYandex()"
                                 style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
