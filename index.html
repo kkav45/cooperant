@@ -2555,7 +2555,7 @@
                 <div style="padding:30px;max-width:700px;margin:0 auto">
                     <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">💳 Отчёт по взносам</h2>
                     
-                    <table style="width:100%;border-collapse:collapse;font-size:14px">
+                    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px">
                         <thead>
                             <tr style="background:#f5f7fa">
                                 <th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Тип взносов</th>
@@ -2575,6 +2575,13 @@
                         </tfoot>
                     </table>
                     
+                    <div style="margin-top:20px">
+                        <button onclick="showPaymentsList()" 
+                                style="padding:10px 20px;background:#2196f3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">
+                            📋 Показать все взносы
+                        </button>
+                    </div>
+                    
                     <div style="margin-top:20px;text-align:center">
                         <button onclick="closeModalYandex()" 
                                 style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
@@ -2585,6 +2592,246 @@
             `;
             
             showModalYandex(content);
+        };
+        
+        // Показать список всех взносов
+        window.showPaymentsList = function() {
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            
+            let rowsHTML = '';
+            
+            if (payments.length === 0) {
+                rowsHTML = '<tr><td colspan="7" style="padding:40px;text-align:center;color:#999">📭 Взносов нет</td></tr>';
+            } else {
+                payments.forEach(payment => {
+                    const typeLabels = {
+                        entrance: 'Вступительный',
+                        membership: 'Членский',
+                        share: 'Паевой',
+                        additional: 'Дополнительный'
+                    };
+                    
+                    rowsHTML += `
+                        <tr style="border-bottom:1px solid #eee">
+                            <td style="padding:12px">${payment.memberName || '—'}</td>
+                            <td style="padding:12px">${typeLabels[payment.type] || payment.type}</td>
+                            <td style="padding:12px;text-align:right;font-weight:600;color:#0088cc">${payment.amount.toLocaleString()} ₽</td>
+                            <td style="padding:12px;text-align:center">${payment.date || '—'}</td>
+                            <td style="padding:12px">${payment.description || '—'}</td>
+                            <td style="padding:12px;text-align:center">
+                                <button onclick="editPayment(${payment.id})" 
+                                        style="padding:6px 12px;background:#2196f3;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px"
+                                        title="Редактировать">
+                                    ✏️
+                                </button>
+                                <button onclick="deletePayment(${payment.id})" 
+                                        style="padding:6px 12px;background:#f44336;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px"
+                                        title="Удалить">
+                                    🗑️
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            const content = `
+                <div style="padding:30px;max-width:1000px;margin:0 auto">
+                    <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">📋 Все взносы</h2>
+                    
+                    <table style="width:100%;border-collapse:collapse;font-size:13px">
+                        <thead>
+                            <tr style="background:#f5f7fa">
+                                <th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Пайщик</th>
+                                <th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Тип</th>
+                                <th style="padding:12px;text-align:right;border-bottom:2px solid #ddd">Сумма</th>
+                                <th style="padding:12px;text-align:center;border-bottom:2px solid #ddd">Дата</th>
+                                <th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Назначение</th>
+                                <th style="padding:12px;text-align:center;border-bottom:2px solid #ddd">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHTML}
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top:20px;text-align:center">
+                        <button onclick="closeModalYandex()" 
+                                style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            showModalYandex(content);
+        };
+        
+        // Редактировать взнос
+        window.editPayment = function(paymentId) {
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            const payment = payments.find(p => p.id == paymentId);
+            
+            if (!payment) {
+                alert('Взнос не найден!');
+                return;
+            }
+            
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+            
+            let memberOptions = '<option value="">Выберите пайщика</option>';
+            members.forEach(member => {
+                const selected = member.id == payment.memberId ? 'selected' : '';
+                memberOptions += `<option value="${member.id}" ${selected}>${member.name}</option>`;
+            });
+            
+            const content = `
+                <div style="padding:30px;max-width:600px;margin:0 auto">
+                    <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">✏️ Редактировать взнос</h2>
+                    
+                    <form id="editPaymentForm" onsubmit="return handleEditPayment(event, ${paymentId})">
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Пайщик *</label>
+                            <select name="memberId" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                ${memberOptions}
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Тип взноса *</label>
+                            <select name="type" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                <option value="entrance" ${payment.type === 'entrance' ? 'selected' : ''}>Вступительный</option>
+                                <option value="membership" ${payment.type === 'membership' ? 'selected' : ''}>Членский</option>
+                                <option value="share" ${payment.type === 'share' ? 'selected' : ''}>Паевой</option>
+                                <option value="additional" ${payment.type === 'additional' ? 'selected' : ''}>Дополнительный</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Сумма (₽) *</label>
+                            <input type="number" name="amount" required min="1" step="0.01" value="${payment.amount}"
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+                        
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Дата</label>
+                            <input type="date" name="date" value="${payment.date || ''}"
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+                        
+                        <div style="margin-bottom:20px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Назначение</label>
+                            <textarea name="description" rows="3" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">${payment.description || ''}</textarea>
+                        </div>
+                        
+                        <div style="display:flex;gap:10px;justify-content:flex-end">
+                            <button type="button" onclick="closeModalYandex()" 
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Отмена
+                            </button>
+                            <button type="submit" 
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                💾 Сохранить
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            showModalYandex(content);
+        };
+        
+        // Обработка сохранения редактирования взноса
+        window.handleEditPayment = function(event, paymentId) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            const index = payments.findIndex(p => p.id == paymentId);
+            
+            if (index === -1) {
+                alert('Взнос не найден!');
+                return false;
+            }
+            
+            // Обновляем данные
+            payments[index].memberId = formData.get('memberId');
+            payments[index].type = formData.get('type');
+            payments[index].amount = parseFloat(formData.get('amount'));
+            payments[index].date = formData.get('date');
+            payments[index].description = formData.get('description');
+            payments[index].updatedAt = new Date().toISOString();
+            
+            // Находим имя пайщика
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+            const member = members.find(m => m.id == payments[index].memberId);
+            payments[index].memberName = member ? member.name : 'Неизвестно';
+            
+            // Сохраняем
+            localStorage.setItem('payments', JSON.stringify(payments));
+            
+            // Закрываем модальное окно
+            closeModalYandex();
+            
+            // Показываем уведомление
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'success',
+                    message: `✅ Взнос "${payments[index].memberName}" обновлён!`,
+                    duration: 3000
+                });
+            }
+            
+            // Тактильный отклик
+            if (window.TelegramMiniApp) {
+                window.TelegramMiniApp.hapticFeedback('success');
+            }
+            
+            // Обновляем список
+            setTimeout(() => {
+                window.showPaymentsList();
+            }, 500);
+            
+            return false;
+        };
+        
+        // Удалить взнос
+        window.deletePayment = function(paymentId) {
+            if (!confirm('Вы уверены, что хотите удалить этот взнос? Это действие нельзя отменить.')) {
+                return;
+            }
+            
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            const filtered = payments.filter(p => p.id != paymentId);
+            
+            if (filtered.length === payments.length) {
+                alert('Взнос не найден!');
+                return;
+            }
+            
+            // Сохраняем
+            localStorage.setItem('payments', JSON.stringify(filtered));
+            
+            // Показываем уведомление
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'success',
+                    message: '✅ Взнос удалён',
+                    duration: 3000
+                });
+            }
+            
+            // Тактильный отклик
+            if (window.TelegramMiniApp) {
+                window.TelegramMiniApp.hapticFeedback('success');
+            }
+            
+            // Обновляем список
+            setTimeout(() => {
+                window.showPaymentsList();
+            }, 500);
         };
         
         // ============================================
