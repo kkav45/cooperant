@@ -3037,17 +3037,29 @@
         
         window.handleMenuAction = function(actionName) {
             console.log('⚙️ Действие меню:', actionName);
-            
+
             // Обработка конкретных действий
             switch(actionName) {
                 case 'create-member':
                     showCreateMemberModal();
                     break;
-                    
+
                 case 'create-payment':
                     showCreatePaymentModal();
                     break;
-                    
+
+                case 'create-transaction':
+                    showCreateTransactionModal();
+                    break;
+
+                case 'pko':
+                    showPKOModal();
+                    break;
+
+                case 'rko':
+                    showRKOModal();
+                    break;
+
                 default:
                     // Показываем уведомление для остальных действий
                     if (typeof window.showToast === 'function') {
@@ -3060,6 +3072,165 @@
                         alert('Действие: ' + actionName + ' (в разработке)');
                     }
             }
+        };
+
+        // ============================================
+        // БУХГАЛТЕРИЯ: СПРАВОЧНИК СЧЕТОВ
+        // ============================================
+
+        // План счетов кооператива
+        window.chartOfAccounts = [
+            { code: '50', name: 'Касса', type: 'active' },
+            { code: '51', name: 'Расчётные счета', type: 'active' },
+            { code: '66', name: 'Расчёты по краткосрочным займам', type: 'passive' },
+            { code: '67', name: 'Расчёты по долгосрочным займам', type: 'passive' },
+            { code: '70', name: 'Расчёты с персоналом по оплате труда', type: 'passive' },
+            { code: '71', name: 'Расчёты с подотчётными лицами', type: 'active' },
+            { code: '75', name: 'Расчёты с учредителями', type: 'active-passive' },
+            { code: '76', name: 'Расчёты с разными дебиторами и кредиторами', type: 'active-passive' },
+            { code: '80', name: 'Уставный капитал', type: 'passive' },
+            { code: '82', name: 'Резервный капитал', type: 'passive' },
+            { code: '84', name: 'Нераспределённая прибыль (непокрытый убыток)', type: 'passive' },
+            { code: '90', name: 'Продажи', type: 'active-passive' },
+            { code: '91', name: 'Прочие доходы и расходы', type: 'active-passive' },
+            { code: '99', name: 'Прибыли и убытки', type: 'passive' }
+        ];
+
+        // ============================================
+        // БУХГАЛТЕРИЯ: ПРОВОДКИ
+        // ============================================
+
+        // Создать проводку
+        window.showCreateTransactionModal = function() {
+            const accounts = window.chartOfAccounts;
+
+            let accountOptions = '<option value="">Выберите счёт</option>';
+            accounts.forEach(acc => {
+                accountOptions += `<option value="${acc.code}">${acc.code} - ${acc.name}</option>`;
+            });
+
+            const content = `
+                <div style="padding:30px;max-width:600px;margin:0 auto">
+                    <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">📒 Создать проводку</h2>
+
+                    <form id="createTransactionForm" onsubmit="return handleCreateTransaction(event)">
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Счёт Дт *</label>
+                            <select name="debitAccount" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                ${accountOptions}
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Счёт Кт *</label>
+                            <select name="creditAccount" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                ${accountOptions}
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Сумма (₽) *</label>
+                            <input type="number" name="amount" required min="0.01" step="0.01"
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"
+                                   placeholder="1000.00">
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Дата</label>
+                            <input type="date" name="date"
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+
+                        <div style="margin-bottom:20px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Содержание операции</label>
+                            <textarea name="description" rows="3" required
+                                      style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"
+                                      placeholder="Например: Внесение пая Ивановым И.И."></textarea>
+                        </div>
+
+                        <div style="display:flex;gap:10px;justify-content:flex-end">
+                            <button type="button" onclick="closeModalYandex()"
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Отмена
+                            </button>
+                            <button type="submit"
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                📒 Провести
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            showModalYandex(content);
+        };
+
+        // Обработка создания проводки
+        window.handleCreateTransaction = function(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const transaction = {
+                debitAccount: formData.get('debitAccount'),
+                creditAccount: formData.get('creditAccount'),
+                amount: parseFloat(formData.get('amount')),
+                date: formData.get('date') || new Date().toISOString().split('T')[0],
+                description: formData.get('description')
+            };
+
+            // Проверка: Дт != Кт
+            if (transaction.debitAccount === transaction.creditAccount) {
+                alert('Счета Дт и Кт должны быть разными!');
+                return false;
+            }
+
+            console.log('📒 Новая проводка:', transaction);
+
+            // Сохраняем в localStorage
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            transaction.id = Date.now();
+            transaction.createdAt = new Date().toISOString();
+            transactions.push(transaction);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            console.log('✅ Проводка сохранена. Всего проводок:', transactions.length);
+
+            // Закрываем модальное окно
+            closeModalYandex();
+
+            // Показываем уведомление
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'success',
+                    message: `✅ Проводка Д${transaction.debitAccount} К${transaction.creditAccount} на сумму ${transaction.amount}₽ проведена!`,
+                    duration: 3000
+                });
+            }
+
+            // Тактильный отклик
+            if (window.TelegramMiniApp) {
+                window.TelegramMiniApp.hapticFeedback('success');
+            }
+
+            return false;
+        };
+        
+        // ============================================
+        // ПКО (ПРИХОДНЫЙ КАССОВЫЙ ОРДЕР)
+        // ============================================
+        
+        window.showPKOModal = function() {
+            alert('ПКО (Приходный кассовый ордер) - в разработке');
+        };
+        
+        // ============================================
+        // РКО (РАСХОДНЫЙ КАССОВЫЙ ОРДЕР)
+        // ============================================
+        
+        window.showRKOModal = function() {
+            alert('РКО (Расходный кассовый ордер) - в разработке');
         };
         
         // ============================================
