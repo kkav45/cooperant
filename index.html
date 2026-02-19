@@ -2202,7 +2202,7 @@
                                 <th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Телефон</th>
                                 <th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Email</th>
                                 <th style="padding:12px;text-align:right;border-bottom:2px solid #ddd">Взнос (₽)</th>
-                                <th style="padding:12px;text-align:center;border-bottom:2px solid #ddd">Дата</th>
+                                <th style="padding:12px;text-align:center;border-bottom:2px solid #ddd">Действия</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -2216,7 +2216,18 @@
                             <td style="padding:12px;color:#666">${member.phone || '—'}</td>
                             <td style="padding:12px;color:#666">${member.email || '—'}</td>
                             <td style="padding:12px;text-align:right;font-weight:600;color:#0088cc">${(member.entranceFee || 0).toLocaleString()}</td>
-                            <td style="padding:12px;text-align:center;color:#999">${member.createdAt ? new Date(member.createdAt).toLocaleDateString() : '—'}</td>
+                            <td style="padding:12px;text-align:center">
+                                <button onclick="editMember(${member.id})" 
+                                        style="padding:6px 12px;background:#2196f3;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px"
+                                        title="Редактировать">
+                                    ✏️
+                                </button>
+                                <button onclick="deleteMember(${member.id})" 
+                                        style="padding:6px 12px;background:#f44336;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px"
+                                        title="Удалить">
+                                    🗑️
+                                </button>
+                            </td>
                         </tr>
                     `;
                 });
@@ -2256,6 +2267,153 @@
             `;
             
             showModalYandex(content);
+        };
+        
+        // ============================================
+        // РЕДАКТИРОВАНИЕ ПАЙЩИКА
+        // ============================================
+        
+        // Редактировать пайщика
+        window.editMember = function(memberId) {
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+            const member = members.find(m => m.id == memberId);
+            
+            if (!member) {
+                alert('Пайщик не найден!');
+                return;
+            }
+            
+            const content = `
+                <div style="padding:30px;max-width:600px;margin:0 auto">
+                    <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">✏️ Редактировать пайщика</h2>
+                    
+                    <form id="editMemberForm" onsubmit="return handleEditMember(event, ${memberId})">
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">ФИО *</label>
+                            <input type="text" name="name" required value="${member.name || ''}"
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+                        
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Телефон</label>
+                            <input type="tel" name="phone" value="${member.phone || ''}"
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+                        
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Email</label>
+                            <input type="email" name="email" value="${member.email || ''}"
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+                        
+                        <div style="margin-bottom:20px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Вступительный взнос (₽)</label>
+                            <input type="number" name="entranceFee" value="${member.entranceFee || 0}"
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+                        
+                        <div style="display:flex;gap:10px;justify-content:flex-end">
+                            <button type="button" onclick="closeModalYandex()" 
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Отмена
+                            </button>
+                            <button type="submit" 
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                💾 Сохранить
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            showModalYandex(content);
+        };
+        
+        // Обработка сохранения редактирования
+        window.handleEditMember = function(event, memberId) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+            const index = members.findIndex(m => m.id == memberId);
+            
+            if (index === -1) {
+                alert('Пайщик не найден!');
+                return false;
+            }
+            
+            // Обновляем данные
+            members[index].name = formData.get('name');
+            members[index].phone = formData.get('phone');
+            members[index].email = formData.get('email');
+            members[index].entranceFee = parseFloat(formData.get('entranceFee')) || 0;
+            members[index].updatedAt = new Date().toISOString();
+            
+            // Сохраняем
+            localStorage.setItem('members', JSON.stringify(members));
+            
+            // Закрываем модальное окно
+            closeModalYandex();
+            
+            // Показываем уведомление
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'success',
+                    message: `✅ Пайщик "${members[index].name}" обновлён!`,
+                    duration: 3000
+                });
+            }
+            
+            // Тактильный отклик
+            if (window.TelegramMiniApp) {
+                window.TelegramMiniApp.hapticFeedback('success');
+            }
+            
+            // Обновляем реестр
+            setTimeout(() => {
+                window.showMembersRegistryReport();
+            }, 500);
+            
+            return false;
+        };
+        
+        // Удалить пайщика
+        window.deleteMember = function(memberId) {
+            if (!confirm('Вы уверены, что хотите удалить этого пайщика? Это действие нельзя отменить.')) {
+                return;
+            }
+            
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+            const filtered = members.filter(m => m.id != memberId);
+            
+            if (filtered.length === members.length) {
+                alert('Пайщик не найден!');
+                return;
+            }
+            
+            // Сохраняем
+            localStorage.setItem('members', JSON.stringify(filtered));
+            
+            // Показываем уведомление
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'success',
+                    message: '✅ Пайщик удалён',
+                    duration: 3000
+                });
+            }
+            
+            // Тактильный отклик
+            if (window.TelegramMiniApp) {
+                window.TelegramMiniApp.hapticFeedback('success');
+            }
+            
+            // Обновляем реестр
+            setTimeout(() => {
+                window.showMembersRegistryReport();
+            }, 500);
         };
         
         // ============================================
