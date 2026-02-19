@@ -2150,6 +2150,14 @@
                     showMembersRegistryReport();
                     break;
                     
+                case 'calendar-full':
+                    showCalendarReport();
+                    break;
+                    
+                case 'payments-report-full':
+                    showPaymentsReport();
+                    break;
+                    
                 default:
                     // Показываем уведомление для остальных отчётов
                     if (typeof window.showToast === 'function') {
@@ -2241,8 +2249,177 @@
             
             showModalYandex(content);
         };
-
-        // Обработка действий меню
+        
+        // ============================================
+        // ОТЧЁТ: КАЛЕНДАРЬ СОБЫТИЙ
+        // ============================================
+        
+        // Показать календарь событий
+        window.showCalendarReport = function() {
+            // Генерируем события на текущий месяц
+            const today = new Date();
+            const currentMonth = today.toLocaleString('ru', { month: 'long', year: 'numeric' });
+            
+            // Примеры событий
+            const events = [
+                { date: '01.03.2026', title: 'Общее собрание пайщиков', type: 'meeting' },
+                { date: '05.03.2026', title: 'Срок уплаты членских взносов', type: 'payment' },
+                { date: '10.03.2026', title: 'Заседание правления', type: 'meeting' },
+                { date: '15.03.2026', title: 'Срок подачи отчётности', type: 'report' },
+                { date: '20.03.2026', title: 'Выплата дивидендов', type: 'payment' },
+                { date: '28.03.2026', title: 'Срок уплаты УСН', type: 'tax' },
+                { date: '31.03.2026', title: 'Квартальный отчёт', type: 'report' }
+            ];
+            
+            const typeColors = {
+                meeting: '#0088cc',
+                payment: '#4caf50',
+                report: '#ff9800',
+                tax: '#f44336'
+            };
+            
+            const typeLabels = {
+                meeting: '📋 Собрание',
+                payment: '💳 Платёж',
+                report: '📊 Отчёт',
+                tax: '💰 Налог'
+            };
+            
+            let eventsHTML = '';
+            
+            events.forEach(event => {
+                eventsHTML += `
+                    <div style="display:flex;align-items:center;padding:12px;border-bottom:1px solid #eee">
+                        <div style="width:60px;text-align:center;font-weight:600;color:#0088cc">${event.date.split('.')[0]}</div>
+                        <div style="flex:1;padding-left:12px">
+                            <div style="font-weight:500">${event.title}</div>
+                            <div style="font-size:12px;color:#999;margin-top:4px">
+                                <span style="display:inline-block;padding:2px 8px;background:${typeColors[event.type]}20;color:${typeColors[event.type]};border-radius:4px;font-size:11px">
+                                    ${typeLabels[event.type]}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            const content = `
+                <div style="padding:30px;max-width:700px;margin:0 auto">
+                    <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">📅 Календарь событий</h2>
+                    
+                    <div style="background:#f5f7fa;padding:15px;border-radius:8px;margin-bottom:20px">
+                        <div style="font-size:16px;font-weight:600;text-align:center">📆 ${currentMonth}</div>
+                    </div>
+                    
+                    <div style="border:1px solid #eee;border-radius:8px;overflow:hidden">
+                        ${eventsHTML}
+                    </div>
+                    
+                    <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span style="width:12px;height:12px;background:#0088cc20;border-radius:2px"></span>
+                            <span style="font-size:12px">Собрание</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span style="width:12px;height:12px;background:#4caf5020;border-radius:2px"></span>
+                            <span style="font-size:12px">Платёж</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span style="width:12px;height:12px;background:#ff980020;border-radius:2px"></span>
+                            <span style="font-size:12px">Отчёт</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <span style="width:12px;height:12px;background:#f4433620;border-radius:2px"></span>
+                            <span style="font-size:12px">Налог</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top:20px;text-align:center">
+                        <button onclick="closeModalYandex()" 
+                                style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            showModalYandex(content);
+        };
+        
+        // ============================================
+        // ОТЧЁТ: ОТЧЁТ ПО ВЗНОСАМ
+        // ============================================
+        
+        // Показать отчёт по взносам
+        window.showPaymentsReport = function() {
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            
+            // Группируем по типам
+            const byType = {
+                entrance: { label: 'Вступительные', count: 0, sum: 0 },
+                membership: { label: 'Членские', count: 0, sum: 0 },
+                share: { label: 'Паевые', count: 0, sum: 0 },
+                additional: { label: 'Дополнительные', count: 0, sum: 0 }
+            };
+            
+            let totalSum = 0;
+            
+            payments.forEach(payment => {
+                if (byType[payment.type]) {
+                    byType[payment.type].count++;
+                    byType[payment.type].sum += payment.amount;
+                    totalSum += payment.amount;
+                }
+            });
+            
+            let rowsHTML = '';
+            
+            Object.keys(byType).forEach(key => {
+                const item = byType[key];
+                rowsHTML += `
+                    <tr style="border-bottom:1px solid #eee">
+                        <td style="padding:12px">${item.label}</td>
+                        <td style="padding:12px;text-align:center">${item.count}</td>
+                        <td style="padding:12px;text-align:right;font-weight:600;color:#0088cc">${item.sum.toLocaleString()} ₽</td>
+                    </tr>
+                `;
+            });
+            
+            const content = `
+                <div style="padding:30px;max-width:700px;margin:0 auto">
+                    <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">💳 Отчёт по взносам</h2>
+                    
+                    <table style="width:100%;border-collapse:collapse;font-size:14px">
+                        <thead>
+                            <tr style="background:#f5f7fa">
+                                <th style="padding:12px;text-align:left;border-bottom:2px solid #ddd">Тип взносов</th>
+                                <th style="padding:12px;text-align:center;border-bottom:2px solid #ddd">Кол-во</th>
+                                <th style="padding:12px;text-align:right;border-bottom:2px solid #ddd">Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHTML}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background:#f5f7fa;font-weight:600">
+                                <td style="padding:12px">Итого:</td>
+                                <td style="padding:12px;text-align:center">${payments.length}</td>
+                                <td style="padding:12px;text-align:right;color:#0088cc">${totalSum.toLocaleString()} ₽</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    
+                    <div style="margin-top:20px;text-align:center">
+                        <button onclick="closeModalYandex()" 
+                                style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            showModalYandex(content);
+        };
         window.handleMenuAction = function(actionName) {
             console.log('⚙️ Действие меню:', actionName);
             
