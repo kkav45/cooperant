@@ -976,10 +976,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Проверяем, настроена ли папка C:\КООПЕРАНТ
-    if (!localStorage.getItem('coopDirectoryConfigured')) {
-        // Показываем модальное окно с инструкцией
-        showSetupModal();
-    } else {
+    // ПРИМЕЧАНИЕ: Эта функция устарела, теперь используется Яндекс.Диск
+    // if (!localStorage.getItem('coopDirectoryConfigured')) {
+    //     showSetupModal();
+    // } else {
         // Загружаем данные и продолжаем обычную инициализацию
         loadAllDataFromDirectory().then(() => {
             initializeFileSystemAccess();
@@ -1001,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             showSection('dashboard');
             updateDashboardStats();
         });
-    }
+    // }
 });
 
 // Функция показа модального окна настройки

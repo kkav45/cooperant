@@ -5,7 +5,9 @@
 'use strict';
 
 // ==================== МОДУЛЬ ЛОГИРОВАНИЯ ====================
-const Logger = {
+// Используем глобальный Logger если он есть (из yandex-disk-integration-v2.js)
+// или создаём локальный
+window.Logger = window.Logger || {
     prefix: '[Messenger]',
     info: function(msg, data) {
         console.log(`${this.prefix} [INFO] ${msg}`, data || '');
@@ -20,8 +22,13 @@ const Logger = {
         if (window.DEBUG) {
             console.debug(`${this.prefix} [DEBUG] ${msg}`, data || '');
         }
+    },
+    success: function(msg) {
+        console.log('%c' + this.prefix + ' [SUCCESS] ' + msg, 'color: #4caf50; font-weight: bold;');
     }
 };
+
+const Logger = window.Logger;
 
 // ==================== МОДУЛЬ БЕЗОПАСНОСТИ ====================
 const Security = {
@@ -1276,7 +1283,7 @@ function getReportData(reportId) {
                                     <tr style="background:#f5f7fa">
                                         <th style="padding:12px;border:1px solid #e0e0e0;text-align:left">Наименование фонда</th>
                                         <th style="padding:12px;border:1px solid #e0e0e0;text-align:right">Вход. остаток</th>
-                                        <th style="padding:12px;border:1px solid #e0e0e0;text-align:right">Поступило</th>
+                                        <th style="padding:12px;border:1px solid #e0e0e0;text-align:right">Поступил��</th>
                                         <th style="padding:12px;border:1px solid #e0e0e0;text-align:right">Использовано</th>
                                         <th style="padding:12px;border:1px solid #e0e0e0;text-align:right">Исх. остаток</th>
                                     </tr>
@@ -4318,7 +4325,7 @@ function viewMeetingProtocol(meeting) {
             </div>
             
             <div style="margin-bottom:20px">
-                <h3 style="border-bottom:2px solid #333;padding-bottom:5px">ХОД ЗАСЕДАНИЯ</h3>
+                <h3 style="border-bottom:2px solid #333;padding-bottom:5px">ХОД ЗАС��ДАНИЯ</h3>
                 <div style="white-space:pre-line;margin-top:10px">${meeting.proceedings}</div>
             </div>
             

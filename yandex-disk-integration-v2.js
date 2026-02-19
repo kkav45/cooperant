@@ -55,24 +55,27 @@ const Logger = window.YandexLogger;
 // КОНФИГУРАЦИЯ
 // ============================================
 const YANDEX_DISK_CONFIG = {
-    // ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ ИЗ YANDEX CONSOLE
+    // ВНИМАНИЕ: Client ID должен быть указан в Яндекс OAuth Console
     // Получите на https://oauth.yandex.ru/client/new
     CLIENT_ID: '3772de21483443aba93e1889bd7ca4dc',
-    CLIENT_SECRET: 'ce41843eb4cf4e5eb8d2e5167ba01b95',
     
+    // ПРИМЕЧАНИЕ: Client Secret НЕ используется во frontend
+    // Он должен храниться только на бэкенде для валидации initData
+    // CLIENT_SECRET: '***',  // Удалено из соображений безопасности
+
     // ВАЖНО: Redirect URI должен ТОЧНО совпадать с указанным в Яндекс Console
     // Для Telegram Mini App укажите полный URL вашего приложения
     // Примеры:
     // - GitHub Pages: 'https://YOUR_USERNAME.github.io/koop/yandex-auth-callback.html'
     // - Vercel: 'https://YOUR_APP.vercel.app/yandex-auth-callback.html'
     // - Локально: 'http://localhost:8080/yandex-auth-callback.html'
-    // 
+    //
     // ТЕКУЩИЙ URL: https://kkav45.github.io/cooperant/messenger_interface.html
     REDIRECT_URI: 'https://kkav45.github.io/cooperant/yandex-auth-callback.html',
-    
+
     // Альтернативно: использовать текущий URL (может не работать в Telegram)
     // REDIRECT_URI: window.location.href.split('?')[0],
-    
+
     FOLDER_NAME: 'КООПЕРАНТ',
     AUTO_SAVE_INTERVAL: 30000, // 30 секунд
     MAX_BACKUP_COUNT: 10,      // Максимум резервных копий
