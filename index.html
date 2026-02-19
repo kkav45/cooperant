@@ -2170,6 +2170,10 @@
                     showKUDiRReport();
                     break;
                     
+                case 'profit-loss':
+                    showProfitLossReport();
+                    break;
+                    
                 default:
                     // Показываем уведомление для остальных отчётов
                     if (typeof window.showToast === 'function') {
@@ -2760,7 +2764,7 @@
                 return false;
             }
             
-            // Обновляем данные
+            // Обновляем да����ные
             payments[index].memberId = formData.get('memberId');
             payments[index].type = formData.get('type');
             payments[index].amount = parseFloat(formData.get('amount'));
@@ -3132,6 +3136,119 @@
                     <div style="background:#fff3cd;padding:15px;border-radius:8px;margin-bottom:20px;border-left:4px solid #ffc107">
                         <div style="font-size:14px;color:#856404">
                             <strong>⚠️ Примечание:</strong> Для корректного заполнения КУДиР необходимо вести бухгалтерский учёт с использованием счетов 20, 26, 44 для учёта расходов.
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top:20px;text-align:center">
+                        <button onclick="closeModalYandex()" 
+                                style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            showModalYandex(content);
+        };
+        
+        // ============================================
+        // ОТЧЁТ: ФОРМА №2 (ОТЧЁТ О ФИНАНСОВЫХ РЕЗУЛЬТАТАХ)
+        // ============================================
+        
+        // Показать Форму №2
+        window.showProfitLossReport = function() {
+            const currentYear = new Date().getFullYear();
+            
+            // Получаем данные
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            
+            // Фильтруем за текущий год
+            const yearPayments = payments.filter(p => p.date.startsWith(currentYear));
+            
+            // Доходы
+            const incomes = yearPayments.filter(p => ['entrance', 'share', 'membership'].includes(p.type));
+            const totalIncomes = incomes.reduce((sum, p) => sum + p.amount, 0);
+            
+            // Расходы (условно считаем по проводкам)
+            const expenseAccounts = ['20', '26', '44', '91'];
+            const yearTransactions = transactions.filter(t => t.date.startsWith(currentYear));
+            const expenses = yearTransactions.filter(t => expenseAccounts.includes(t.creditAccount));
+            const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+            
+            // Финансовые результаты
+            const grossProfit = totalIncomes - totalExpenses;
+            const netProfit = grossProfit; // Упрощённо (без налогов)
+            
+            const content = `
+                <div style="padding:30px;max-width:800px;margin:0 auto">
+                    <h2 style="margin-bottom:10px;font-size:20px;font-weight:600;text-align:center">📈 Отчёт о финансовых результатах</h2>
+                    <p style="text-align:center;color:#999;margin-bottom:20px">Форма №2 (ОКУД 0710002) за ${currentYear} год</p>
+                    
+                    <table style="width:100%;border-collapse:collapse;font-size:13px">
+                        <thead>
+                            <tr style="background:#f5f7fa">
+                                <th style="padding:12px;border:1px solid #ddd;text-align:left" width="60%">Показатель</th>
+                                <th style="padding:12px;border:1px solid #ddd;text-align:right" width="20%">За ${currentYear} год</th>
+                                <th style="padding:12px;border:1px solid #ddd;text-align:right" width="20%">Код</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background:#e3f2fd;font-weight:600">
+                                <td style="padding:12px;border:1px solid #ddd">Доходы от участия в кооперативе</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right;color:#4caf50">${totalIncomes.toLocaleString()} ₽</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">2110</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:12px;border:1px solid #ddd;padding-left:24px">Вступительные взносы</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">${incomes.filter(p => p.type === 'entrance').reduce((sum, p) => sum + p.amount, 0).toLocaleString()} ₽</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">—</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:12px;border:1px solid #ddd;padding-left:24px">Паевые взносы</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">${incomes.filter(p => p.type === 'share').reduce((sum, p) => sum + p.amount, 0).toLocaleString()} ₽</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">—</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:12px;border:1px solid #ddd;padding-left:24px">Членские взносы</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">${incomes.filter(p => p.type === 'membership').reduce((sum, p) => sum + p.amount, 0).toLocaleString()} ₽</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">—</td>
+                            </tr>
+                            
+                            <tr style="background:#ffebee;font-weight:600">
+                                <td style="padding:12px;border:1px solid #ddd">Расходы по обычной деятельности</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right;color:#f44336">${totalExpenses.toLocaleString()} ₽</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">2120</td>
+                            </tr>
+                            
+                            <tr style="background:#f5f7fa;font-weight:600">
+                                <td style="padding:12px;border:1px solid #ddd">Валовая прибыль (убыток)</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right;color:${grossProfit >= 0 ? '#4caf50' : '#f44336'}">${grossProfit >= 0 ? '+' : ''}${grossProfit.toLocaleString()} ₽</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">2100</td>
+                            </tr>
+                            
+                            <tr>
+                                <td style="padding:12px;border:1px solid #ddd">Прочие доходы</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">0 ₽</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">2340</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:12px;border:1px solid #ddd">Прочие расходы</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">0 ₽</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">2350</td>
+                            </tr>
+                            
+                            <tr style="background:#e3f2fd;font-weight:700;font-size:14px">
+                                <td style="padding:12px;border:1px solid #ddd">Чистая прибыль (убыток)</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right;color:${netProfit >= 0 ? '#0088cc' : '#f44336'}">${netProfit >= 0 ? '+' : ''}${netProfit.toLocaleString()} ₽</td>
+                                <td style="padding:12px;border:1px solid #ddd;text-align:right">2400</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top:20px;padding:15px;background:#fff3cd;border-radius:8px;border-left:4px solid #ffc107">
+                        <div style="font-size:13px;color:#856404">
+                            <strong>⚠️ Примечание:</strong> Отчёт сформирован на основе данных кооператива. Для сдачи в налоговую необходимо заполнить официальную форму в бухгалтерской программе.
                         </div>
                     </div>
                     
