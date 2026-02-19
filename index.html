@@ -3709,17 +3709,336 @@
         // ============================================
         // ПКО (ПРИХОДНЫЙ КАССОВЫЙ ОРДЕР)
         // ============================================
-        
+
         window.showPKOModal = function() {
-            alert('ПКО (Приходный кассовый ордер) - в разработке');
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+
+            let memberOptions = '<option value="">Выберите пайщика</option>';
+            members.forEach(member => {
+                memberOptions += `<option value="${member.id}">${member.name}</option>`;
+            });
+
+            const content = `
+                <div style="padding:30px;max-width:700px;margin:0 auto">
+                    <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">📄 ПКО (Приходный кассовый ордер)</h2>
+
+                    <form id="pkoForm" onsubmit="return generatePKO(event)">
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Номер ПКО *</label>
+                            <input type="text" name="number" required placeholder="№ 1" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Дата *</label>
+                            <input type="date" name="date" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Пайщик *</label>
+                            <select name="memberId" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                ${memberOptions}
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Сумма (₽) *</label>
+                            <input type="number" name="amount" required min="1" step="0.01" placeholder="1000.00" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Основание *</label>
+                            <select name="reason" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                <option value="entrance">Вступительный взнос</option>
+                                <option value="share">Паевой взнос</option>
+                                <option value="membership">Членский взнос</option>
+                                <option value="additional">Дополнительный взнос</option>
+                                <option value="repayment">Погашение займа</option>
+                                <option value="other">Прочее</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom:20px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">От кого *</label>
+                            <input type="text" name="from" required placeholder="ФИО полностью" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+
+                        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+                            <button type="button" onclick="closeModalYandex()"
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Отмена
+                            </button>
+                            <button type="submit"
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                📄 Сформировать
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            showModalYandex(content);
         };
-        
+
+        window.generatePKO = function(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const number = formData.get('number');
+            const date = formData.get('date');
+            const memberId = formData.get('memberId');
+            const amount = parseFloat(formData.get('amount'));
+            const reason = formData.get('reason');
+            const from = formData.get('from');
+
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+            const member = members.find(m => m.id == memberId);
+
+            if (!member) {
+                alert('Пайщик не найден!');
+                return false;
+            }
+
+            const reasonTexts = {
+                entrance: 'Вступительный взнос',
+                share: 'Паевой взнос',
+                membership: 'Членский взнос',
+                additional: 'Дополнительный взнос',
+                repayment: 'Погашение займа',
+                other: 'Прочее'
+            };
+
+            const amountInWords = amountToWords(amount);
+
+            const content = `
+                <div style="padding:30px;max-width:700px;margin:0 auto">
+                    <h2 style="text-align:center;font-size:16px;font-weight:600;margin-bottom:10px">ПРИХОДНЫЙ КАССОВЫЙ ОРДЕР</h2>
+                    <p style="text-align:center;color:#666;margin-bottom:20px">Форма № КО-1</p>
+
+                    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+                        <div>
+                            <p><strong>Организация:</strong> КПК</p>
+                        </div>
+                        <div style="text-align:right">
+                            <p><strong>Номер:</strong> ${number}</p>
+                            <p><strong>Дата:</strong> ${new Date(date).toLocaleDateString('ru')}</p>
+                        </div>
+                    </div>
+
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px">
+                        <tr>
+                            <td style="padding:8px;border:1px solid #ddd;width:30%"><strong>Код по ОКПО</strong></td>
+                            <td style="padding:8px;border:1px solid #ddd;width:70%">__________</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px;border:1px solid #ddd"><strong>Вид деятельности</strong></td>
+                            <td style="padding:8px;border:1px solid #ddd">__________</td>
+                        </tr>
+                    </table>
+
+                    <div style="background:#f5f7fa;padding:15px;border-radius:8px;margin-bottom:20px">
+                        <p style="margin-bottom:10px"><strong>Принято от:</strong> ${from}</p>
+                        <p style="margin-bottom:10px"><strong>Основание:</strong> ${reasonTexts[reason]}</p>
+                        <p style="margin-bottom:10px"><strong>Сумма:</strong> ${amount.toLocaleString()} ₽</p>
+                        <p style="margin-bottom:0"><strong>Сумма прописью:</strong> ${amountInWords}</p>
+                    </div>
+
+                    <div style="margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px">
+                        <div style="text-align:center">
+                            <p style="border-top:1px solid #000;padding-top:5px;margin-top:40px">Главный бухгалтер</p>
+                        </div>
+                        <div style="text-align:center">
+                            <p style="border-top:1px solid #000;padding-top:5px;margin-top:40px">Кассир</p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:20px;text-align:center">
+                        <button onclick="window.print()"
+                                style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;margin-right:10px">
+                            🖨️ Печать
+                        </button>
+                        <button onclick="closeModalYandex()"
+                                style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            showModalYandex(content);
+            return false;
+        };
+
+        // Функция перевода суммы в слова
+        function amountToWords(amount) {
+            const rubles = Math.floor(amount);
+            const kopecks = Math.round((amount - rubles) * 100);
+
+            // Упрощённая версия (для демонстрации)
+            return `${rubles} рублей ${kopecks} копеек`;
+        };
+
         // ============================================
         // РКО (РАСХОДНЫЙ КАССОВЫЙ ОРДЕР)
         // ============================================
-        
+
         window.showRKOModal = function() {
-            alert('РКО (Расходный кассовый ордер) - в разработке');
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+
+            let memberOptions = '<option value="">Выберите пайщика</option>';
+            members.forEach(member => {
+                memberOptions += `<option value="${member.id}">${member.name}</option>`;
+            });
+
+            const content = `
+                <div style="padding:30px;max-width:700px;margin:0 auto">
+                    <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">📄 РКО (Расходный кассовый ордер)</h2>
+
+                    <form id="rkoForm" onsubmit="return generateRKO(event)">
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Номер РКО *</label>
+                            <input type="text" name="number" required placeholder="№ 1" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Дата *</label>
+                            <input type="date" name="date" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Пайщик *</label>
+                            <select name="memberId" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                ${memberOptions}
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Сумма (₽) *</label>
+                            <input type="number" name="amount" required min="1" step="0.01" placeholder="1000.00" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Основание *</label>
+                            <select name="reason" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                <option value="dividends">Выплата дивидендов</option>
+                                <option value="repayment">Возврат пая</option>
+                                <option value="salary">Выплата зарплаты</option>
+                                <option value="expenses">Хозяйственные расходы</option>
+                                <option value="other">Прочее</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom:20px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Кому *</label>
+                            <input type="text" name="to" required placeholder="ФИО полностью" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                        </div>
+
+                        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+                            <button type="button" onclick="closeModalYandex()"
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Отмена
+                            </button>
+                            <button type="submit"
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                📄 Сформировать
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+
+            showModalYandex(content);
+        };
+
+        window.generateRKO = function(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const number = formData.get('number');
+            const date = formData.get('date');
+            const memberId = formData.get('memberId');
+            const amount = parseFloat(formData.get('amount'));
+            const reason = formData.get('reason');
+            const to = formData.get('to');
+
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+            const member = members.find(m => m.id == memberId);
+
+            if (!member) {
+                alert('Пайщик не найден!');
+                return false;
+            }
+
+            const reasonTexts = {
+                dividends: 'Выплата дивидендов',
+                repayment: 'Возврат пая',
+                salary: 'Выплата зарплаты',
+                expenses: 'Хозяйственные расходы',
+                other: 'Прочее'
+            };
+
+            const amountInWords = amountToWords(amount);
+
+            const content = `
+                <div style="padding:30px;max-width:700px;margin:0 auto">
+                    <h2 style="text-align:center;font-size:16px;font-weight:600;margin-bottom:10px">РАСХОДНЫЙ КАССОВЫЙ ОРДЕР</h2>
+                    <p style="text-align:center;color:#666;margin-bottom:20px">Форма № КО-2</p>
+
+                    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+                        <div>
+                            <p><strong>Организация:</strong> КПК</p>
+                        </div>
+                        <div style="text-align:right">
+                            <p><strong>Номер:</strong> ${number}</p>
+                            <p><strong>Дата:</strong> ${new Date(date).toLocaleDateString('ru')}</p>
+                        </div>
+                    </div>
+
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px">
+                        <tr>
+                            <td style="padding:8px;border:1px solid #ddd;width:30%"><strong>Код по ОКПО</strong></td>
+                            <td style="padding:8px;border:1px solid #ddd;width:70%">__________</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px;border:1px solid #ddd"><strong>Вид деятельности</strong></td>
+                            <td style="padding:8px;border:1px solid #ddd">__________</td>
+                        </tr>
+                    </table>
+
+                    <div style="background:#f5f7fa;padding:15px;border-radius:8px;margin-bottom:20px">
+                        <p style="margin-bottom:10px"><strong>Выдать:</strong> ${to}</p>
+                        <p style="margin-bottom:10px"><strong>Основание:</strong> ${reasonTexts[reason]}</p>
+                        <p style="margin-bottom:10px"><strong>Сумма:</strong> ${amount.toLocaleString()} ₽</p>
+                        <p style="margin-bottom:0"><strong>Сумма прописью:</strong> ${amountInWords}</p>
+                    </div>
+
+                    <div style="margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px">
+                        <div style="text-align:center">
+                            <p style="border-top:1px solid #000;padding-top:5px;margin-top:40px">Главный бухгалтер</p>
+                        </div>
+                        <div style="text-align:center">
+                            <p style="border-top:1px solid #000;padding-top:5px;margin-top:40px">Кассир</p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:20px;text-align:center">
+                        <button onclick="window.print()"
+                                style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;margin-right:10px">
+                            🖨️ Печать
+                        </button>
+                        <button onclick="closeModalYandex()"
+                                style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            showModalYandex(content);
+            return false;
         };
         
         // ============================================
@@ -4030,35 +4349,116 @@
         });
 
         // ============================================
-        // ДОКУМЕНТЫ: АКТ СВЕРКИ
+        // КАССОВАЯ КНИГА
         // ============================================
 
-        window.showActSverkaModal = function() {
-            alert('Акт сверки - в разработке');
+        window.showCashBookModal = function() {
+            const currentYear = new Date().getFullYear();
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+
+            // Фильтруем за текущий год
+            const yearTransactions = transactions.filter(t => t.date.startsWith(currentYear));
+
+            let rowsHTML = '';
+            let balance = 0;
+
+            if (yearTransactions.length === 0) {
+                rowsHTML = '<tr><td colspan="5" style="padding:40px;text-align:center;color:#999">Операций за год нет</td></tr>';
+            } else {
+                yearTransactions.forEach((t, idx) => {
+                    const isDebit = ['50', '51'].includes(t.debitAccount);
+                    if (isDebit) balance += t.amount;
+                    else balance -= t.amount;
+
+                    rowsHTML += `
+                        <tr style="border-bottom:1px solid #eee">
+                            <td style="padding:10px;text-align:center">${idx + 1}</td>
+                            <td style="padding:10px;text-align:center">${t.date || '—'}</td>
+                            <td style="padding:10px">${t.description || '—'}</td>
+                            <td style="padding:10px;text-align:right;color:${isDebit ? '#4caf50' : '#f44336'}">${isDebit ? t.amount.toLocaleString() : '—'}</td>
+                            <td style="padding:10px;text-align:right;color:${!isDebit ? '#f44336' : '#4caf50'}">${!isDebit ? t.amount.toLocaleString() : '—'}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const content = `
+                <div style="padding:30px;max-width:900px;margin:0 auto">
+                    <h2 style="margin-bottom:10px;font-size:20px;font-weight:600;text-align:center">📒 Кассовая книга</h2>
+                    <p style="text-align:center;color:#999;margin-bottom:20px">За ${currentYear} год</p>
+
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px">
+                        <thead>
+                            <tr style="background:#f5f7fa">
+                                <th style="padding:12px;border:1px solid #ddd;text-align:center" rowspan="2">№</th>
+                                <th style="padding:12px;border:1px solid #ddd;text-align:center" rowspan="2">Дата</th>
+                                <th style="padding:12px;border:1px solid #ddd;text-align:left" rowspan="2">Содержание операции</th>
+                                <th style="padding:12px;border:1px solid #ddd;text-align:center" colspan="2">Сумма (₽)</th>
+                            </tr>
+                            <tr style="background:#f5f7fa">
+                                <th style="padding:8px;border:1px solid #ddd;text-align:right">Дебет</th>
+                                <th style="padding:8px;border:1px solid #ddd;text-align:right">Кредит</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHTML}
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top:20px;text-align:center">
+                        <button onclick="window.print()"
+                                style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;margin-right:10px">
+                            🖨️ Печать
+                        </button>
+                        <button onclick="closeModalYandex()"
+                                style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            showModalYandex(content);
         };
 
         // ============================================
-        // ДОКУМЕНТЫ: ПРОТОКОЛ СОБРАНИЯ
+        // ЭКСПОРТ В EXCEL
         // ============================================
 
-        window.showProtocolModal = function() {
-            alert('Протокол собрания - в разработке');
-        };
+        window.exportToExcel = function(type) {
+            const types = {
+                members: { name: 'Пайщики', data: JSON.parse(localStorage.getItem('members') || '[]') },
+                payments: { name: 'Взносы', data: JSON.parse(localStorage.getItem('payments') || '[]') },
+                transactions: { name: 'Проводки', data: JSON.parse(localStorage.getItem('transactions') || '[]') }
+            };
 
-        // ============================================
-        // ДОКУМЕНТЫ: УДОСТОВЕРЕНИЕ ПАЙЩИКА
-        // ============================================
+            const exportData = types[type];
+            if (!exportData || exportData.data.length === 0) {
+                alert('Нет данных для экспорта!');
+                return;
+            }
 
-        window.showCertificateModal = function() {
-            alert('Удостоверение пайщика - в разработке');
-        };
+            // Создаём CSV
+            const headers = Object.keys(exportData.data[0] || {});
+            const csv = [
+                headers.join(','),
+                ...exportData.data.map(row => headers.map(h => `"${row[h] || ''}"`).join(','))
+            ].join('\n');
 
-        // ============================================
-        // ДОКУМЕНТЫ: СПРАВКА
-        // ============================================
+            // Скачиваем файл
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${exportData.name}_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
 
-        window.showSpravkaModal = function() {
-            alert('Справка - в разработке');
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'success',
+                    message: `✅ ${exportData.name} экспортированы в Excel`,
+                    duration: 3000
+                });
+            }
         };
 
         console.log('🚀 Telegram Mini App запущен');
