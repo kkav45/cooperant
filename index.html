@@ -2154,20 +2154,137 @@
                 alert('Отчёт: ' + reportName + ' (в разработке)');
             }
         };
-        
+
         // Обработка действий меню
         window.handleMenuAction = function(actionName) {
             console.log('⚙️ Действие меню:', actionName);
             
+            // Обработка конкретных действий
+            switch(actionName) {
+                case 'create-member':
+                    showCreateMemberModal();
+                    break;
+                    
+                default:
+                    // Показываем уведомление для остальных действий
+                    if (typeof window.showToast === 'function') {
+                        window.showToast({
+                            type: 'info',
+                            message: 'Действие "' + actionName + '" в разработке',
+                            duration: 3000
+                        });
+                    } else {
+                        alert('Действие: ' + actionName + ' (в разработке)');
+                    }
+            }
+        };
+        
+        // ============================================
+        // ФОРМА: ДОБАВИТЬ ПАЙЩИКА
+        // ============================================
+        
+        // Показать форму добавления пайщика
+        window.showCreateMemberModal = function() {
+            const content = `
+                <div style="padding:30px;max-width:600px;margin:0 auto">
+                    <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">➕ Добавить пайщика</h2>
+                    
+                    <form id="createMemberForm" onsubmit="return handleCreateMember(event)">
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">ФИО *</label>
+                            <input type="text" name="name" required 
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"
+                                   placeholder="Иванов Иван Иванович">
+                        </div>
+                        
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Телефон</label>
+                            <input type="tel" name="phone" 
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"
+                                   placeholder="+7 (999) 123-45-67">
+                        </div>
+                        
+                        <div style="margin-bottom:15px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Email</label>
+                            <input type="email" name="email" 
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"
+                                   placeholder="ivanov@example.com">
+                        </div>
+                        
+                        <div style="margin-bottom:20px">
+                            <label style="display:block;margin-bottom:5px;font-weight:500">Вступительный взнос (₽)</label>
+                            <input type="number" name="entranceFee" min="0" 
+                                   style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"
+                                   placeholder="5000">
+                        </div>
+                        
+                        <div style="display:flex;gap:10px;justify-content:flex-end">
+                            <button type="button" onclick="closeModalYandex()" 
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Отмена
+                            </button>
+                            <button type="submit" 
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                ➕ Добавить
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            showModalYandex(content);
+        };
+        
+        // Обработка отправки формы
+        window.handleCreateMember = function(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const newMember = {
+                name: formData.get('name'),
+                phone: formData.get('phone'),
+                email: formData.get('email'),
+                entranceFee: parseFloat(formData.get('entranceFee')) || 0
+            };
+            
+            console.log('📝 Новый пайщик:', newMember);
+            
+            // Сохраняем в localStorage
+            const members = JSON.parse(localStorage.getItem('members') || '[]');
+            newMember.id = Date.now();  // Генерируем уникальный ID
+            newMember.createdAt = new Date().toISOString();
+            members.push(newMember);
+            localStorage.setItem('members', JSON.stringify(members));
+            
+            console.log('✅ Пайщик сохранён. Всего пайщиков:', members.length);
+            
+            // Закрываем модальное окно
+            closeModalYandex();
+            
+            // Показываем уведомление
             if (typeof window.showToast === 'function') {
                 window.showToast({
-                    type: 'info',
-                    message: 'Действие "' + actionName + '" в разработке',
+                    type: 'success',
+                    message: `✅ Пайщик "${newMember.name}" добавлен!`,
                     duration: 3000
                 });
             } else {
-                alert('Действие: ' + actionName + ' (в разработке)');
+                alert(`✅ Пайщик "${newMember.name}" добавлен!`);
             }
+            
+            // Тактильный отклик
+            if (window.TelegramMiniApp) {
+                window.TelegramMiniApp.hapticFeedback('success');
+            }
+            
+            // Обновляем список чатов в messenger
+            if (typeof window.renderChats === 'function') {
+                window.renderChats();
+            }
+            
+            return false;
         };
 
         // Обновляем обработчики кнопок для использования PanelManager
