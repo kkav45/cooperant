@@ -27,8 +27,6 @@ const Logger = window.Logger || {
     }
 };
 
-const Logger = window.Logger;
-
 // ==================== МОДУЛЬ БЕЗОПАСНОСТИ ====================
 const Security = {
     // Экранирование HTML для защиты от XSS
@@ -2143,7 +2141,7 @@ function getReportData(reportId) {
                     </div>
                     
                     <div style="margin-top:30px;padding:20px;background:#e8f5e9;border-radius:8px">
-                        <button style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer" onclick="alert('Печать ПКО')">🖨️ Печать</button>
+                        <button style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer" onclick="alert('Печать ПКО')">🖨��� Печать</button>
                     </div>
                 </div>
             `
