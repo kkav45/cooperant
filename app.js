@@ -1213,31 +1213,39 @@ function showSection(sectionId) {
 
 // Функция для обновления статистики на главной странице
 function updateDashboardStats() {
-    document.getElementById('total-members').textContent = members.length;
-    
-    const activeMembers = members.filter(member => member.status === 'active').length;
-    document.getElementById('active-members').textContent = activeMembers;
-    
+    // Проверяем существование элементов (для member-cabinet.html их нет)
+    const totalMembersEl = document.getElementById('total-members');
+    if (totalMembersEl) {
+        totalMembersEl.textContent = members.length;
+    }
+
+    const activeMembersEl = document.getElementById('active-members');
+    if (activeMembersEl) {
+        const activeMembers = members.filter(member => member.status === 'active').length;
+        activeMembersEl.textContent = activeMembers;
+    }
+
     // Учитываем только обычные взносы, исключая возвраты и ожидаемые
     const regularPayments = payments.filter(p => p.type !== 'return_share' && !p.expected);
-    document.getElementById('total-payments').textContent = regularPayments.length;
-    
-    // Учитываем ожидаемые взносы
-    const expectedPayments = payments.filter(p => p.expected);
-    document.getElementById('total-payments').textContent = `${regularPayments.length} (${expectedPayments.length} ожидаемых)`;
-    
-    const totalDebt = calculateTotalDebt();
-    document.getElementById('debt-amount').textContent = totalDebt.toLocaleString() + ' ₽';
+    const totalPaymentsEl = document.getElementById('total-payments');
+    if (totalPaymentsEl) {
+        const expectedPayments = payments.filter(p => p.expected);
+        totalPaymentsEl.textContent = `${regularPayments.length} (${expectedPayments.length} ожидаемых)`;
+    }
+
+    const debtAmountEl = document.getElementById('debt-amount');
+    if (debtAmountEl) {
+        const totalDebt = calculateTotalDebt();
+        debtAmountEl.textContent = totalDebt.toLocaleString() + ' ₽';
+    }
 
     // Добавляем чистый баланс паевых взносов (поступления минус возвраты)
     const netShareBalance = calculateNetShareBalance();
     const netBalanceElement = document.getElementById('net-share-balance');
     if (netBalanceElement) {
         netBalanceElement.textContent = netShareBalance.toLocaleString() + ' ₽';
-    } else {
-        // Если элемент не существует, создаем его и добавляем к статистике
-        const statsContainer = document.querySelector('#dashboard-stats'); // Предполагаем, что есть контейнер для статистики
-        if (statsContainer) {
+    }
+}
             const newStatItem = document.createElement('div');
             newStatItem.className = 'stat-item';
             newStatItem.innerHTML = `
