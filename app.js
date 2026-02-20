@@ -1245,21 +1245,11 @@ function updateDashboardStats() {
     if (netBalanceElement) {
         netBalanceElement.textContent = netShareBalance.toLocaleString() + ' ₽';
     }
-}
-            const newStatItem = document.createElement('div');
-            newStatItem.className = 'stat-item';
-            newStatItem.innerHTML = `
-                <h3>Чистый баланс паевых взносов</h3>
-                <p id="net-share-balance">${netShareBalance.toLocaleString()} ₽</p>
-            `;
-            statsContainer.appendChild(newStatItem);
-        }
-    }
 
     // Добавляем статистику по заявлениям
     const pendingApplications = applications.filter(app => app.status === 'pending');
     const approvedApplications = applications.filter(app => app.status === 'approved');
-    
+
     // Добавляем элементы для отображения статистики по заявлениям, если они существуют
     let appStatsElement = document.getElementById('applications-stats');
     if (!appStatsElement) {
@@ -1276,7 +1266,7 @@ function updateDashboardStats() {
             statsContainer.appendChild(appStatsDiv);
         }
     }
-    
+
     if (document.getElementById('pending-applications')) {
         document.getElementById('pending-applications').textContent = pendingApplications.length;
     }
@@ -1410,7 +1400,7 @@ async function autoSaveApplication(application) {
     }
 }
 
-// Функция для автоматического сохранения удостоверения пайщика
+// Функция для автоматического со��ранения удостоверения пайщика
 async function autoSaveCertificate(certificate) {
     // Проверяем, доступен ли File System API
     if (!coopDirectoryHandle) {
