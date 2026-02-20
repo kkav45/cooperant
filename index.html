@@ -4587,6 +4587,11 @@
                 const members = JSON.parse(localStorage.getItem('members') || '[]');
                 const payments = JSON.parse(localStorage.getItem('payments') || '[]');
 
+                if (members.length === 0) {
+                    alert('❌ Нет пайщиков в базе!');
+                    return;
+                }
+
                 let memberOptions = '<option value="">Выберите пайщика</option>';
                 members.forEach(member => {
                     const memberPayments = payments.filter(p => p.memberId == member.id);
@@ -4594,7 +4599,105 @@
                     memberOptions += `<option value="${member.id}">${member.name} (внесено: ${totalPaid.toLocaleString()}₽)</option>`;
                 });
 
-                alert('Функция возврата взноса в разработке. Выберите пайщика: ' + memberOptions);
+                const content = `
+                    <div style="padding:30px;max-width:700px;margin:0 auto">
+                        <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">↩️ Возврат взноса</h2>
+
+                        <form id="returnPaymentForm" onsubmit="return handleReturnPayment(event)">
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Пайщик *</label>
+                                <select name="memberId" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                    ${memberOptions}
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Сумма возврата (₽) *</label>
+                                <input type="number" name="amount" required min="1" step="0.01" placeholder="1000.00" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                            </div>
+
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Основание *</label>
+                                <select name="reason" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                    <option value="exit">Выход из кооператива</option>
+                                    <option value="death">Смерть пайщика</option>
+                                    <option value="exclusion">Исключение из кооператива</option>
+                                    <option value="other">Другое</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom:20px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Комментарий</label>
+                                <textarea name="comment" rows="3" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"></textarea>
+                            </div>
+
+                            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+                                <button type="button" onclick="closeModalYandex()"
+                                        style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                    Отмена
+                                </button>
+                                <button type="submit"
+                                        style="padding:12px 24px;background:#f44336;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                    ↩️ Вернуть
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+
+                showModalYandex(content);
+            };
+
+            window.handleReturnPayment = function(event) {
+                event.preventDefault();
+
+                const form = event.target;
+                const formData = new FormData(form);
+
+                const memberId = formData.get('memberId');
+                const amount = parseFloat(formData.get('amount'));
+                const reason = formData.get('reason');
+                const comment = formData.get('comment');
+
+                const members = JSON.parse(localStorage.getItem('members') || '[]');
+                const member = members.find(m => m.id == memberId);
+
+                if (!member) {
+                    alert('Пайщик не найден!');
+                    return false;
+                }
+
+                // Создаём проводку на возврат (Дт 75.5 Кт 50.1)
+                const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+                transactions.push({
+                    id: Date.now(),
+                    debitAccount: '75.5',  // Расчёты по выплате стоимости пая
+                    creditAccount: '50.1',  // Касса
+                    amount: amount,
+                    date: new Date().toISOString().split('T')[0],
+                    description: `Возврат взноса: ${reason}. ${comment}`,
+                    memberId: memberId
+                });
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+
+                // Закрываем модальное окно
+                closeModalYandex();
+
+                // Показываем уведомление
+                if (typeof window.showToast === 'function') {
+                    window.showToast({
+                        type: 'success',
+                        message: `✅ Взнос возвращён ${member.name}: ${amount.toLocaleString()}₽`,
+                        duration: 3000
+                    });
+                }
+
+                // Тактильный отклик
+                if (window.TelegramMiniApp) {
+                    window.TelegramMiniApp.hapticFeedback('success');
+                }
+
+                return false;
             };
 
             // ============================================
@@ -4602,7 +4705,93 @@
             // ============================================
 
             window.showSubmitApplicationModal = function() {
-                alert('📝 Подать заявление - в разработке');
+                const content = `
+                    <div style="padding:30px;max-width:700px;margin:0 auto">
+                        <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">📝 Подать заявление</h2>
+
+                        <form id="submitApplicationForm" onsubmit="return handleSubmitApplication(event)">
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Тип заявления *</label>
+                                <select name="type" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                    <option value="join">О вступлении в кооператив</option>
+                                    <option value="exit">О выходе из кооператива</option>
+                                    <option value="transfer">О переходе паевого взноса</option>
+                                    <option value="payment">Об отсрочке платежа</option>
+                                    <option value="other">Другое</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">ФИО заявителя *</label>
+                                <input type="text" name="fullName" required placeholder="Иванов Иван Иванович" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                            </div>
+
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Телефон *</label>
+                                <input type="tel" name="phone" required placeholder="+7 (999) 123-45-67" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                            </div>
+
+                            <div style="margin-bottom:20px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Текст заявления *</label>
+                                <textarea name="text" rows="5" required placeholder="Прошу принять меня в члены потребительского кооператива..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"></textarea>
+                            </div>
+
+                            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+                                <button type="button" onclick="closeModalYandex()"
+                                        style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                    Отмена
+                                </button>
+                                <button type="submit"
+                                        style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                    📝 Подать
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+
+                showModalYandex(content);
+            };
+
+            window.handleSubmitApplication = function(event) {
+                event.preventDefault();
+
+                const form = event.target;
+                const formData = new FormData(form);
+
+                const application = {
+                    id: Date.now(),
+                    type: formData.get('type'),
+                    fullName: formData.get('fullName'),
+                    phone: formData.get('phone'),
+                    text: formData.get('text'),
+                    status: 'pending',  // pending, approved, rejected
+                    createdAt: new Date().toISOString()
+                };
+
+                // Сохраняем в localStorage
+                const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+                applications.push(application);
+                localStorage.setItem('applications', JSON.stringify(applications));
+
+                // Закрываем модальное окно
+                closeModalYandex();
+
+                // Показываем уведомление
+                if (typeof window.showToast === 'function') {
+                    window.showToast({
+                        type: 'success',
+                        message: '✅ Заявление подано и ожидает рассмотрения',
+                        duration: 3000
+                    });
+                }
+
+                // Тактильный отклик
+                if (window.TelegramMiniApp) {
+                    window.TelegramMiniApp.hapticFeedback('success');
+                }
+
+                return false;
             };
 
             // ============================================
@@ -4611,7 +4800,100 @@
 
             window.showApplicationsRegistry = function() {
                 const applications = JSON.parse(localStorage.getItem('applications') || '[]');
-                alert('📋 Реестр заявлений: ' + applications.length + ' заявлений');
+
+                const typeTexts = {
+                    join: 'О вступлении',
+                    exit: 'О выходе',
+                    transfer: 'О переходе паевого взноса',
+                    payment: 'Об отсрочке платежа',
+                    other: 'Другое'
+                };
+
+                const statusTexts = {
+                    pending: '⏳ На рассмотрении',
+                    approved: '✅ Одобрено',
+                    rejected: '❌ Отклонено'
+                };
+
+                const statusColors = {
+                    pending: '#ff9800',
+                    approved: '#4caf50',
+                    rejected: '#f44336'
+                };
+
+                let rowsHTML = '';
+                if (applications.length === 0) {
+                    rowsHTML = '<tr><td colspan="6" style="padding:40px;text-align:center;color:#999">Заявлений нет</td></tr>';
+                } else {
+                    applications.forEach((app, idx) => {
+                        rowsHTML += `
+                            <tr style="border-bottom:1px solid #eee">
+                                <td style="padding:10px;text-align:center">${idx + 1}</td>
+                                <td style="padding:10px">${new Date(app.createdAt).toLocaleDateString()}</td>
+                                <td style="padding:10px">${app.fullName}</td>
+                                <td style="padding:10px">${typeTexts[app.type]}</td>
+                                <td style="padding:10px;text-align:center"><span style="color:${statusColors[app.status]}">${statusTexts[app.status]}</span></td>
+                                <td style="padding:10px;text-align:center">
+                                    ${app.status === 'pending' ? `
+                                        <button onclick="approveApplication(${app.id})" style="padding:4px 8px;background:#4caf50;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;margin-right:4px">✅</button>
+                                        <button onclick="rejectApplication(${app.id})" style="padding:4px 8px;background:#f44336;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px">❌</button>
+                                    ` : '—'}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                const content = `
+                    <div style="padding:30px;max-width:1000px;margin:0 auto">
+                        <h2 style="margin-bottom:20px;font-size:20px;font-weight:600;text-align:center">📋 Реестр заявлений</h2>
+
+                        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px">
+                            <thead>
+                                <tr style="background:#f5f7fa">
+                                    <th style="padding:12px;border:1px solid #ddd;text-align:center">№</th>
+                                    <th style="padding:12px;border:1px solid #ddd;text-align:center">Дата</th>
+                                    <th style="padding:12px;border:1px solid #ddd;text-align:left">Заявитель</th>
+                                    <th style="padding:12px;border:1px solid #ddd;text-align:left">Тип</th>
+                                    <th style="padding:12px;border:1px solid #ddd;text-align:center">Статус</th>
+                                    <th style="padding:12px;border:1px solid #ddd;text-align:center">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHTML}
+                            </tbody>
+                        </table>
+
+                        <div style="margin-top:20px;text-align:center">
+                            <button onclick="closeModalYandex()"
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                showModalYandex(content);
+            };
+
+            window.approveApplication = function(appId) {
+                const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+                const app = applications.find(a => a.id === appId);
+                if (app) {
+                    app.status = 'approved';
+                    localStorage.setItem('applications', JSON.stringify(applications));
+                    window.showApplicationsRegistry();  // Обновляем таблицу
+                }
+            };
+
+            window.rejectApplication = function(appId) {
+                const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+                const app = applications.find(a => a.id === appId);
+                if (app) {
+                    app.status = 'rejected';
+                    localStorage.setItem('applications', JSON.stringify(applications));
+                    window.showApplicationsRegistry();  // Обновляем таблицу
+                }
             };
 
             // ============================================
@@ -4620,7 +4902,128 @@
 
             window.showMeetingsModal = function() {
                 const meetings = JSON.parse(localStorage.getItem('meetings') || '[]');
-                alert('🤝 Собрания: ' + meetings.length + ' протоколов');
+
+                let meetingsHTML = '';
+                if (meetings.length === 0) {
+                    meetingsHTML = '<p style="text-align:center;color:#999;padding:40px">Собраний ещ�� не было</p>';
+                } else {
+                    meetings.forEach((meeting, idx) => {
+                        meetingsHTML += `
+                            <div style="background:#f5f7fa;padding:15px;border-radius:8px;margin-bottom:15px">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                                    <h3 style="margin:0;font-size:16px">📋 Протокол №${meeting.number || idx + 1}</h3>
+                                    <span style="font-size:13px;color:#666">${new Date(meeting.date).toLocaleDateString()}</span>
+                                </div>
+                                <p style="margin:0 0 10px 0;font-size:14px"><strong>Повестка:</strong> ${meeting.agenda || '—'}</p>
+                                <p style="margin:0;font-size:13px;color:#666"><strong>Присутствовало:</strong> ${meeting.attendees || 0} чел.</p>
+                            </div>
+                        `;
+                    });
+                }
+
+                const content = `
+                    <div style="padding:30px;max-width:800px;margin:0 auto">
+                        <h2 style="margin-bottom:20px;font-size:20px;font-weight:600;text-align:center">🤝 Собрания и протоколы</h2>
+
+                        ${meetingsHTML}
+
+                        <div style="margin-top:20px;text-align:center">
+                            <button onclick="showCreateMeetingModal()"
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;margin-right:10px">
+                                📝 Создать протокол
+                            </button>
+                            <button onclick="closeModalYandex()"
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                showModalYandex(content);
+            };
+
+            window.showCreateMeetingModal = function() {
+                const content = `
+                    <div style="padding:30px;max-width:700px;margin:0 auto">
+                        <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">📝 Создать протокол собрания</h2>
+
+                        <form id="createMeetingForm" onsubmit="return handleCreateMeeting(event)">
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Номер протокола *</label>
+                                <input type="text" name="number" required placeholder="№ 1" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                            </div>
+
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Дата проведения *</label>
+                                <input type="date" name="date" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                            </div>
+
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Повестка дня *</label>
+                                <textarea name="agenda" rows="4" required placeholder="1. Избрание председателя собрания..." style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"></textarea>
+                            </div>
+
+                            <div style="margin-bottom:20px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Присутствовало (чел.) *</label>
+                                <input type="number" name="attendees" required min="1" placeholder="10" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                            </div>
+
+                            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+                                <button type="button" onclick="closeModalYandex()"
+                                        style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                    Отмена
+                                </button>
+                                <button type="submit"
+                                        style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                    📝 Сохранить
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+
+                showModalYandex(content);
+            };
+
+            window.handleCreateMeeting = function(event) {
+                event.preventDefault();
+
+                const form = event.target;
+                const formData = new FormData(form);
+
+                const meeting = {
+                    id: Date.now(),
+                    number: formData.get('number'),
+                    date: formData.get('date'),
+                    agenda: formData.get('agenda'),
+                    attendees: parseInt(formData.get('attendees')),
+                    createdAt: new Date().toISOString()
+                };
+
+                // Сохраняем в localStorage
+                const meetings = JSON.parse(localStorage.getItem('meetings') || '[]');
+                meetings.push(meeting);
+                localStorage.setItem('meetings', JSON.stringify(meetings));
+
+                // Закрываем модальное окно
+                closeModalYandex();
+
+                // Показываем уведомление
+                if (typeof window.showToast === 'function') {
+                    window.showToast({
+                        type: 'success',
+                        message: '✅ Протокол собрания создан',
+                        duration: 3000
+                    });
+                }
+
+                // Тактильный отклик
+                if (window.TelegramMiniApp) {
+                    window.TelegramMiniApp.hapticFeedback('success');
+                }
+
+                return false;
             };
 
             // ============================================

@@ -20,8 +20,19 @@
         
         // Папки на Яндекс.Диске
         FOLDER_NAME: 'КООПЕРАНТ',
-        MEMBER_DATA_FOLDER: 'member_data',
-        COOPERATIVES_FOLDER: 'cooperatives',
+        
+        // 2 основные подпапки:
+        // 1. /КООПЕРАНТ/ПАЙЩИК/ — данные пользователя как пайщика
+        // 2. /КООПЕРАНТ/КООПЕРАТИВ/ — данные кооперативов, где пользователь участвует
+        MEMBER_FOLDER: 'ПАЙЩИК',           // Личные данные пайщика
+        COOPERATIVE_FOLDER: 'КООПЕРАТИВ',  // Данные по кооперативам (членство)
+        
+        // Подпапки внутри ПАЙЩИК
+        MEMBER_PROFILE_FILE: 'profile.json',           // Профиль пайщика
+        MEMBER_APPLICATIONS_FILE: 'applications.json', // Заявления
+        
+        // Подпапки внутри КООПЕРАТИВ
+        COOPERATIVES_SUBFOLDER: 'cooperatives', // Подпапки по кооперативам
         
         // Таймауты
         SYNC_TIMEOUT: 30000,
@@ -272,16 +283,33 @@
     const MemberProfile = {
         /**
          * Путь к профилю на Яндекс.Диске пайщика
+         * /КООПЕРАНТ/ПАЙЩИК/profile.json
          */
         getProfilePath: function() {
-            return `/${CONFIG.FOLDER_NAME}/${CONFIG.MEMBER_DATA_FOLDER}/profile.json`;
+            return `/${CONFIG.FOLDER_NAME}/${CONFIG.MEMBER_FOLDER}/${CONFIG.MEMBER_PROFILE_FILE}`;
         },
         
         /**
-         * Путь к данным членства
+         * Путь к заявлениям
+         * /КООПЕРАНТ/ПАЙЩИК/applications.json
+         */
+        getApplicationsPath: function() {
+            return `/${CONFIG.FOLDER_NAME}/${CONFIG.MEMBER_FOLDER}/${CONFIG.MEMBER_APPLICATIONS_FILE}`;
+        },
+        
+        /**
+         * Путь к данным членства в кооперативе
+         * /КООПЕРАНТ/КООПЕРАТИВ/cooperatives/[coopId]/data.json
          */
         getMembershipPath: function(cooperativeId) {
-            return `/${CONFIG.FOLDER_NAME}/${CONFIG.MEMBER_DATA_FOLDER}/${CONFIG.COOPERATIVES_FOLDER}/${cooperativeId}/data.json`;
+            return `/${CONFIG.FOLDER_NAME}/${CONFIG.COOPERATIVE_FOLDER}/${CONFIG.COOPERATIVES_SUBFOLDER}/${cooperativeId}/data.json`;
+        },
+        
+        /**
+         * Путь к папке кооператива
+         */
+        getCooperativeFolder: function(cooperativeId) {
+            return `/${CONFIG.FOLDER_NAME}/${CONFIG.COOPERATIVE_FOLDER}/${CONFIG.COOPERATIVES_SUBFOLDER}/${cooperativeId}`;
         },
         
         /**
@@ -294,12 +322,16 @@
                     throw new Error('Нет токена авторизации');
                 }
                 
-                const profile = await YandexDisk.downloadFile(MemberProfile.getProfilePath(), token);
+                // Загружаем профиль из папки ПАЙЩИК
+                const profileData = await YandexDisk.downloadFile(MemberProfile.getProfilePath(), token);
                 
-                if (profile) {
-                    state.profile = profile;
-                    state.memberships = profile.memberships || [];
-                    state.applications = profile.applications || [];
+                // Загружаем заявления из папки ПАЙЩИК
+                const applicationsData = await YandexDisk.downloadFile(MemberProfile.getApplicationsPath(), token);
+                
+                if (profileData) {
+                    state.profile = profileData;
+                    state.memberships = profileData.memberships || [];
+                    state.applications = applicationsData?.applications || [];
                     Logger.success('Профиль загружен');
                 } else {
                     // Профиль не существует - создаём новый
@@ -324,7 +356,7 @@
                 const newProfile = {
                     profile: {
                         id: userInfo.default_email || userInfo.login,
-                        type: 'individual',
+                        type: 'individual',  // или 'cooperative' если кооператив
                         name: userInfo.display_name || '',
                         email: userInfo.default_email || '',
                         phone: '',
@@ -339,7 +371,7 @@
                 };
                 
                 await MemberProfile.save(newProfile);
-                state.profile = newProfile;
+                state.profile = newProfile.profile;
                 state.memberships = [];
                 state.applications = [];
                 
@@ -357,24 +389,33 @@
         save: async function(profileData) {
             try {
                 const token = YandexDisk.getToken();
-                const path = MemberProfile.getProfilePath();
                 
-                // Создаём папки
+                // Создаём структуру папок:
+                // /КООПЕРАНТ/
+                //   /ПАЙЩИК/
+                //     profile.json
+                //     applications.json
+                //   /КООПЕРАТИВ/
+                //     /cooperatives/
+                //       /[coopId]/
+                //         data.json
+                
                 await YandexDisk.createFolder(`/${CONFIG.FOLDER_NAME}`, token);
-                await YandexDisk.createFolder(`/${CONFIG.FOLDER_NAME}/${CONFIG.MEMBER_DATA_FOLDER}`, token);
+                await YandexDisk.createFolder(`/${CONFIG.FOLDER_NAME}/${CONFIG.MEMBER_FOLDER}`, token);
+                await YandexDisk.createFolder(`/${CONFIG.FOLDER_NAME}/${CONFIG.COOPERATIVE_FOLDER}`, token);
                 await YandexDisk.createFolder(
-                    `/${CONFIG.FOLDER_NAME}/${CONFIG.MEMBER_DATA_FOLDER}/${CONFIG.COOPERATIVES_FOLDER}`, 
+                    `/${CONFIG.FOLDER_NAME}/${CONFIG.COOPERATIVE_FOLDER}/${CONFIG.COOPERATIVES_SUBFOLDER}`, 
                     token
                 );
                 
-                // Сохраняем профиль
-                const saved = await YandexDisk.uploadFile(path, profileData, token);
+                // Сохраняем профиль и заявления в папку ПАЙЩИК
+                await YandexDisk.uploadFile(MemberProfile.getProfilePath(), profileData.profile, token);
+                await YandexDisk.uploadFile(MemberProfile.getApplicationsPath(), {
+                    applications: profileData.applications || []
+                }, token);
                 
-                if (saved) {
-                    Logger.success('Профиль сохранён');
-                }
-                
-                return saved;
+                Logger.success('Профиль сохранён');
+                return true;
             } catch (error) {
                 Logger.error('Profile save', error);
                 throw error;
@@ -400,9 +441,66 @@
             if (!state.memberships.find(m => m.cooperativeId === membership.cooperativeId)) {
                 state.memberships.push(membership);
                 state.profile.memberships = state.memberships;
-                return MemberProfile.save(state.profile);
+                
+                // Сохраняем данные членства в папку КООПЕРАТИВ
+                const membershipData = {
+                    cooperativeId: membership.cooperativeId,
+                    memberId: state.profile.id,
+                    status: membership.status,
+                    joinDate: membership.joinDate,
+                    shareAmount: membership.shareAmount,
+                    paidAmount: membership.paidAmount,
+                    debt: membership.debt,
+                    certificateNumber: membership.certificateNumber,
+                    lastSync: membership.lastSync,
+                    discrepancies: membership.discrepancies || [],
+                    transactions: [],
+                    documents: []
+                };
+                
+                // Сохраняем в отдельную папку кооператива
+                return MemberProfile.saveMembershipData(membership.cooperativeId, membershipData)
+                    .then(() => MemberProfile.save(state.profile));
             }
             return Promise.resolve();
+        },
+        
+        /**
+         * Сохранить данные членства в папку КООПЕРАТИВ
+         */
+        saveMembershipData: async function(cooperativeId, membershipData) {
+            try {
+                const token = YandexDisk.getToken();
+                const path = MemberProfile.getMembershipPath(cooperativeId);
+                
+                // Создаём папку для этого кооператива
+                await YandexDisk.createFolder(MemberProfile.getCooperativeFolder(cooperativeId), token);
+                
+                // Сохраняем данные
+                await YandexDisk.uploadFile(path, membershipData, token);
+                
+                Logger.success(`Данные членства сохранены для ${cooperativeId}`);
+                return true;
+            } catch (error) {
+                Logger.error('saveMembershipData', error);
+                throw error;
+            }
+        },
+        
+        /**
+         * Загрузить данные членства из папки КООПЕРАТИВ
+         */
+        loadMembershipData: async function(cooperativeId) {
+            try {
+                const token = YandexDisk.getToken();
+                const path = MemberProfile.getMembershipPath(cooperativeId);
+                
+                const data = await YandexDisk.downloadFile(path, token);
+                return data;
+            } catch (error) {
+                Logger.error('loadMembershipData', error);
+                return null;
+            }
         },
         
         /**
