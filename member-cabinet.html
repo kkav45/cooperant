@@ -1439,8 +1439,17 @@
             return `${days} дн. назад`;
         }
 
+        // ============================================
+        // ГЛОБАЛЬНЫЕ ФУНКЦИИ (для onclick)
+        // ============================================
+
         function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+            } else {
+                console.error('Модальное окно не найдено:', modalId);
+            }
         }
 
         function showNotifications() {
@@ -1467,12 +1476,30 @@
                   '• Заявления');
         }
 
+        function resolveDiscrepancy(action) {
+            alert('Действие: ' + action);
+        }
+
+        function submitApplication() {
+            alert('Заявление отправлено!');
+            closeModal('applicationModal');
+        }
+
+        function syncAll() {
+            alert('Синхронизация...');
+        }
+
         // Закрытие модальных окон по клику вне
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        const modal = this.querySelector('.modal-window');
+                        if (modal) {
+                            modal.classList.remove('active');
+                        }
+                    }
+                });
             });
         });
     </script>
