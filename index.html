@@ -4905,7 +4905,7 @@
 
                 let meetingsHTML = '';
                 if (meetings.length === 0) {
-                    meetingsHTML = '<p style="text-align:center;color:#999;padding:40px">Собраний ещ������ не было</p>';
+                    meetingsHTML = '<p style="text-align:center;color:#999;padding:40px">Собраний ещ�������� не было</p>';
                 } else {
                     meetings.forEach((meeting, idx) => {
                         meetingsHTML += `
@@ -5567,8 +5567,385 @@
             };
 
             // ============================================
-            // ОБРАБОТЧИКИ КНОПОК МЕНЮ
+            // АНАЛИТИКА
             // ============================================
+
+            window.showAnalyticsModal = function() {
+                const currentYear = new Date().getFullYear();
+                const members = JSON.parse(localStorage.getItem('members') || '[]');
+                const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+                const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+
+                // Считаем показатели
+                const totalMembers = members.length;
+                const yearPayments = payments.filter(p => p.date.startsWith(currentYear));
+                const totalIncome = yearPayments.reduce((sum, p) => sum + p.amount, 0);
+                const yearTransactions = transactions.filter(t => t.date.startsWith(currentYear));
+                const totalExpenses = yearTransactions.reduce((sum, t) => sum + t.amount, 0);
+                const profit = totalIncome - totalExpenses;
+
+                // Группируем по типам взносов
+                const byType = {
+                    entrance: { count: 0, sum: 0 },
+                    membership: { count: 0, sum: 0 },
+                    share: { count: 0, sum: 0 },
+                    additional: { count: 0, sum: 0 }
+                };
+                yearPayments.forEach(p => {
+                    if (byType[p.type]) {
+                        byType[p.type].count++;
+                        byType[p.type].sum += p.amount;
+                    }
+                });
+
+                const typeNames = {
+                    entrance: 'Вступительные',
+                    membership: 'Членские',
+                    share: 'Паевые',
+                    additional: 'Дополнительные'
+                };
+
+                let chartHTML = '';
+                Object.keys(byType).forEach(key => {
+                    const percent = totalIncome > 0 ? Math.round((byType[key].sum / totalIncome) * 100) : 0;
+                    chartHTML += `
+                        <div style="margin-bottom:10px">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+                                <span style="font-size:13px">${typeNames[key]}</span>
+                                <span style="font-size:13px;font-weight:600">${byType[key].sum.toLocaleString()} ₽ (${percent}%)</span>
+                            </div>
+                            <div style="background:#e0e0e0;height:20px;border-radius:10px;overflow:hidden">
+                                <div style="background:#0088cc;height:100%;width:${percent}%;border-radius:10px;transition:width 0.5s"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const content = `
+                    <div style="padding:30px;max-width:900px;margin:0 auto">
+                        <h2 style="margin-bottom:20px;font-size:20px;font-weight:600;text-align:center">📊 Аналитика</h2>
+                        <p style="text-align:center;color:#999;margin-bottom:20px">За ${currentYear} год</p>
+
+                        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-bottom:20px">
+                            <div style="background:#e8f5e9;padding:20px;border-radius:8px;text-align:center">
+                                <div style="font-size:13px;color:#666">Пайщиков</div>
+                                <div style="font-size:32px;font-weight:700;color:#4caf50">${totalMembers}</div>
+                            </div>
+                            <div style="background:#e3f2fd;padding:20px;border-radius:8px;text-align:center">
+                                <div style="font-size:13px;color:#666">Доходы</div>
+                                <div style="font-size:24px;font-weight:700;color:#2196f3">${totalIncome.toLocaleString()} ₽</div>
+                            </div>
+                            <div style="background:#ffebee;padding:20px;border-radius:8px;text-align:center">
+                                <div style="font-size:13px;color:#666">Расходы</div>
+                                <div style="font-size:24px;font-weight:700;color:#f44336">${totalExpenses.toLocaleString()} ₽</div>
+                            </div>
+                            <div style="background:#fff3e0;padding:20px;border-radius:8px;text-align:center">
+                                <div style="font-size:13px;color:#666">Прибыль</div>
+                                <div style="font-size:24px;font-weight:700;color:${profit >= 0 ? '#4caf50' : '#f44336'}">${profit.toLocaleString()} ₽</div>
+                            </div>
+                        </div>
+
+                        <div style="background:#f5f7fa;padding:20px;border-radius:8px;margin-bottom:20px">
+                            <h3 style="margin-bottom:15px;font-size:16px">📈 Структура доходов</h3>
+                            ${chartHTML}
+                        </div>
+
+                        <div style="margin-top:20px;text-align:center">
+                            <button onclick="window.print()"
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;margin-right:10px">
+                                🖨️ Печать
+                            </button>
+                            <button onclick="closeModalYandex()"
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                showModalYandex(content);
+            };
+
+            // ============================================
+            // ФОНДЫ
+            // ============================================
+
+            window.showFundsModal = function() {
+                const funds = JSON.parse(localStorage.getItem('funds') || '[]');
+
+                const fundTypes = {
+                    reserve: { name: 'Резервный фонд', color: '#ff9800' },
+                    mutualAid: { name: 'Фонд взаимопомощи', color: '#4caf50' },
+                    financial: { name: 'Финансовый фонд', color: '#2196f3' },
+                    other: { name: 'Другие фонды', color: '#9c27b0' }
+                };
+
+                let fundsHTML = '';
+                if (funds.length === 0) {
+                    fundsHTML = '<p style="text-align:center;color:#999;padding:40px">Фонды ещё не созданы</p>';
+                } else {
+                    funds.forEach((fund, idx) => {
+                        const type = fundTypes[fund.type] || fundTypes.other;
+                        fundsHTML += `
+                            <div style="background:#f5f7fa;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid ${type.color}">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                                    <h3 style="margin:0;font-size:16px">${type.name}</h3>
+                                    <span style="font-size:18px;font-weight:700;color:${type.color}">${fund.amount.toLocaleString()} ₽</span>
+                                </div>
+                                <p style="margin:0;font-size:13px;color:#666">${fund.description || '—'}</p>
+                                <p style="margin:5px 0 0 0;font-size:12px;color:#999">Создан: ${new Date(fund.createdAt).toLocaleDateString()}</p>
+                            </div>
+                        `;
+                    });
+                }
+
+                const content = `
+                    <div style="padding:30px;max-width:800px;margin:0 auto">
+                        <h2 style="margin-bottom:20px;font-size:20px;font-weight:600;text-align:center">💰 Фонды кооператива</h2>
+
+                        ${fundsHTML}
+
+                        <div style="margin-top:20px;text-align:center">
+                            <button onclick="showCreateFundModal()"
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;margin-right:10px">
+                                ➕ Создать фонд
+                            </button>
+                            <button onclick="closeModalYandex()"
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                showModalYandex(content);
+            };
+
+            window.showCreateFundModal = function() {
+                const content = `
+                    <div style="padding:30px;max-width:700px;margin:0 auto">
+                        <h2 style="margin-bottom:20px;font-size:20px;font-weight:600">💰 Создать фонд</h2>
+
+                        <form id="createFundForm" onsubmit="return handleCreateFund(event)">
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Тип фонда *</label>
+                                <select name="type" required style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                                    <option value="reserve">Резервный фонд</option>
+                                    <option value="mutualAid">Фонд взаимопомощи</option>
+                                    <option value="financial">Финансовый фонд</option>
+                                    <option value="other">Другой фонд</option>
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Название *</label>
+                                <input type="text" name="name" required placeholder="Например: Резервный фонд" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                            </div>
+
+                            <div style="margin-bottom:15px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Начальная сумма (₽) *</label>
+                                <input type="number" name="amount" required min="0" step="0.01" placeholder="10000.00" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px">
+                            </div>
+
+                            <div style="margin-bottom:20px">
+                                <label style="display:block;margin-bottom:5px;font-weight:500">Описание</label>
+                                <textarea name="description" rows="3" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:15px"></textarea>
+                            </div>
+
+                            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+                                <button type="button" onclick="closeModalYandex()"
+                                        style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                    Отмена
+                                </button>
+                                <button type="submit"
+                                        style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:600">
+                                    💾 Создать
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+
+                showModalYandex(content);
+            };
+
+            window.handleCreateFund = function(event) {
+                event.preventDefault();
+
+                const form = event.target;
+                const formData = new FormData(form);
+
+                const fund = {
+                    id: Date.now(),
+                    type: formData.get('type'),
+                    name: formData.get('name'),
+                    amount: parseFloat(formData.get('amount')),
+                    description: formData.get('description'),
+                    createdAt: new Date().toISOString()
+                };
+
+                // Сохраняем в localStorage
+                const funds = JSON.parse(localStorage.getItem('funds') || '[]');
+                funds.push(fund);
+                localStorage.setItem('funds', JSON.stringify(funds));
+
+                closeModalYandex();
+
+                if (typeof window.showToast === 'function') {
+                    window.showToast({
+                        type: 'success',
+                        message: `✅ Фонд "${fund.name}" создан`,
+                        duration: 3000
+                    });
+                }
+
+                if (window.TelegramMiniApp) {
+                    window.TelegramMiniApp.hapticFeedback('success');
+                }
+
+                return false;
+            };
+
+            // ============================================
+            // КОНТРОЛЬ СРОКОВ
+            // ============================================
+
+            window.showDeadlineControlModal = function() {
+                const deadlines = [
+                    { date: '20.03', name: 'Сдача декларации УСН', type: 'tax', urgent: true },
+                    { date: '01.04', name: 'СЗВ-СТАЖ (годовой)', type: 'report', urgent: true },
+                    { date: '20.04', name: 'РСВ (1 квартал)', type: 'tax', urgent: false },
+                    { date: '01.05', name: 'СЗВ-М (ежемесячно)', type: 'report', urgent: false },
+                    { date: '20.07', name: 'РСВ (полугодие)', type: 'tax', urgent: false },
+                    { date: '01.08', name: 'СЗВ-М (ежемесячно)', type: 'report', urgent: false }
+                ];
+
+                const typeColors = {
+                    tax: '#f44336',
+                    report: '#2196f3',
+                    meeting: '#4caf50',
+                    other: '#ff9800'
+                };
+
+                const typeNames = {
+                    tax: '📋 Налог',
+                    report: '📊 Отчёт',
+                    meeting: '🤝 Собрание',
+                    other: '📅 Другое'
+                };
+
+                let deadlinesHTML = '';
+                deadlines.forEach((dl, idx) => {
+                    deadlinesHTML += `
+                        <div style="background:${dl.urgent ? '#ffebee' : '#f5f7fa'};padding:15px;border-radius:8px;margin-bottom:10px;border-left:4px solid ${typeColors[dl.type]}">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <div>
+                                    <div style="font-size:13px;color:#666;margin-bottom:5px">${typeNames[dl.type]}</div>
+                                    <div style="font-size:15px;font-weight:600">${dl.name}</div>
+                                </div>
+                                <div style="text-align:right">
+                                    <div style="font-size:18px;font-weight:700;color:${dl.urgent ? '#f44336' : '#666'}">${dl.date}</div>
+                                    ${dl.urgent ? '<div style="font-size:11px;color:#f44336;font-weight:600">⚠️ СРОЧНО</div>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const content = `
+                    <div style="padding:30px;max-width:800px;margin:0 auto">
+                        <h2 style="margin-bottom:20px;font-size:20px;font-weight:600;text-align:center">⏰ Контроль сроков</h2>
+                        <p style="text-align:center;color:#999;margin-bottom:20px">Календарь событий и дедлайнов</p>
+
+                        ${deadlinesHTML}
+
+                        <div style="margin-top:20px;text-align:center">
+                            <button onclick="window.print()"
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;margin-right:10px">
+                                🖨️ Печать
+                            </button>
+                            <button onclick="closeModalYandex()"
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                showModalYandex(content);
+            };
+
+            // ============================================
+            // НУЛЕВАЯ ОТЧЁТНОСТЬ
+            // ============================================
+
+            window.showZeroReportingModal = function() {
+                const currentYear = new Date().getFullYear();
+
+                const content = `
+                    <div style="padding:30px;max-width:800px;margin:0 auto">
+                        <h2 style="margin-bottom:20px;font-size:20px;font-weight:600;text-align:center">📄 Нулевая отчётность</h2>
+                        <p style="text-align:center;color:#999;margin-bottom:20px">За ${currentYear} год</p>
+
+                        <div style="background:#fff3cd;padding:20px;border-radius:8px;margin-bottom:20px;border-left:4px solid #ffc107">
+                            <div style="font-size:14px;color:#856404">
+                                <strong>⚠️ Информация:</strong> Нулевая отчётность сдаётся при отсутствии деятельности (нет доходов и расходов).
+                            </div>
+                        </div>
+
+                        <div style="background:#f5f7fa;padding:20px;border-radius:8px;margin-bottom:20px">
+                            <h3 style="margin-bottom:15px;font-size:16px">📋 Состав нулевой отчётности</h3>
+                            <div style="display:grid;gap:10px">
+                                <div style="background:#fff;padding:12px;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
+                                    <span>📊 Декларация УСН (нулевая)</span>
+                                    <span style="color:#4caf50">✅ Готово</span>
+                                </div>
+                                <div style="background:#fff;padding:12px;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
+                                    <span>📋 РСВ (нулевой)</span>
+                                    <span style="color:#4caf50">✅ Готово</span>
+                                </div>
+                                <div style="background:#fff;padding:12px;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
+                                    <span>📄 6-НДФЛ (нулевой)</span>
+                                    <span style="color:#4caf50">✅ Готово</span>
+                                </div>
+                                <div style="background:#fff;padding:12px;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
+                                    <span>📊 Бухгалтерский баланс (нулевой)</span>
+                                    <span style="color:#4caf50">✅ Готово</span>
+                                </div>
+                                <div style="background:#fff;padding:12px;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
+                                    <span>📊 Отчёт о фин. результатах (нулевой)</span>
+                                    <span style="color:#4caf50">✅ Готово</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background:#e3f2fd;padding:15px;border-radius:8px;margin-bottom:20px">
+                            <div style="font-size:14px;color:#1565c0">
+                                <strong>ℹ️ Сроки сдачи:</strong>
+                                <ul style="margin:10px 0 0 20px">
+                                    <li>Декларация УСН — до 31 марта</li>
+                                    <li>РСВ — до 30 апреля</li>
+                                    <li>6-НДФЛ — до 30 апреля</li>
+                                    <li>Бухгалтерский баланс — до 31 марта</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:20px;text-align:center">
+                            <button onclick="window.print()"
+                                    style="padding:12px 24px;background:#0088cc;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;margin-right:10px">
+                                🖨️ Печать
+                            </button>
+                            <button onclick="closeModalYandex()"
+                                    style="padding:12px 24px;background:#f5f7fa;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:15px">
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                showModalYandex(content);
+            };
             
             menuItems.forEach(item => {
                 item.style.cursor = 'pointer'; // Показываем что можно кликнуть
