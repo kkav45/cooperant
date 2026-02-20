@@ -5,9 +5,8 @@
 'use strict';
 
 // ==================== МОДУЛЬ ЛОГИРОВАНИЯ ====================
-// Используем глобальный Logger если он есть (из yandex-disk-integration-v2.js)
-// или создаём локальный
-window.Logger = window.Logger || {
+// Используем глобальный Logger если он есть
+const Logger = window.Logger || {
     prefix: '[Messenger]',
     info: function(msg, data) {
         console.log(`${this.prefix} [INFO] ${msg}`, data || '');
