@@ -92,6 +92,7 @@
             border-radius: 20px;
             cursor: pointer;
             transition: all 0.2s;
+            color: white;
         }
         .sync-status:hover {
             background: rgba(255, 255, 255, 0.25);
@@ -111,7 +112,7 @@
             background: var(--danger-color);
         }
         .sync-indicator.disconnected {
-            background: var(--text-secondary);
+            background: #999;
         }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -3613,28 +3614,29 @@
             // Установка статуса
             switch(status) {
                 case 'synced':
-                    indicator.style.background = 'var(--success-color)';
+                    indicator.style.background = '#4caf50';
                     text.textContent = message || '✅ Синхронизировано';
-                    text.style.color = '#4caf50';
+                    text.style.color = 'white';
                     break;
                 case 'syncing':
                     indicator.className = 'sync-indicator syncing';
                     text.textContent = message || '🔄 Синхронизация...';
-                    text.style.color = '#ff9800';
+                    text.style.color = 'white';
                     break;
                 case 'error':
                     indicator.className = 'sync-indicator error';
                     text.textContent = message || '❌ Ошибка синхронизации';
-                    text.style.color = '#f44336';
+                    text.style.color = 'white';
                     break;
                 case 'disconnected':
                     indicator.className = 'sync-indicator disconnected';
                     text.textContent = message || '⛔ Нет синхронизации';
-                    text.style.color = '#999';
+                    text.style.color = 'white';
                     break;
                 default:
-                    indicator.style.background = 'var(--success-color)';
+                    indicator.style.background = '#4caf50';
                     text.textContent = message || 'Синхронизировано';
+                    text.style.color = 'white';
             }
         }
 
