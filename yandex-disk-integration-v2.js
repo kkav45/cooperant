@@ -282,6 +282,37 @@ async function initYandexDiskAfterAuth() {
 }
 
 /**
+ * Инициализация при загрузке (если токен есть но папка не создана)
+ */
+async function initYandexDiskOnLoad() {
+    const token = localStorage.getItem('yandexDiskToken');
+    const folderId = localStorage.getItem('yandexCooperativFolderId');
+
+    if (token && !folderId) {
+        Logger.info('Токен найден, но папка не создана. Создаём папку...');
+        yandexDiskToken = token;
+        
+        try {
+            const newFolderId = await findOrCreateYandexCooperativFolder();
+            if (newFolderId) {
+                cooperativFolderId = newFolderId;
+                localStorage.setItem('yandexCooperativFolderId', newFolderId);
+                Logger.success('✅ Папка создана при загрузке');
+                
+                // Инициализируем файлы
+                await initializeDataFiles();
+            }
+        } catch (error) {
+            Logger.error('Ошибка создания папки при загрузке', error);
+        }
+    } else if (token && folderId) {
+        yandexDiskToken = token;
+        cooperativFolderId = folderId;
+        Logger.success('✅ Яндекс Диск авторизован (токен и папка на месте)');
+    }
+}
+
+/**
  * Инициализация файлов данных (создание пустых файлов если не существуют)
  */
 async function initializeDataFiles() {
@@ -1565,9 +1596,13 @@ window.getTelegramUserInfo = getTelegramUserInfo;
 
 // Авто-инициализация при загрузке
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initYandexDiskIntegration);
+    document.addEventListener('DOMContentLoaded', () => {
+        initYandexDiskOnLoad();  // Сначала инициализация
+        initYandexDiskIntegration();  // Потом стандартная
+    });
 } else {
-    initYandexDiskIntegration();
+    initYandexDiskOnLoad();  // Сначала инициализация
+    initYandexDiskIntegration();  // Потом стандартная
 }
 
 Logger.success('Yandex Disk Integration v2.0 загружен');
