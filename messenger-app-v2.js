@@ -5,27 +5,32 @@
 'use strict';
 
 // ==================== МОДУЛЬ ЛОГИРОВАНИЯ ====================
-// Используем глобальный Logger если он есть
-const Logger = window.Logger || {
-    prefix: '[Messenger]',
-    info: function(msg, data) {
-        console.log(`${this.prefix} [INFO] ${msg}`, data || '');
-    },
-    error: function(msg, error) {
-        console.error(`${this.prefix} [ERROR] ${msg}`, error || '');
-    },
-    warn: function(msg, data) {
-        console.warn(`${this.prefix} [WARN] ${msg}`, data || '');
-    },
-    debug: function(msg, data) {
-        if (window.DEBUG) {
-            console.debug(`${this.prefix} [DEBUG] ${msg}`, data || '');
+// Используем глобальный Logger из window (создан в yandex-disk-integration-v2.js)
+// Не объявляем переменную, чтобы избежать конфликта
+var Logger = (function() {
+    if (window.Logger) return window.Logger;
+    if (window.YandexLogger) return window.YandexLogger;
+    return {
+        prefix: '[Messenger]',
+        info: function(msg, data) {
+            console.log(`${this.prefix} [INFO] ${msg}`, data || '');
+        },
+        error: function(msg, error) {
+            console.error(`${this.prefix} [ERROR] ${msg}`, error || '');
+        },
+        warn: function(msg, data) {
+            console.warn(`${this.prefix} [WARN] ${msg}`, data || '');
+        },
+        debug: function(msg, data) {
+            if (window.DEBUG) {
+                console.debug(`${this.prefix} [DEBUG] ${msg}`, data || '');
+            }
+        },
+        success: function(msg) {
+            console.log('%c' + this.prefix + ' [SUCCESS] ' + msg, 'color: #4caf50; font-weight: bold;');
         }
-    },
-    success: function(msg) {
-        console.log('%c' + this.prefix + ' [SUCCESS] ' + msg, 'color: #4caf50; font-weight: bold;');
-    }
-};
+    };
+})();
 
 // ==================== МОДУЛЬ БЕЗОПАСНОСТИ ====================
 const Security = {
@@ -826,7 +831,8 @@ function selectMemberById(memberId) {
     }
 }
 
-function handleMenuAction(action) {
+// Делаем функцию доступной глобально для onclick из HTML
+window.handleMenuAction = function handleMenuAction(action) {
     try {
         Logger.info('Действие меню', { action });
 
@@ -1280,7 +1286,7 @@ function getReportData(reportId) {
                                     <tr style="background:#f5f7fa">
                                         <th style="padding:12px;border:1px solid #e0e0e0;text-align:left">Наименование фонда</th>
                                         <th style="padding:12px;border:1px solid #e0e0e0;text-align:right">Вход. остаток</th>
-                                        <th style="padding:12px;border:1px solid #e0e0e0;text-align:right">Поступил��</th>
+                                        <th style="padding:12px;border:1px solid #e0e0e0;text-align:right">Поступ������л��</th>
                                         <th style="padding:12px;border:1px solid #e0e0e0;text-align:right">Использовано</th>
                                         <th style="padding:12px;border:1px solid #e0e0e0;text-align:right">Исх. остаток</th>
                                     </tr>
@@ -2616,10 +2622,11 @@ function downloadPDF(docId) {
 }
 
 // STEP 10: Реализация кнопок FAB
-function createNew(type) {
+// Делаем функцию доступной глобально для onclick из HTML
+window.createNew = function createNew(type) {
     try {
         Logger.info('Создание нового', { type });
-        
+
         const creators = {
             'member': createMember,
             'payment': createPayment,
@@ -2627,19 +2634,19 @@ function createNew(type) {
             'document': createDocument,
             'application': createApplication
         };
-        
+
         const creator = creators[type];
         if (creator) {
             creator();
         } else {
             Logger.warn('Тип создания не найден', { type });
         }
-        
+
         toggleFab();
     } catch (error) {
         Logger.error('Ошибка создания', error);
     }
-}
+};
 
 // STEP 10.1: Создание пайщика
 function createMember() {
@@ -3355,7 +3362,7 @@ function saveReturnPayment(event) {
             member.operations = member.operations || [];
             member.operations.push({
                 id: Date.now(),
-                type: 'Возврат паевого взноса',
+                type: 'Возврат паевог�� взноса',
                 amount: amount,
                 date: date,
                 description: reason,
@@ -4322,7 +4329,7 @@ function viewMeetingProtocol(meeting) {
             </div>
             
             <div style="margin-bottom:20px">
-                <h3 style="border-bottom:2px solid #333;padding-bottom:5px">ХОД ЗАС��ДАНИЯ</h3>
+                <h3 style="border-bottom:2px solid #333;padding-bottom:5px">��ОД ЗАС��ДАНИЯ</h3>
                 <div style="white-space:pre-line;margin-top:10px">${meeting.proceedings}</div>
             </div>
             
@@ -4390,10 +4397,11 @@ function showMemberInfo() {
     }
 }
 
-function showOperationDetails(opId) {
+// Делаем функцию доступной глобально для onclick из HTML
+window.showOperationDetails = function showOperationDetails(opId) {
     try {
         Logger.info('Детали операции', { opId });
-        
+
         if (!currentMember || !currentMember.operations) {
             Logger.warn('Операции не найдены');
             return;
@@ -4716,12 +4724,13 @@ function exportMembersToExcel() {
 
 // STEP 17: ТЁМНАЯ ТЕМА
 let darkMode = false;
-function toggleDarkMode() {
+// Делаем функцию доступной глобально для onclick из HTML
+window.toggleDarkMode = function toggleDarkMode() {
     darkMode = !darkMode;
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
     localStorage.setItem('darkMode', darkMode);
     showToast({ type: 'info', message: darkMode ? '🌙 Тёмная тема' : '☀️ Светлая тема' });
-}
+};
 
 function initDarkMode() {
     if (localStorage.getItem('darkMode') === 'true') {
@@ -4810,13 +4819,13 @@ function saveCalendarEvent(event) {
             reminder: document.getElementById('event-reminder').value,
             createdAt: new Date().toISOString()
         };
-        
+
         if (!cooperativeSettings.calendarEvents) {
             cooperativeSettings.calendarEvents = [];
         }
         cooperativeSettings.calendarEvents.push(newEvent);
         localStorage.setItem('coop_settings', JSON.stringify(cooperativeSettings));
-        
+
         showToast({ type: 'success', message: 'Мероприятие добавлено в календарь' });
         closeSideMenu();
     } catch (error) {
@@ -4824,3 +4833,11 @@ function saveCalendarEvent(event) {
         showToast({ type: 'error', message: 'Ошибка при сохранении' });
     }
 }
+
+// ============================================
+// ЭКСПОРТ ГЛОБАЛЬНЫХ ФУНКЦИЙ ДЛЯ ONCLICK
+// ============================================
+window.massExport = massExport;
+window.massMessage = massMessage;
+window.clearMassSelection = clearMassSelection;
+window.exportMembersToExcel = exportMembersToExcel;

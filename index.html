@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -1656,15 +1656,16 @@
     </script>
 
     <!-- Сначала Yandex Disk (должен загрузиться ПЕРЕД messenger-app-v2.js) -->
-    <script src="yandex-disk-integration-v2.js?v=2026021823"></script>
-    
+    <script src="yandex-disk-integration-v2.js?v=5.0.0"></script>
+
     <!-- Потом остальные скрипты -->
-    <script src="app.js?v=2026021823"></script>
-    <script src="application_functions.js?v=2026021823"></script>
-    <script src="reports.js?v=2026021823"></script>
-    <script src="settings.js?v=2026021823"></script>
-    <script src="messenger-app-v2.js?v=2026021823"></script>
-    <script src="pdf_export.js?v=2026021823"></script>
+    <script src="app.js?v=5.0.0"></script>
+    <script src="application_functions.js?v=5.0.0"></script>
+    <script src="reports.js?v=5.0.0"></script>
+    <script src="settings.js?v=5.0.0"></script>
+    <script src="messenger-app-v2.js?v=5.0.0"></script>
+    <script src="messenger-menu-handlers.js?v=5.0.0"></script>
+    <script src="pdf_export.js?v=5.0.0"></script>
     
     <!-- Обработка токена Яндекс Диска -->
     <script>
@@ -2026,7 +2027,8 @@
             window.currentYandexModal = overlay;
         }
 
-        function closeModalYandex() {
+        // Делаем функцию доступной глобально для onclick из HTML
+        window.closeModalYandex = function closeModalYandex() {
             if (window.currentYandexModal) {
                 window.currentYandexModal.style.animation = 'fadeOut 0.2s ease';
                 setTimeout(() => {
@@ -2034,7 +2036,7 @@
                     window.currentYandexModal = null;
                 }, 200);
             }
-        }
+        };
 
         // CSS анимации
         const style = document.createElement('style');
@@ -3787,7 +3789,7 @@
             // ДОПОЛНИТЕЛЬНЫЕ ВЗНОСЫ
             { name: 'Внесение дополнительного взноса', debit: '50.1', credit: '86.4', description: 'Внесение дополнительного взноса' },
             
-            // ИМУЩЕСТВЕННЫЕ ВЗНОСЫ
+            // ИМУЩЕСТВЕНН��Е ВЗНОСЫ
             { name: 'Внесение имущественного взноса', debit: '08', credit: '86.5', description: 'Внесен��е имущества в кооператив' },
             { name: 'Принятие ОС к учёту', debit: '01', credit: '08', description: 'Принятие основного средства к учёту' },
             
@@ -5897,44 +5899,6 @@
 
                 showModalYandex(content);
             };
-            
-            menuItems.forEach(item => {
-                item.style.cursor = 'pointer'; // Показываем что можно кликнуть
-                
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    const panel = this.dataset.panel;
-                    const report = this.dataset.report;
-                    const action = this.dataset.action;
-                    
-                    console.log('🖱️ Клик по меню:', { panel, report, action });
-
-                    // Тактильный отклик
-                    if (tg.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('light');
-                    }
-
-                    if (panel) {
-                        // Открытие панели
-                        PanelManager.open(panel);
-                        console.log('✅ Открыта панель:', panel);
-                    } else if (report) {
-                        // Открытие отчёта
-                        window.openReportByName(report);
-                    } else if (action) {
-                        // Выполнение действия
-                        window.handleMenuAction(action);
-                    }
-
-                    // Закрыть меню
-                    PanelManager.close('sidebarMenu');
-                });
-            });
-
-            Logger.info('✅ Обработчики кнопок меню настроены');
-        });
 
         // ============================================
         // КАССОВАЯ КНИГА
@@ -6015,7 +5979,7 @@
 
         window.exportToExcel = function(type) {
             const types = {
-                members: { name: 'Пайщики', data: JSON.parse(localStorage.getItem('members') || '[]') },
+                members: { name: 'Па��щики', data: JSON.parse(localStorage.getItem('members') || '[]') },
                 payments: { name: 'Взносы', data: JSON.parse(localStorage.getItem('payments') || '[]') },
                 transactions: { name: 'Проводки', data: JSON.parse(localStorage.getItem('transactions') || '[]') }
             };
@@ -6048,6 +6012,12 @@
                 });
             }
         };
+
+        // Закрываем второй DOMContentLoaded (обработчики кнопок)
+        });
+
+        // Закрываем первый DOMContentLoaded
+        });
 
         console.log('🚀 Telegram Mini App запущен');
     </script>

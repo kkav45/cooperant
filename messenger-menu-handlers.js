@@ -1,9 +1,18 @@
 // MESSENGER MENU CLICK HANDLERS
 // Обработчики кликов по меню отчетов
 
-document.addEventListener('DOMContentLoaded', () => {
+(function initMenuHandlers() {
+    // Проверяем готовность DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupMenuHandlers);
+    } else {
+        setupMenuHandlers();
+    }
+})();
+
+function setupMenuHandlers() {
     console.log('📋 Menu handlers loaded');
-    
+
     // Добавляем data-report атрибуты для отчетов в левом меню
     const reportButtons = document.querySelectorAll('[data-submenu="analytics"], [data-submenu="meetings"], [data-submenu="control"], [data-submenu="accounting-reports"]');
     
@@ -53,14 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
-    
+
     // Обработчик для data-report
     document.querySelectorAll('[data-report]').forEach(item => {
         item.addEventListener('click', function(e) {
             e.stopPropagation();
             const reportId = this.dataset.report;
             console.log('📊 Клик по отчету:', reportId);
-            
+
             if (typeof window.openReportById === 'function') {
                 window.openReportById(reportId);
             } else {
@@ -68,6 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    
+
     console.log('✅ Menu handlers initialized');
-});
+}

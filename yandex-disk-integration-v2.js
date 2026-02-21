@@ -55,12 +55,12 @@ const Logger = window.YandexLogger;
 // КОНФИГУРАЦИЯ
 // ============================================
 const YANDEX_DISK_CONFIG = {
-    // ВНИМАНИЕ: Client ID должен быть указан в Яндекс OAuth Console
-    // Получите на https://oauth.yandex.ru/client/new
+    // Client ID для OAuth (публичный, используется во frontend)
     CLIENT_ID: '3772de21483443aba93e1889bd7ca4dc',
-    
-    // ПРИМЕЧАНИЕ: Client Secret НЕ используется во frontend
-    // Он должен храниться только на бэкенде для валидации initData
+
+    // ПРИМЕЧАНИЕ: Client Secret НЕ должен храниться во frontend!
+    // Для безопасности удалите эту строку после настройки OAuth
+    // Client Secret используется только на бэкенде для обмена кода на токен
     // CLIENT_SECRET: '***',  // Удалено из соображений безопасности
 
     // ВАЖНО: Redirect URI должен ТОЧНО совпадать с указанным в Яндекс Console
@@ -70,7 +70,7 @@ const YANDEX_DISK_CONFIG = {
     // - Vercel: 'https://YOUR_APP.vercel.app/yandex-auth-callback.html'
     // - Локально: 'http://localhost:8080/yandex-auth-callback.html'
     //
-    // ТЕКУЩИЙ URL: https://kkav45.github.io/cooperant/messenger_interface.html
+    // ТЕКУЩИЙ URL: https://kkav45.github.io/cooperant/yandex-auth-callback.html
     REDIRECT_URI: 'https://kkav45.github.io/cooperant/yandex-auth-callback.html',
 
     // Альтернативно: использовать текущий URL (может не работать в Telegram)
@@ -158,11 +158,13 @@ async function authorizeYandexDisk() {
             }
 
             // Открываем окно авторизации
+            // Используем правильный scope для Яндекс.Диска
+            // cloud_api:disk.app_folder - доступ к папке приложения
             const authUrl = `https://oauth.yandex.ru/authorize?` +
                 `response_type=token&` +
                 `client_id=${YANDEX_DISK_CONFIG.CLIENT_ID}&` +
                 `redirect_uri=${encodeURIComponent(YANDEX_DISK_CONFIG.REDIRECT_URI)}&` +
-                `scope=cloud_api:disk.app_folder`;
+                `scope=${encodeURIComponent('cloud_api:disk.app_folder')}`;
 
             Logger.info('Открытие окна авторизации...');
 
@@ -1012,30 +1014,56 @@ function showYandexAuthModal() {
 async function connectYandexDisk() {
     try {
         if (typeof window.showToast === 'function') {
-            window.showToast({ 
-                type: 'info', 
-                message: 'Подключение к Яндекс Диску...', 
-                duration: 5000 
+            window.showToast({
+                type: 'info',
+                message: 'Подключение к Яндекс Диску...',
+                duration: 5000
             });
         }
 
-        await authorizeYandexDisk();
-        
+        // Проверяем сохранённый токен
+        const savedToken = localStorage.getItem('yandexDiskToken');
+        if (savedToken) {
+            Logger.success('Яндекс Диск уже подключён');
+            if (typeof window.showToast === 'function') {
+                window.showToast({
+                    type: 'success',
+                    message: 'Яндекс Диск уже подключён!',
+                    duration: 3000
+                });
+            }
+            return;
+        }
+
+        // Открываем авторизацию в том же окне (не popup)
+        const authUrl = `https://oauth.yandex.ru/authorize?` +
+            `response_type=token&` +
+            `client_id=${YANDEX_DISK_CONFIG.CLIENT_ID}&` +
+            `redirect_uri=${encodeURIComponent(YANDEX_DISK_CONFIG.REDIRECT_URI)}&` +
+            `scope=${encodeURIComponent('cloud_api:disk.app_folder')}`;
+
+        Logger.info('Перенаправление на авторизацию...');
+
+        // Сохраняем URL возврата в sessionStorage
+        sessionStorage.setItem('yandex_return_url', window.location.href);
+        sessionStorage.setItem('yandex_return_path', window.location.pathname.split('/').pop());
+
+        // Добавляем timestamp для обхода кэша
+        const authUrlWithCache = authUrl + '&_=' + Date.now();
+
+        // Перенаправляем на авторизацию в том же окне
+        window.location.href = authUrlWithCache;
+
     } catch (error) {
         if (error.message !== 'AUTH_IN_BROWSER') {
             Logger.error('Ошибка подключения', error);
 
             if (typeof window.showToast === 'function') {
-                window.showToast({ 
-                    type: 'error', 
-                    message: 'Ошибка подключения к Яндекс Диску', 
-                    duration: 5000 
+                window.showToast({
+                    type: 'error',
+                    message: 'Ошибка подключения к Яндекс Диску',
+                    duration: 5000
                 });
-            }
-            
-            // Тактильный отклик об ошибке
-            if (window.TelegramMiniApp) {
-                window.TelegramMiniApp.hapticFeedback('error');
             }
         }
     }
@@ -1498,6 +1526,7 @@ async function findItems(dataType, filterFn) {
 
 // Основные функции
 window.connectYandexDisk = connectYandexDisk;
+window.connectYandexDiskAuth = connectYandexDisk; // Алиас для совместимости
 window.useLocalStorage = useLocalStorage;
 window.logoutYandexDisk = logoutYandexDisk;
 window.saveAllDataToYandex = saveAllDataToYandex;

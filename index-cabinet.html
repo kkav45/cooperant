@@ -1,0 +1,3642 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2196F3">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Кооператив Мессенджер | КООПЕРАНТ</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Google Fonts: Roboto (кириллица) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap&subset=cyrillic" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --primary-dark: #1976D2;
+            --primary-light: #BBDEFB;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --danger-color: #F44336;
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { 
+            height: 100%;
+            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 16px 24px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .logo-icon { font-size: 28px; }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        .sync-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-color);
+        }
+        .sync-indicator.syncing {
+            background: var(--warning-color);
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .notification-badge {
+            position: relative;
+            cursor: pointer;
+            font-size: 22px;
+        }
+        .notification-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--danger-color);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+        }
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-info { text-align: right; }
+        .user-name { font-weight: 600; font-size: 14px; }
+        .user-role { font-size: 12px; opacity: 0.9; }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            height: calc(100% - 64px);
+            max-height: calc(100dvh - 64px);
+        }
+
+        /* Sidebar Menu */
+        .sidebar-menu {
+            width: 320px;
+            min-width: 320px;
+            background: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .menu-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+        }
+        .menu-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .menu-subtitle { font-size: 13px; opacity: 0.9; }
+        .menu-search {
+            padding: 12px 16px;
+            background: #f5f7fa;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .menu-search input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            outline: none;
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+        .menu-search input:focus { border-color: var(--primary-color); }
+        .menu-content { flex: 1; overflow-y: auto; padding: 8px 0; }
+        .menu-section { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        .menu-section-title {
+            padding: 8px 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 12px;
+        }
+        .menu-item:hover { background: #f5f7fa; }
+        .menu-item.active {
+            background: var(--primary-light);
+            border-right: 3px solid var(--primary-color);
+        }
+        .menu-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .menu-item-info { flex: 1; min-width: 0; }
+        .menu-item-name {
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .menu-item-subtitle {
+            font-size: 11px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .menu-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            background: #e0e0e0;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+        .menu-badge.alert { background: #ffebee; color: var(--danger-color); }
+        .menu-badge.success { background: #e8f5e9; color: var(--success-color); }
+        .menu-arrow { color: #ccc; margin-left: 8px; font-size: 14px; }
+
+        /* Submenu */
+        .submenu {
+            display: none;
+            padding: 8px 0;
+            background: #fafafa;
+        }
+        .submenu.open { display: block; }
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px 10px 56px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            gap: 10px;
+        }
+        .submenu-item:hover { background: var(--primary-light); }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .content-tabs {
+            display: flex;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 20px;
+            flex-shrink: 0;
+        }
+        .content-tab {
+            padding: 16px 24px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.2s;
+        }
+        .content-tab:hover { color: var(--primary-color); }
+        .content-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+        .stat-card.secondary { background: linear-gradient(135deg, var(--success-color), #388E3C); }
+        .stat-card.warning { background: linear-gradient(135deg, var(--warning-color), #F57C00); }
+        .stat-card.danger { background: linear-gradient(135deg, var(--danger-color), #D32F2F); }
+        .stat-value { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+        .stat-label { font-size: 13px; opacity: 0.9; }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.2s;
+        }
+        .card:hover { box-shadow: var(--shadow-hover); }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .card-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .card-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+        /* Members List */
+        .members-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background: #f5f7fa;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 14px;
+        }
+        .member-item:hover {
+            background: var(--primary-light);
+            transform: translateX(4px);
+        }
+        .member-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .member-info { flex: 1; min-width: 0; }
+        .member-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .member-details {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .member-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+        .member-status::before { content: '●'; font-size: 8px; }
+        .member-status.active { background: #e8f5e9; color: var(--success-color); }
+        .member-status.debt { background: #ffebee; color: var(--danger-color); }
+        .member-status.pending { background: #fff3e0; color: var(--warning-color); }
+        .member-balance {
+            font-weight: 600;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+        .member-balance.positive { color: var(--success-color); }
+        .member-balance.negative { color: var(--danger-color); }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            background: #f5f7fa;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 8px;
+        }
+        .quick-action-btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+        .quick-action-icon { font-size: 28px; }
+        .quick-action-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        /* FAB Button */
+        .fab-container {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 1000;
+        }
+        .fab-main {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fab-main:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(33, 150, 243, 0.5);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: modalSlideUp 0.3s ease;
+        }
+        @keyframes modalSlideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .modal-close:hover { background: #f5f7fa; }
+        .modal-body { padding: 24px; }
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: #f5f7fa; color: var(--text-primary); }
+        .btn-secondary:hover { background: #e0e0e0; }
+        .btn-block { width: 100%; justify-content: center; }
+
+        /* Form */
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            transition: border-color 0.2s;
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            min-width: 300px;
+            padding: 16px 20px;
+            border-radius: var(--radius-sm);
+            background: var(--card-bg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s ease;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast.success { background: #e8f5e9; border-left: 4px solid var(--success-color); }
+        .toast.error { background: #ffebee; border-left: 4px solid var(--danger-color); }
+        .toast.warning { background: #fff3e0; border-left: 4px solid var(--warning-color); }
+        .toast.info { background: #e3f2fd; border-left: 4px solid var(--primary-color); }
+        .toast-icon { font-size: 20px; }
+        .toast-message { flex: 1; font-size: 14px; color: var(--text-primary); }
+
+        /* Report Table */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .report-table th,
+        .report-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .report-table th {
+            background: #f5f7fa;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .report-table tr:hover { background: #f5f7fa; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar-menu { width: 280px; min-width: 280px; }
+        }
+        @media (max-width: 768px) {
+            .sidebar-menu {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                z-index: 150;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            .sidebar-menu.visible { transform: translateX(0); }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header-content { flex-wrap: wrap; gap: 12px; }
+            .user-info { display: none; }
+            .content-tabs { overflow-x: auto; }
+            .content-tab { padding: 14px 16px; font-size: 13px; white-space: nowrap; }
+            .modal { max-width: 95%; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .stat-value { font-size: 22px; }
+            .stat-label { font-size: 11px; }
+            .quick-actions { grid-template-columns: repeat(2, 1fr); }
+            .quick-action-btn { padding: 12px; }
+            .quick-action-icon { font-size: 24px; }
+            .quick-action-label { font-size: 11px; }
+            .member-item { padding: 12px; }
+            .member-avatar { width: 40px; height: 40px; font-size: 14px; }
+            .member-details { display: none; }
+            .toast { min-width: auto; max-width: calc(100% - 40px); }
+            .modal-body { padding: 16px; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🏠</span>
+                <span>КООПЕРАНТ</span>
+            </div>
+            <div class="header-actions">
+                <div class="sync-status">
+                    <div class="sync-indicator" id="syncIndicator"></div>
+                    <span id="syncText">Синхронизировано</span>
+                </div>
+                <div class="notification-badge" onclick="showNotifications()">
+                    🔔
+                    <span class="notification-count" id="notifCount">3</span>
+                </div>
+                <div class="user-menu">
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Администратор</div>
+                        <div class="user-role">Председатель кооператива</div>
+                    </div>
+                    <div class="avatar" onclick="showProfile()">👤</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar Menu -->
+        <aside class="sidebar-menu" id="sidebarMenu">
+            <div class="menu-header">
+                <div class="menu-title">📊 Управление</div>
+                <div class="menu-subtitle">Потребительский кооператив</div>
+            </div>
+
+            <div class="menu-search">
+                <input type="text" placeholder="🔍 Поиск функций..." id="menuSearch">
+            </div>
+
+            <div class="menu-content">
+                <!-- ⚡ БЫСТРЫЙ ДОСТУП -->
+                <div class="menu-section">
+                    <div class="menu-section-title">⚡ Быстрый доступ</div>
+                    <div class="menu-item active" data-section="dashboard">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Дашборд</div>
+                            <div class="menu-item-subtitle">Обзор кооператива</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-section="members">
+                        <div class="menu-item-icon" style="background:#e8f5e9">👥</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Пайщики</div>
+                            <div class="menu-item-subtitle">Реестр членов</div>
+                        </div>
+                        <span class="menu-badge success" id="membersCountBadge">12</span>
+                    </div>
+                </div>
+
+                <!-- 👥 ПАЙЩИКИ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">👥 Пайщики</div>
+                    <div class="menu-item" data-action="create-member">
+                        <div class="menu-item-icon" style="background:#e8f5e9">➕</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Добавить пайщика</div>
+                            <div class="menu-item-subtitle">Новый член</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="edit-member">
+                        <div class="menu-item-icon" style="background:#e8f5e9">✏️</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Редактировать</div>
+                            <div class="menu-item-subtitle">Исправить данные</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-report="certificates-registry-full">
+                        <div class="menu-item-icon" style="background:#fce4ec">📜</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Удостоверения</div>
+                            <div class="menu-item-subtitle">Выданные бланки</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 💳 ВЗНОСЫ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">💳 Взносы</div>
+                    <div class="menu-item" data-action="create-payment">
+                        <div class="menu-item-icon" style="background:#e3f2fd">➕</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Добавить взнос</div>
+                            <div class="menu-item-subtitle">Новый платёж</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="create-return-payment">
+                        <div class="menu-item-icon" style="background:#ffebee">↩️</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Возврат взноса</div>
+                            <div class="menu-item-subtitle">Оформить возврат</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-report="payments-report-full">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Отчёт по взносам</div>
+                            <div class="menu-item-subtitle">Поступления</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📘 БУХГАЛТЕРИЯ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📘 Бухгалтерия</div>
+                    <div class="menu-item" data-action="create-transaction">
+                        <div class="menu-item-icon" style="background:#fff3e0">📒</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Проводка</div>
+                            <div class="menu-item-subtitle">Бухгалтерская запись</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="osv">
+                        <div class="menu-item-icon" style="background:#fff3e0">📈</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">ОСВ</div>
+                            <div class="menu-item-subtitle">Оборотно-сальдовая</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="pko">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">ПКО</div>
+                            <div class="menu-item-subtitle">Приходный ордер</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="rko">
+                        <div class="menu-item-icon" style="background:#e3f2fd">📝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">РКО</div>
+                            <div class="menu-item-subtitle">Расходный ордер</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="payment-order">
+                        <div class="menu-item-icon" style="background:#e8f5e9">💰</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Платёжное поручение</div>
+                            <div class="menu-item-subtitle">Банковский платёж</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-submenu="accounting-reports">
+                        <div class="menu-item-icon" style="background:#fff3e0">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Отчёты</div>
+                            <div class="menu-item-subtitle">Балансы, справки</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <div class="submenu" id="submenu-accounting-reports">
+                        <div class="submenu-item" data-report="balance">⚖️ Бухгалтерский баланс</div>
+                        <div class="submenu-item" data-report="profit-loss">📈 Отчёт о фин. результатах</div>
+                        <div class="submenu-item" data-report="target-use">🎯 Отчёт о целевом использовании</div>
+                        <div class="submenu-item" data-report="accounting-certificate">📄 Бухгалтерская справка</div>
+                    </div>
+                </div>
+
+                <!-- 📙 НАЛОГИ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📙 Налоги</div>
+                    <div class="menu-item" data-report="kudir">
+                        <div class="menu-item-icon" style="background:#fff3e0">📖</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">КУДиР</div>
+                            <div class="menu-item-subtitle">Книга учёта</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="act-sverka">
+                        <div class="menu-item-icon" style="background:#f5f5f5">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Акт сверки</div>
+                            <div class="menu-item-subtitle">Сверка с контрагентами</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-submenu="zero-reporting">
+                        <div class="menu-item-icon" style="background:#f5f5f5">∅</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Нулевая отчётность</div>
+                            <div class="menu-item-subtitle">При отсутствии деятельности</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <div class="submenu" id="submenu-zero-reporting">
+                        <div class="submenu-item" data-action="generate-usn-zero">📋 Декларация УСН</div>
+                        <div class="submenu-item" data-action="generate-balance-zero">⚖️ Баланс</div>
+                        <div class="submenu-item" data-action="generate-szv-zero">📊 СЗВ-СТАЖ</div>
+                        <div class="submenu-item" data-action="generate-rsv-zero">📊 РСВ</div>
+                        <div class="submenu-item" data-action="generate-sredn-zero">👥 Среднесписочная</div>
+                    </div>
+                </div>
+
+                <!-- 📗 УПРАВЛЕНЧЕСКИЙ УЧЁТ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📗 Управленческий учёт</div>
+                    <div class="menu-item" data-submenu="analytics">
+                        <div class="menu-item-icon" style="background:#e8f5e9">📈</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Аналитика</div>
+                            <div class="menu-item-subtitle">Отчёты, графики</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <div class="submenu" id="submenu-analytics">
+                        <div class="submenu-item" data-report="members-report-full">📋 Реестр пайщиков</div>
+                        <div class="submenu-item" data-report="payments-report-full">💳 Отчёт по взносам</div>
+                        <div class="submenu-item" data-report="financial-report-full">📈 Финансовый отчёт</div>
+                        <div class="submenu-item" data-report="debt-report">⚠️ Отчёт о задолженностях</div>
+                    </div>
+                    <div class="menu-item" data-submenu="funds">
+                        <div class="menu-item-icon" style="background:#e8f5e9">💰</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Фонды</div>
+                            <div class="menu-item-subtitle">Отчёты по фондам</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <div class="submenu" id="submenu-funds">
+                        <div class="submenu-item" data-report="share-fund">💰 Паевой фонд</div>
+                        <div class="submenu-item" data-report="development-fund">🚀 Фонд развития</div>
+                        <div class="submenu-item" data-report="business-fund">🏢 Фонд хоз. деятельности</div>
+                        <div class="submenu-item" data-report="funds-analytics">📊 Аналитика фондов</div>
+                        <div class="submenu-item" data-report="indivisible-fund">🏛️ Неделимый фонд</div>
+                        <div class="submenu-item" data-report="reserve-fund">🛡️ Резервный фонд</div>
+                    </div>
+                    <div class="menu-item" data-submenu="meetings">
+                        <div class="menu-item-icon" style="background:#e8f5e9">📝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Собрания</div>
+                            <div class="menu-item-subtitle">Протоколы, регистрация</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <div class="submenu" id="submenu-meetings">
+                        <div class="submenu-item" data-action="create-meeting">➕ Создать протокол</div>
+                        <div class="submenu-item" data-report="meeting-protocol-full">📝 Протокол собрания</div>
+                        <div class="submenu-item" data-report="attendance-list-full">✍️ Лист регистрации</div>
+                    </div>
+                    <div class="menu-item" data-submenu="control">
+                        <div class="menu-item-icon" style="background:#e8f5e9">⏰</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Контроль</div>
+                            <div class="menu-item-subtitle">Сроки, напоминания</div>
+                        </div>
+                        <span class="menu-arrow">→</span>
+                    </div>
+                    <div class="submenu" id="submenu-control">
+                        <div class="submenu-item" data-action="add-calendar-event">➕ Добавить мероприятие</div>
+                        <div class="submenu-item" data-report="calendar-full">📅 Календарь событий</div>
+                        <div class="submenu-item" data-report="control-dashboard">⏰ Контроль сроков</div>
+                    </div>
+                </div>
+
+                <!-- 📁 ДОКУМЕНТЫ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📁 Документы</div>
+                    <div class="menu-item" data-action="create-document">
+                        <div class="menu-item-icon" style="background:#f5f7fa">📁</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Загрузить документ</div>
+                            <div class="menu-item-subtitle">Новый документ</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-action="invoice">
+                        <div class="menu-item-icon" style="background:#f5f7fa">📄</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Счёт на оплату</div>
+                            <div class="menu-item-subtitle">Выставить счёт</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📋 ЗАЯВЛЕНИЯ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">📋 Заявления</div>
+                    <div class="menu-item" data-action="create-application">
+                        <div class="menu-item-icon" style="background:#fce4ec">📝</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Подать заявление</div>
+                            <div class="menu-item-subtitle">На вступление</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-report="applications-registry">
+                        <div class="menu-item-icon" style="background:#fce4ec">📋</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Реестр заявлений</div>
+                            <div class="menu-item-subtitle">Все заявления</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ⚙️ НАСТРОЙКИ -->
+                <div class="menu-section">
+                    <div class="menu-section-title">⚙️ Настройки</div>
+                    <div class="menu-item" data-panel="profile">
+                        <div class="menu-item-icon" style="background:#e0e0e0">👤</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Профиль</div>
+                            <div class="menu-item-subtitle">Пользователь</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="toggleDarkMode()">
+                        <div class="menu-item-icon" style="background:#e0e0e0">🌓</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Тёмная тема</div>
+                            <div class="menu-item-subtitle">Переключить тему</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="exportMembersToExcel()">
+                        <div class="menu-item-icon" style="background:#e0e0e0">📊</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Экспорт в Excel</div>
+                            <div class="menu-item-subtitle">Выгрузить данные</div>
+                        </div>
+                    </div>
+                    <div class="menu-item" data-panel="backup">
+                        <div class="menu-item-icon" style="background:#e0e0e0">💾</div>
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">Резервное копирование</div>
+                            <div class="menu-item-subtitle">Сохранение данных</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Tabs -->
+            <div class="content-tabs">
+                <button class="content-tab active" onclick="switchTab('dashboard')">📊 Дашборд</button>
+                <button class="content-tab" onclick="switchTab('members')">👥 Пайщики</button>
+                <button class="content-tab" onclick="switchTab('payments')">💳 Взносы</button>
+                <button class="content-tab" onclick="switchTab('reports')">📈 Отчёты</button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Tab: Dashboard -->
+                <div id="tab-dashboard" class="tab-content">
+                    <!-- Stats -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalMembers">12</div>
+                            <div class="stat-label">Всего пайщиков</div>
+                        </div>
+                        <div class="stat-card secondary">
+                            <div class="stat-value" id="activeMembers">9</div>
+                            <div class="stat-label">Активных</div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="stat-value" id="debtMembers">2</div>
+                            <div class="stat-label">Должников</div>
+                        </div>
+                        <div class="stat-card danger">
+                            <div class="stat-value" id="totalDebt">45 000 ₽</div>
+                            <div class="stat-label">Общая задолженность</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">⚡ Быстрые действия</div>
+                                <div class="card-subtitle">Часто используемые операции</div>
+                            </div>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="quick-action-btn" onclick="showCreateMemberModal()">
+                                <span class="quick-action-icon">👤</span>
+                                <span class="quick-action-label">Добавить пайщика</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="showCreatePaymentModal()">
+                                <span class="quick-action-icon">💳</span>
+                                <span class="quick-action-label">Внести взнос</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="showCreateTransactionModal()">
+                                <span class="quick-action-icon">📒</span>
+                                <span class="quick-action-label">Проводка</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="showUploadDocumentModal()">
+                                <span class="quick-action-icon">📄</span>
+                                <span class="quick-action-label">Документ</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="showSubmitApplicationModal()">
+                                <span class="quick-action-icon">📋</span>
+                                <span class="quick-action-label">Заявление</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Members -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">👥 Последние пайщики</div>
+                                <div class="card-subtitle">Недавно добавленные</div>
+                            </div>
+                            <button class="btn btn-secondary" onclick="switchTab('members')">Все пайщики →</button>
+                        </div>
+                        <div class="members-list" id="recentMembersList">
+                            <!-- Members will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Members -->
+                <div id="tab-members" class="tab-content" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">👥 Реестр пайщиков</div>
+                                <div class="card-subtitle">Управление членами кооператива</div>
+                            </div>
+                            <button class="btn btn-primary" onclick="showCreateMemberModal()">➕ Добавить</button>
+                        </div>
+                        <div class="members-list" id="membersList">
+                            <!-- Members will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Payments -->
+                <div id="tab-payments" class="tab-content" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">💳 Взносы</div>
+                                <div class="card-subtitle">История платежей</div>
+                            </div>
+                            <button class="btn btn-primary" onclick="showCreatePaymentModal()">➕ Добавить</button>
+                        </div>
+                        <div id="paymentsList">
+                            <!-- Payments will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Reports -->
+                <div id="tab-reports" class="tab-content" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">📈 Отчёты</div>
+                                <div class="card-subtitle">Аналитика и документы</div>
+                            </div>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="quick-action-btn" onclick="openReportByName('members-registry-full')">
+                                <span class="quick-action-icon">📋</span>
+                                <span class="quick-action-label">Реестр пайщиков</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="openReportByName('payments-report-full')">
+                                <span class="quick-action-icon">💳</span>
+                                <span class="quick-action-label">Отчёт по взносам</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="openReportByName('osv')">
+                                <span class="quick-action-icon">📈</span>
+                                <span class="quick-action-label">ОСВ</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="openReportByName('balance')">
+                                <span class="quick-action-icon">⚖️</span>
+                                <span class="quick-action-label">Баланс</span>
+                            </button>
+                            <button class="quick-action-btn" onclick="openReportByName('kudir')">
+                                <span class="quick-action-icon">📖</span>
+                                <span class="quick-action-label">КУДиР</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- FAB Button -->
+    <div class="fab-container">
+        <button class="fab-main" onclick="toggleFab()" title="Быстрые действия">+</button>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ============================================
+         MODAL WINDOWS
+    ============================================ -->
+
+    <!-- Modal: Create Member -->
+    <div class="modal-overlay" id="createMemberModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">➕ Новый пайщик</div>
+                <button class="modal-close" onclick="closeModal('createMemberModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">ФИО *</label>
+                    <input type="text" class="form-input" id="newMemberName" placeholder="Иванов Иван Иванович">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Телефон</label>
+                        <input type="tel" class="form-input" id="newMemberPhone" placeholder="+7 (900) 123-45-67">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="newMemberEmail" placeholder="email@example.com">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Вступительный взнос (₽)</label>
+                        <input type="number" class="form-input" id="newMemberFee" value="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Паевой взнос (₽)</label>
+                        <input type="number" class="form-input" id="newMemberShare" value="10000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Дата рождения</label>
+                    <input type="date" class="form-input" id="newMemberBirthDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Адрес</label>
+                    <input type="text" class="form-input" id="newMemberAddress" placeholder="Адрес регистрации">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createMemberModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleCreateMember(event)">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Member -->
+    <div class="modal-overlay" id="editMemberModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">✏️ Редактировать пайщика</div>
+                <button class="modal-close" onclick="closeModal('editMemberModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">ФИО *</label>
+                    <input type="text" class="form-input" id="editMemberName">
+                    <input type="hidden" id="editMemberId">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Телефон</label>
+                        <input type="tel" class="form-input" id="editMemberPhone">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="editMemberEmail">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Баланс (₽)</label>
+                    <input type="number" class="form-input" id="editMemberBalance" readonly>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('editMemberModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleEditMemberSave()">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Create Payment -->
+    <div class="modal-overlay" id="createPaymentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">💳 Новый взнос</div>
+                <button class="modal-close" onclick="closeModal('createPaymentModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Пайщик *</label>
+                    <select class="form-input" id="paymentMember">
+                        <option value="">Выберите пайщика</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Сумма (₽) *</label>
+                        <input type="number" class="form-input" id="paymentAmount" placeholder="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Тип взноса</label>
+                        <select class="form-input" id="paymentType">
+                            <option value="entrance">Вступительный</option>
+                            <option value="share">Паевой</option>
+                            <option value="member">Членский</option>
+                            <option value="additional">Дополнительный</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Дата</label>
+                    <input type="date" class="form-input" id="paymentDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Назначение</label>
+                    <input type="text" class="form-input" id="paymentDescription" placeholder="Назначение платежа">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createPaymentModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleCreatePayment(event)">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Return Payment -->
+    <div class="modal-overlay" id="returnPaymentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">↩️ Возврат взноса</div>
+                <button class="modal-close" onclick="closeModal('returnPaymentModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Пайщик *</label>
+                    <select class="form-input" id="returnPaymentMember">
+                        <option value="">Выберите пайщика</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Сумма к возврату (₽)</label>
+                    <input type="number" class="form-input" id="returnPaymentAmount" placeholder="5000">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Причина возврата</label>
+                    <textarea class="form-input" id="returnPaymentReason" rows="3" placeholder="Причина возврата взноса"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('returnPaymentModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleReturnPayment(event)">💾 Оформить возврат</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Create Transaction -->
+    <div class="modal-overlay" id="createTransactionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📒 Новая проводка</div>
+                <button class="modal-close" onclick="closeModal('createTransactionModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Тип операции *</label>
+                        <select class="form-input" id="transactionType">
+                            <option value="income">Доход</option>
+                            <option value="expense">Расход</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Сумма (₽) *</label>
+                        <input type="number" class="form-input" id="transactionAmount" placeholder="1000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Счёт Дт *</label>
+                        <input type="text" class="form-input" id="transactionDebit" placeholder="50">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Счёт Кт *</label>
+                        <input type="text" class="form-input" id="transactionCredit" placeholder="62">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Назначение</label>
+                    <input type="text" class="form-input" id="transactionDescription" placeholder="Назначение платежа">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Дата</label>
+                    <input type="date" class="form-input" id="transactionDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createTransactionModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleCreateTransaction(event)">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: PKO -->
+    <div class="modal-overlay" id="pkoModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📝 ПКО (Приходный кассовый ордер)</div>
+                <button class="modal-close" onclick="closeModal('pkoModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Номер ордера</label>
+                    <input type="text" class="form-input" id="pkoNumber" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">От кого получено *</label>
+                    <input type="text" class="form-input" id="pkoFrom" placeholder="ФИО плательщика">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Основание *</label>
+                    <input type="text" class="form-input" id="pkoReason" placeholder="Вступительный взнос">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Сумма (₽) *</label>
+                        <input type="number" class="form-input" id="pkoAmount" placeholder="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Дата</label>
+                        <input type="date" class="form-input" id="pkoDate">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('pkoModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="generatePKO(event)">📄 Сформировать ПКО</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: RKO -->
+    <div class="modal-overlay" id="rkoModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📝 РКО (Расходный кассовый ордер)</div>
+                <button class="modal-close" onclick="closeModal('rkoModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Номер ордера</label>
+                    <input type="text" class="form-input" id="rkoNumber" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Кому выдать *</label>
+                    <input type="text" class="form-input" id="rkoTo" placeholder="ФИО получателя">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Основание *</label>
+                    <input type="text" class="form-input" id="rkoReason" placeholder="Выплата зарплаты">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Сумма (₽) *</label>
+                        <input type="number" class="form-input" id="rkoAmount" placeholder="5000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Дата</label>
+                        <input type="date" class="form-input" id="rkoDate">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('rkoModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="generateRKO(event)">📄 Сформировать РКО</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Payment Order -->
+    <div class="modal-overlay" id="paymentOrderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">💰 Платёжное поручение</div>
+                <button class="modal-close" onclick="closeModal('paymentOrderModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Номер поручения</label>
+                    <input type="text" class="form-input" id="paymentOrderNumber" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Получатель *</label>
+                    <input type="text" class="form-input" id="paymentOrderRecipient" placeholder="Наименование получателя">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">БИК банка</label>
+                        <input type="text" class="form-input" id="paymentOrderBik" placeholder="044525225">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Счёт получателя</label>
+                        <input type="text" class="form-input" id="paymentOrderAccount" placeholder="40702810400000000001">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Назначение платежа *</label>
+                    <input type="text" class="form-input" id="paymentOrderDescription" placeholder="Оплата услуг связи">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Сумма (₽) *</label>
+                    <input type="number" class="form-input" id="paymentOrderAmount" placeholder="1000">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('paymentOrderModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handlePaymentOrder(event)">📄 Сформировать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Invoice -->
+    <div class="modal-overlay" id="invoiceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📄 Счёт на оплату</div>
+                <button class="modal-close" onclick="closeModal('invoiceModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Номер счёта</label>
+                    <input type="text" class="form-input" id="invoiceNumber" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Покупатель *</label>
+                    <input type="text" class="form-input" id="invoiceBuyer" placeholder="Наименование покупателя">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Услуги/Товары</label>
+                    <textarea class="form-input" id="invoiceItems" rows="3" placeholder="Наименование услуг/товаров"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Сумма (₽) *</label>
+                    <input type="number" class="form-input" id="invoiceAmount" placeholder="1000">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('invoiceModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleInvoice(event)">📄 Сформировать счёт</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Act Sverka -->
+    <div class="modal-overlay" id="actSverkaModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📊 Акт сверки</div>
+                <button class="modal-close" onclick="closeModal('actSverkaModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Контрагент *</label>
+                    <select class="form-input" id="actSverkaCounterparty">
+                        <option value="">Выберите контрагента</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Дата начала</label>
+                        <input type="date" class="form-input" id="actSverkaDateStart">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Дата окончания</label>
+                        <input type="date" class="form-input" id="actSverkaDateEnd">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('actSverkaModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleActSverkaFull(event)">📄 Сформировать акт</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Upload Document -->
+    <div class="modal-overlay" id="uploadDocumentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📁 Загрузить документ</div>
+                <button class="modal-close" onclick="closeModal('uploadDocumentModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Название *</label>
+                    <input type="text" class="form-input" id="documentName" placeholder="Название документа">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Тип</label>
+                    <select class="form-input" id="documentType">
+                        <option value="protocol">Протокол</option>
+                        <option value="certificate">Справка</option>
+                        <option value="report">Отчёт</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Категория</label>
+                    <select class="form-input" id="documentCategory">
+                        <option value="general">Общее</option>
+                        <option value="members">Пайщики</option>
+                        <option value="payments">Взносы</option>
+                        <option value="accounting">Бухгалтерия</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Файл</label>
+                    <input type="file" class="form-input" id="documentFile">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('uploadDocumentModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleUploadDocument(event)">💾 Загрузить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Submit Application -->
+    <div class="modal-overlay" id="submitApplicationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📋 Подать заявление</div>
+                <button class="modal-close" onclick="closeModal('submitApplicationModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Тип заявления *</label>
+                    <select class="form-input" id="applicationType">
+                        <option value="join">На вступление в кооператив</option>
+                        <option value="leave">На выход из кооператива</option>
+                        <option value="transfer">На перевод пая</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ФИО *</label>
+                    <input type="text" class="form-input" id="applicationName" placeholder="Иванов Иван Иванович">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Телефон</label>
+                        <input type="tel" class="form-input" id="applicationPhone" placeholder="+7 (900) 123-45-67">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="applicationEmail" placeholder="email@example.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Размер пая (₽)</label>
+                    <input type="number" class="form-input" id="applicationShare" value="10000">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('submitApplicationModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleSubmitApplication(event)">📤 Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Applications Registry -->
+    <div class="modal-overlay" id="applicationsRegistryModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">📋 Реестр заявлений</div>
+                <button class="modal-close" onclick="closeModal('applicationsRegistryModal')">×</button>
+            </div>
+            <div class="modal-body" id="applicationsRegistryContent">
+                <!-- Content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Create Meeting -->
+    <div class="modal-overlay" id="createMeetingModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📝 Создать протокол собрания</div>
+                <button class="modal-close" onclick="closeModal('createMeetingModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Номер протокола</label>
+                    <input type="text" class="form-input" id="meetingNumber" placeholder="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Дата проведения *</label>
+                    <input type="date" class="form-input" id="meetingDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Повестка дня</label>
+                    <textarea class="form-input" id="meetingAgenda" rows="4" placeholder="Вопросы для обсуждения"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Присутствовало (чел.)</label>
+                    <input type="number" class="form-input" id="meetingAttendees" placeholder="10">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createMeetingModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleCreateMeeting(event)">💾 Сохранить протокол</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Calendar Event -->
+    <div class="modal-overlay" id="calendarEventModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📅 Добавить мероприятие</div>
+                <button class="modal-close" onclick="closeModal('calendarEventModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Название *</label>
+                    <input type="text" class="form-input" id="calendarEventTitle" placeholder="Название мероприятия">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Дата начала</label>
+                        <input type="date" class="form-input" id="calendarEventDateStart">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Дата окончания</label>
+                        <input type="date" class="form-input" id="calendarEventDateEnd">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Тип</label>
+                    <select class="form-input" id="calendarEventType">
+                        <option value="meeting">Собрание</option>
+                        <option value="deadline">Срок отчётности</option>
+                        <option value="payment">Срок платежа</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea class="form-input" id="calendarEventDescription" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('calendarEventModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="addCalendarEvent()">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Create Fund -->
+    <div class="modal-overlay" id="createFundModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">💰 Создать фонд</div>
+                <button class="modal-close" onclick="closeModal('createFundModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Название фонда *</label>
+                    <input type="text" class="form-input" id="fundName" placeholder="Паевой фонд">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Тип</label>
+                    <select class="form-input" id="fundType">
+                        <option value="share">Паевой</option>
+                        <option value="development">Фонд развития</option>
+                        <option value="reserve">Резервный</option>
+                        <option value="business">Фонд хоз. деятельности</option>
+                        <option value="indivisible">Неделимый</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Начальная сумма (₽)</label>
+                    <input type="number" class="form-input" id="fundAmount" value="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('createFundModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="handleCreateFund(event)">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Report Viewer -->
+    <div class="modal-overlay" id="reportViewerModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title" id="reportViewerTitle">Отчёт</div>
+                <button class="modal-close" onclick="closeModal('reportViewerModal')">×</button>
+            </div>
+            <div class="modal-body" id="reportViewerContent" style="max-height: 70vh; overflow-y: auto;">
+                <!-- Report content will be rendered here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('reportViewerModal')">Закрыть</button>
+                <button class="btn btn-primary" onclick="exportReportToExcel()">📊 Экспорт в Excel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Profile -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">👤 Профиль пользователя</div>
+                <button class="modal-close" onclick="closeModal('profileModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">ФИО</label>
+                    <input type="text" class="form-input" value="Администратор" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Роль</label>
+                    <input type="text" class="form-input" value="Председатель кооператива" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" placeholder="admin@koop.ru">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Телефон</label>
+                    <input type="tel" class="form-input" placeholder="+7 (900) 123-45-67">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('profileModal')">Закрыть</button>
+                <button class="btn btn-primary" onclick="saveProfile()">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Backup -->
+    <div class="modal-overlay" id="backupModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">💾 Резервное копирование</div>
+                <button class="modal-close" onclick="closeModal('backupModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">☁️</div>
+                    <h3 style="margin-bottom: 12px;">Яндекс.Диск</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                        Автоматическое резервное копирование данных кооператива
+                    </p>
+                    <div id="yandexDiskStatus" style="margin-bottom: 20px;">
+                        <!-- Status will be rendered here -->
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <button class="btn btn-primary btn-block" onclick="connectYandexDisk()">
+                            ☁️ Подключить Яндекс.Диск
+                        </button>
+                        <button class="btn btn-secondary btn-block" onclick="createBackupYandex()">
+                            💾 Создать резервную копию
+                        </button>
+                        <button class="btn btn-secondary btn-block" onclick="exportDataJSON()">
+                            📥 Экспорт данных (JSON)
+                        </button>
+                        <button class="btn btn-secondary btn-block" onclick="importDataJSON()">
+                            📥 Импорт данных (JSON)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Zero Reporting -->
+    <div class="modal-overlay" id="zeroReportingModal">
+        <div class="modal" style="max-width: 700px;">
+            <div class="modal-header">
+                <div class="modal-title">∅ Нулевая отчётность</div>
+                <button class="modal-close" onclick="closeModal('zeroReportingModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="padding: 20px;">
+                    <h4 style="margin-bottom: 16px;">Состав нулевой отчётности:</h4>
+                    <ul style="margin-bottom: 24px; padding-left: 20px; line-height: 1.8;">
+                        <li>Декларация УСН (налоговая)</li>
+                        <li>Бухгалтерский баланс (Форма №1)</li>
+                        <li>Отчёт о финансовых результатах (Форма №2)</li>
+                        <li>СЗВ-СТАЖ (пенсионный)</li>
+                        <li>РСВ (расчёт по страховым взносам)</li>
+                        <li>Среднесписочная численность</li>
+                    </ul>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <button class="btn btn-primary btn-block" onclick="generateUSNZero()">📋 Декларация УСН</button>
+                        <button class="btn btn-primary btn-block" onclick="generateBalanceZero()">⚖️ Бухгалтерский баланс</button>
+                        <button class="btn btn-primary btn-block" onclick="generateSZVZero()">📊 СЗВ-СТАЖ</button>
+                        <button class="btn btn-primary btn-block" onclick="generateRSVZero()">📊 РСВ</button>
+                        <button class="btn btn-primary btn-block" onclick="generateSrednZero()">👥 Среднесписочная</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Analytics -->
+    <div class="modal-overlay" id="analyticsModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">📈 Аналитика кооператива</div>
+                <button class="modal-close" onclick="closeModal('analyticsModal')">×</button>
+            </div>
+            <div class="modal-body" id="analyticsContent">
+                <!-- Analytics content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Funds -->
+    <div class="modal-overlay" id="fundsModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">💰 Фонды кооператива</div>
+                <button class="modal-close" onclick="closeModal('fundsModal')">×</button>
+            </div>
+            <div class="modal-body" id="fundsContent">
+                <!-- Funds content will be rendered here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('fundsModal')">Закрыть</button>
+                <button class="btn btn-primary" onclick="showCreateFundModal()">➕ Создать фонд</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Meetings -->
+    <div class="modal-overlay" id="meetingsModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">📝 Собрания и протоколы</div>
+                <button class="modal-close" onclick="closeModal('meetingsModal')">×</button>
+            </div>
+            <div class="modal-body" id="meetingsContent">
+                <!-- Meetings content will be rendered here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('meetingsModal')">Закрыть</button>
+                <button class="btn btn-primary" onclick="showCreateMeetingModal()">➕ Создать протокол</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Control Dashboard -->
+    <div class="modal-overlay" id="controlDashboardModal">
+        <div class="modal" style="max-width: 700px;">
+            <div class="modal-header">
+                <div class="modal-title">⏰ Контроль сроков</div>
+                <button class="modal-close" onclick="closeModal('controlDashboardModal')">×</button>
+            </div>
+            <div class="modal-body" id="controlDashboardContent">
+                <!-- Control dashboard content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Certificates Registry -->
+    <div class="modal-overlay" id="certificatesRegistryModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">📜 Удостоверения пайщиков</div>
+                <button class="modal-close" onclick="closeModal('certificatesRegistryModal')">×</button>
+            </div>
+            <div class="modal-body" id="certificatesRegistryContent">
+                <!-- Certificates content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Members Report -->
+    <div class="modal-overlay" id="membersReportModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title">📋 Реестр пайщиков</div>
+                <button class="modal-close" onclick="closeModal('membersReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="membersReportContent">
+                <!-- Members report content will be rendered here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('membersReportModal')">Закрыть</button>
+                <button class="btn btn-primary" onclick="exportMembersToExcel()">📊 Экспорт в Excel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Payments Report -->
+    <div class="modal-overlay" id="paymentsReportModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title">💳 Отчёт по взносам</div>
+                <button class="modal-close" onclick="closeModal('paymentsReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="paymentsReportContent">
+                <!-- Payments report content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Debt Report -->
+    <div class="modal-overlay" id="debtReportModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">⚠️ Отчёт о задолженностях</div>
+                <button class="modal-close" onclick="closeModal('debtReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="debtReportContent">
+                <!-- Debt report content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Financial Report -->
+    <div class="modal-overlay" id="financialReportModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title">📈 Финансовый отчёт</div>
+                <button class="modal-close" onclick="closeModal('financialReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="financialReportContent">
+                <!-- Financial report content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Calendar Report -->
+    <div class="modal-overlay" id="calendarReportModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">📅 Календарь событий</div>
+                <button class="modal-close" onclick="closeModal('calendarReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="calendarReportContent">
+                <!-- Calendar content will be rendered here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('calendarReportModal')">Закрыть</button>
+                <button class="btn btn-primary" onclick="showCalendarEventModal()">➕ Добавить мероприятие</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Meeting Protocol -->
+    <div class="modal-overlay" id="meetingProtocolModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">📝 Протокол собрания</div>
+                <button class="modal-close" onclick="closeModal('meetingProtocolModal')">×</button>
+            </div>
+            <div class="modal-body" id="meetingProtocolContent">
+                <!-- Protocol content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Attendance List -->
+    <div class="modal-overlay" id="attendanceListModal">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <div class="modal-title">✍️ Лист регистрации</div>
+                <button class="modal-close" onclick="closeModal('attendanceListModal')">×</button>
+            </div>
+            <div class="modal-body" id="attendanceListContent">
+                <!-- Attendance list content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: OSV Report -->
+    <div class="modal-overlay" id="osvReportModal">
+        <div class="modal" style="max-width: 1000px;">
+            <div class="modal-header">
+                <div class="modal-title">📈 Оборотно-сальдовая ведомость</div>
+                <button class="modal-close" onclick="closeModal('osvReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="osvReportContent" style="max-height: 70vh; overflow-y: auto;">
+                <!-- OSV content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Balance Report -->
+    <div class="modal-overlay" id="balanceReportModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title">⚖️ Бухгалтерский баланс (Форма №1)</div>
+                <button class="modal-close" onclick="closeModal('balanceReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="balanceReportContent">
+                <!-- Balance content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Profit Loss Report -->
+    <div class="modal-overlay" id="profitLossReportModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title">📈 Отчёт о финансовых результатах (Форма №2)</div>
+                <button class="modal-close" onclick="closeModal('profitLossReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="profitLossReportContent">
+                <!-- Profit/Loss content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: KUDiR Report -->
+    <div class="modal-overlay" id="kudirReportModal">
+        <div class="modal" style="max-width: 1000px;">
+            <div class="modal-header">
+                <div class="modal-title">📖 КУДиР УСН</div>
+                <button class="modal-close" onclick="closeModal('kudirReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="kudirReportContent" style="max-height: 70vh; overflow-y: auto;">
+                <!-- KUDiR content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Target Use Report -->
+    <div class="modal-overlay" id="targetUseReportModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title">🎯 Отчёт о целевом использовании средств</div>
+                <button class="modal-close" onclick="closeModal('targetUseReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="targetUseReportContent">
+                <!-- Target use content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Accounting Certificate -->
+    <div class="modal-overlay" id="accountingCertificateModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📄 Бухгалтерская справка</div>
+                <button class="modal-close" onclick="closeModal('accountingCertificateModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Название справки *</label>
+                    <input type="text" class="form-input" id="certificateName" placeholder="Справка о состоянии расчётов">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Период</label>
+                    <input type="text" class="form-input" id="certificatePeriod" placeholder="2024 год">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Содержание</label>
+                    <textarea class="form-input" id="certificateContent" rows="5"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('accountingCertificateModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="generateAccountingCertificate()">📄 Сформировать справку</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: USN Declaration -->
+    <div class="modal-overlay" id="usnDeclarationModal">
+        <div class="modal" style="max-width: 700px;">
+            <div class="modal-header">
+                <div class="modal-title">📋 Декларация УСН</div>
+                <button class="modal-close" onclick="closeModal('usnDeclarationModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Год</label>
+                        <input type="number" class="form-input" id="usnYear" value="2024">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ставка (%)</label>
+                        <input type="number" class="form-input" id="usnRate" value="6">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Доходы (₽)</label>
+                        <input type="number" class="form-input" id="usnIncome" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Расходы (₽)</label>
+                        <input type="number" class="form-input" id="usnExpense" placeholder="0">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('usnDeclarationModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="generateUSNDeclaration()">📄 Сформировать декларацию</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: RSV Report -->
+    <div class="modal-overlay" id="rsvReportModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title">📊 РСВ (Расчёт по страховым взносам)</div>
+                <button class="modal-close" onclick="closeModal('rsvReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="rsvReportContent">
+                <!-- RSV content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: SZV-STAZH Report -->
+    <div class="modal-overlay" id="szvStazhReportModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title">📊 СЗВ-СТАЖ</div>
+                <button class="modal-close" onclick="closeModal('szvStazhReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="szvStazhReportContent">
+                <!-- SZV-STAZH content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: 6-NDFL Report -->
+    <div class="modal-overlay" id="6ndflReportModal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <div class="modal-title">📊 6-НДФЛ</div>
+                <button class="modal-close" onclick="closeModal('6ndflReportModal')">×</button>
+            </div>
+            <div class="modal-body" id="6ndflReportContent">
+                <!-- 6-NDFL content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         EXTERNAL SCRIPTS
+    ============================================ -->
+    
+    <!-- XLSX (с fallback на cdnjs) -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script>
+        if (typeof XLSX === 'undefined') {
+            const fallback = document.createElement('script');
+            fallback.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+            document.head.appendChild(fallback);
+        }
+    </script>
+
+    <!-- Подключение внешних скриптов -->
+    <script src="yandex-disk-integration-v2.js?v=5.0.1"></script>
+    <script src="pdf_export.js?v=5.0.1"></script>
+
+    <!-- ============================================
+         MAIN APPLICATION SCRIPT
+    ============================================ -->
+    <script>
+        // ============================================
+        // ДАННЫЕ - используем window для глобального доступа
+        // ============================================
+        
+        window.members = window.members || JSON.parse(localStorage.getItem('members') || '[]');
+        window.payments = window.payments || JSON.parse(localStorage.getItem('payments') || '[]');
+        window.transactions = window.transactions || JSON.parse(localStorage.getItem('transactions') || '[]');
+        window.documents = window.documents || JSON.parse(localStorage.getItem('documents') || '[]');
+        window.applications = window.applications || JSON.parse(localStorage.getItem('applications') || '[]');
+        window.meetings = window.meetings || JSON.parse(localStorage.getItem('meetings') || '[]');
+        window.funds = window.funds || JSON.parse(localStorage.getItem('funds') || '[]');
+        window.calendarEvents = window.calendarEvents || JSON.parse(localStorage.getItem('calendarEvents') || '[]');
+        window.certificates = window.certificates || JSON.parse(localStorage.getItem('certificates') || '[]');
+
+        // Demo данные если пусто
+        if (window.members.length === 0) {
+            window.members = [
+                { id: 1, name: 'Иванов Иван Иванович', phone: '+7 (900) 111-11-11', email: 'ivanov@mail.ru', entranceFee: 1000, shareFee: 10000, balance: 10000, status: 'active', birthDate: '1980-05-15', address: 'г. Москва, ул. Ленина, д. 1' },
+                { id: 2, name: 'Петров Пётр Петрович', phone: '+7 (900) 222-22-22', email: 'petrov@mail.ru', entranceFee: 1000, shareFee: 10000, balance: 5000, status: 'active', birthDate: '1985-08-20', address: 'г. Москва, ул. Мира, д. 2' },
+                { id: 3, name: 'Сидоров Сидор Сидорович', phone: '+7 (900) 333-33-33', email: 'sidorov@mail.ru', entranceFee: 1000, shareFee: 10000, balance: -5000, status: 'debt', birthDate: '1975-03-10', address: 'г. Москва, ул. Гагарина, д. 3' },
+                { id: 4, name: 'Кузнецов Кузьма Кузнецович', phone: '+7 (900) 444-44-44', email: 'kuznetsov@mail.ru', entranceFee: 1000, shareFee: 10000, balance: 15000, status: 'active', birthDate: '1990-12-05', address: 'г. Москва, ул. Пушкина, д. 4' },
+                { id: 5, name: 'Смирнова Анна Ивановна', phone: '+7 (900) 555-55-55', email: 'smirnova@mail.ru', entranceFee: 1000, shareFee: 10000, balance: 0, status: 'pending', birthDate: '1988-07-25', address: 'г. Москва, ул. Чехова, д. 5' },
+            ];
+            localStorage.setItem('members', JSON.stringify(window.members));
+        }
+
+        // ============================================
+        // TELEGRAM WEBAPP INIT
+        // ============================================
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Apply Telegram theme
+        window.applyTelegramTheme = function() {
+            document.documentElement.style.setProperty('--primary-color', tg.themeParams.button_color || '#2196F3');
+            document.documentElement.style.setProperty('--bg-color', tg.themeParams.secondary_bg_color || '#f5f5f5');
+            document.documentElement.style.setProperty('--card-bg', tg.themeParams.bg_color || '#ffffff');
+            document.documentElement.style.setProperty('--text-primary', tg.themeParams.text_color || '#212121');
+            document.documentElement.style.setProperty('--text-secondary', tg.themeParams.hint_color || '#757575');
+            
+            // Устанавливаем цвета хедера
+            tg.setHeaderColor(tg.themeParams.bg_color || '#ffffff');
+            tg.setBottomBarColor(tg.themeParams.secondary_bg_color || '#f5f5f5');
+        }
+
+        window.applyTelegramTheme();
+
+        tg.onEvent('themeChanged', () => {
+            window.applyTelegramTheme();
+        });
+
+        // ============================================
+        // ИНИЦИАЛИЗАЦИЯ
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            window.renderMembers();
+            window.updateStats();
+            window.populatePaymentMembers();
+            window.populateReturnPaymentMembers();
+            window.populateCounterparties();
+            window.initMenuHandlers();
+            window.initSubmenus();
+            window.initSearch();
+
+            // Установка текущей даты в формы
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('paymentDate').value = today;
+            document.getElementById('transactionDate').value = today;
+            document.getElementById('pkoDate').value = today;
+            document.getElementById('rkoDate').value = today;
+        });
+
+        // ============================================
+        // НАВИГАЦИЯ
+        // ============================================
+        window.switchTab = function(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+
+            document.querySelectorAll('.content-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(`tab-${tabName}`).style.display = 'block';
+
+            const activeBtn = document.querySelector(`.content-tab[onclick="switchTab('${tabName}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+
+            // Update menu
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.section === tabName) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // ============================================
+        // МЕНЮ ОБРАБОТЧИКИ
+        // ============================================
+        window.initMenuHandlers = function() {
+            // Обработка кликов по меню
+            document.querySelectorAll('.menu-item[data-action]').forEach(item => {
+                item.addEventListener('click', function() {
+                    const action = this.dataset.action;
+                    handleMenuAction(action);
+                });
+            });
+
+            document.querySelectorAll('.menu-item[data-report]').forEach(item => {
+                item.addEventListener('click', function() {
+                    const report = this.dataset.report;
+                    openReportByName(report);
+                });
+            });
+
+            document.querySelectorAll('.menu-item[data-panel]').forEach(item => {
+                item.addEventListener('click', function() {
+                    const panel = this.dataset.panel;
+                    openPanel(panel);
+                });
+            });
+
+            // Submenu items
+            document.querySelectorAll('.submenu-item[data-action]').forEach(item => {
+                item.addEventListener('click', function() {
+                    const action = this.dataset.action;
+                    handleMenuAction(action);
+                });
+            });
+
+            document.querySelectorAll('.submenu-item[data-report]').forEach(item => {
+                item.addEventListener('click', function() {
+                    const report = this.dataset.report;
+                    openReportByName(report);
+                });
+            });
+        }
+
+        window.initSubmenus = function() {
+            document.querySelectorAll('.menu-item[data-submenu]').forEach(item => {
+                item.addEventListener('click', function() {
+                    const submenuId = this.dataset.submenu;
+                    const submenu = document.getElementById(`submenu-${submenuId}`);
+                    const arrow = this.querySelector('.menu-arrow');
+                    
+                    if (submenu) {
+                        submenu.classList.toggle('open');
+                        if (arrow) {
+                            arrow.textContent = submenu.classList.contains('open') ? '▼' : '→';
+                        }
+                    }
+                });
+            });
+        }
+
+        window.initSearch = function() {
+            document.getElementById('menuSearch').addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    const name = item.querySelector('.menu-item-name')?.textContent.toLowerCase() || '';
+                    const subtitle = item.querySelector('.menu-item-subtitle')?.textContent.toLowerCase() || '';
+                    if (name.includes(query) || subtitle.includes(query)) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        window.handleMenuAction = function(action) {
+            switch(action) {
+                case 'create-member':
+                    showCreateMemberModal();
+                    break;
+                case 'edit-member':
+                    showEditMemberModal();
+                    break;
+                case 'create-payment':
+                    showCreatePaymentModal();
+                    break;
+                case 'create-return-payment':
+                    showReturnPaymentModal();
+                    break;
+                case 'create-transaction':
+                    showCreateTransactionModal();
+                    break;
+                case 'pko':
+                    showPKOModal();
+                    break;
+                case 'rko':
+                    showRKOModal();
+                    break;
+                case 'payment-order':
+                    showPaymentOrderModal();
+                    break;
+                case 'invoice':
+                    showInvoiceModal();
+                    break;
+                case 'act-sverka':
+                    showActSverkaModal();
+                    break;
+                case 'create-document':
+                    showUploadDocumentModal();
+                    break;
+                case 'create-application':
+                    showSubmitApplicationModal();
+                    break;
+                case 'create-meeting':
+                    showCreateMeetingModal();
+                    break;
+                case 'add-calendar-event':
+                    showCalendarEventModal();
+                    break;
+                case 'generate-usn-zero':
+                case 'generate-balance-zero':
+                case 'generate-szv-zero':
+                case 'generate-rsv-zero':
+                case 'generate-sredn-zero':
+                    showZeroReportingModal();
+                    break;
+                default:
+                    showToast({ type: 'info', message: `Действие "${action}" в разработке` });
+            }
+        }
+
+        window.openReportByName = function(reportName) {
+            console.log('📊 Открытие отчёта:', reportName);
+            
+            switch(reportName) {
+                case 'members-registry-full':
+                case 'members-report-full':
+                    showMembersReport();
+                    break;
+                case 'payments-report-full':
+                    showPaymentsReport();
+                    break;
+                case 'osv':
+                    showOSVReport();
+                    break;
+                case 'balance':
+                    showBalanceReport();
+                    break;
+                case 'profit-loss':
+                    showProfitLossReport();
+                    break;
+                case 'kudir':
+                    showKUDiRReport();
+                    break;
+                case 'target-use':
+                    showTargetUseReport();
+                    break;
+                case 'accounting-certificate':
+                    showAccountingCertificateModal();
+                    break;
+                case 'certificates-registry-full':
+                    showCertificatesRegistry();
+                    break;
+                case 'applications-registry':
+                    showApplicationsRegistry();
+                    break;
+                case 'meeting-protocol-full':
+                    showMeetingProtocol();
+                    break;
+                case 'attendance-list-full':
+                    showAttendanceList();
+                    break;
+                case 'calendar-full':
+                    showCalendarReport();
+                    break;
+                case 'control-dashboard':
+                    showControlDashboard();
+                    break;
+                case 'financial-report-full':
+                    showFinancialReport();
+                    break;
+                case 'debt-report':
+                    showDebtReport();
+                    break;
+                case 'share-fund':
+                case 'development-fund':
+                case 'business-fund':
+                case 'funds-analytics':
+                case 'indivisible-fund':
+                case 'reserve-fund':
+                    showFundsModal();
+                    break;
+                case 'rsv':
+                    showRSVReport();
+                    break;
+                case 'szv-stazh':
+                    showSZVSTAZHReport();
+                    break;
+                case '6-ndfl':
+                    show6NDFLReport();
+                    break;
+                default:
+                    showToast({ type: 'info', message: `Отчёт "${reportName}" в разработке` });
+            }
+        }
+
+        window.openPanel = function(panelName) {
+            switch(panelName) {
+                case 'profile':
+                    showProfileModal();
+                    break;
+                case 'backup':
+                    showBackupModal();
+                    break;
+                default:
+                    showToast({ type: 'info', message: `Панель "${panelName}" в разработке` });
+            }
+        }
+
+        // ============================================
+        // РЕНДЕРИНГ
+        // ============================================
+        window.renderMembers = function() {
+            const membersList = document.getElementById('membersList');
+            const recentMembersList = document.getElementById('recentMembersList');
+
+            if (members.length === 0) {
+                const emptyHtml = `
+                    <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                        <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">Нет пайщиков</div>
+                        <p>Добавьте первого пайщика, нажав кнопку "Добавить"</p>
+                    </div>
+                `;
+                membersList.innerHTML = emptyHtml;
+                recentMembersList.innerHTML = emptyHtml;
+                return;
+            }
+
+            const html = members.map(member => createMemberItem(member)).join('');
+            membersList.innerHTML = html;
+
+            // Recent members (last 5)
+            const recent = members.slice(-5).reverse();
+            recentMembersList.innerHTML = recent.map(member => createMemberItem(member)).join('');
+        }
+
+        window.createMemberItem = function(member) {
+            const initials = member.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            const color = getColorForMember(member.id);
+            const statusClass = member.status === 'active' ? 'active' : member.status === 'debt' ? 'debt' : 'pending';
+            const statusText = member.status === 'active' ? 'Активен' : member.status === 'debt' ? 'Должник' : 'Ожидание';
+            const balanceClass = member.balance >= 0 ? 'positive' : 'negative';
+            const balanceText = member.balance >= 0 ? `+${formatMoney(member.balance)}` : formatMoney(member.balance);
+
+            return `
+                <div class="member-item" onclick="openMemberDetail(${member.id})">
+                    <div class="member-avatar" style="background: ${color}">${initials}</div>
+                    <div class="member-info">
+                        <div class="member-name">${member.name}</div>
+                        <div class="member-details">
+                            <span>📞 ${member.phone || '—'}</span>
+                            <span>✉️ ${member.email || '—'}</span>
+                        </div>
+                    </div>
+                    <span class="member-status ${statusClass}">${statusText}</span>
+                    <span class="member-balance ${balanceClass}">${balanceText}</span>
+                </div>
+            `;
+        }
+
+        window.getColorForMember = function(id) {
+            const colors = ['#2196F3', '#4CAF50', '#FF9800', '#9C27B0', '#F44336', '#00BCD4'];
+            return colors[id % colors.length];
+        }
+
+        window.updateStats = function() {
+            const total = members.length;
+            const active = members.filter(m => m.status === 'active').length;
+            const debt = members.filter(m => m.status === 'debt').length;
+            const totalDebt = members.filter(m => m.balance < 0).reduce((sum, m) => sum + Math.abs(m.balance), 0);
+
+            document.getElementById('totalMembers').textContent = total;
+            document.getElementById('activeMembers').textContent = active;
+            document.getElementById('debtMembers').textContent = debt;
+            document.getElementById('totalDebt').textContent = formatMoney(totalDebt);
+            document.getElementById('membersCountBadge').textContent = total;
+        }
+
+        window.populatePaymentMembers = function() {
+            const select = document.getElementById('paymentMember');
+            select.innerHTML = '<option value="">Выберите пайщика</option>' +
+                members.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+        }
+
+        window.populateReturnPaymentMembers = function() {
+            const select = document.getElementById('returnPaymentMember');
+            select.innerHTML = '<option value="">Выберите пайщика</option>' +
+                members.filter(m => m.balance > 0).map(m => `<option value="${m.id}">${m.name} (Баланс: ${formatMoney(m.balance)})</option>`).join('');
+        }
+
+        window.populateCounterparties = function() {
+            const select = document.getElementById('actSverkaCounterparty');
+            // Add members and some default counterparties
+            const counterparties = [
+                ...members.map(m => ({ id: m.id, name: m.name, type: 'member' })),
+                { id: 'tax', name: 'ФНС России', type: 'gov' },
+                { id: 'pfr', name: 'ПФР', type: 'gov' },
+                { id: 'ffoms', name: 'ФФОМС', type: 'gov' }
+            ];
+            select.innerHTML = '<option value="">Выберите контрагента</option>' +
+                counterparties.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        }
+
+        // ============================================
+        // МОДАЛЬНЫЕ ОКНА - SHOW ФУНКЦИИ
+        // ============================================
+        window.showCreateMemberModal = function() {
+            document.getElementById('createMemberModal').classList.add('active');
+        }
+
+        window.showEditMemberModal = function() {
+            if (members.length === 0) {
+                showToast({ type: 'warning', message: 'Нет пайщиков для редактирования' });
+                return;
+            }
+            // Show first member for demo
+            openEditMemberModal(members[0].id);
+        }
+
+        window.openEditMemberModal = function(memberId) {
+            const member = members.find(m => m.id === memberId);
+            if (!member) return;
+
+            document.getElementById('editMemberId').value = member.id;
+            document.getElementById('editMemberName').value = member.name;
+            document.getElementById('editMemberPhone').value = member.phone || '';
+            document.getElementById('editMemberEmail').value = member.email || '';
+            document.getElementById('editMemberBalance').value = member.balance || 0;
+            
+            document.getElementById('editMemberModal').classList.add('active');
+        }
+
+        window.showCreatePaymentModal = function() {
+            document.getElementById('createPaymentModal').classList.add('active');
+        }
+
+        window.showReturnPaymentModal = function() {
+            document.getElementById('returnPaymentModal').classList.add('active');
+        }
+
+        window.showCreateTransactionModal = function() {
+            document.getElementById('createTransactionModal').classList.add('active');
+        }
+
+        window.showPKOModal = function() {
+            document.getElementById('pkoModal').classList.add('active');
+        }
+
+        window.showRKOModal = function() {
+            document.getElementById('rkoModal').classList.add('active');
+        }
+
+        window.showPaymentOrderModal = function() {
+            document.getElementById('paymentOrderModal').classList.add('active');
+        }
+
+        window.showInvoiceModal = function() {
+            document.getElementById('invoiceModal').classList.add('active');
+        }
+
+        window.showActSverkaModal = function() {
+            document.getElementById('actSverkaModal').classList.add('active');
+        }
+
+        window.showUploadDocumentModal = function() {
+            document.getElementById('uploadDocumentModal').classList.add('active');
+        }
+
+        window.showSubmitApplicationModal = function() {
+            document.getElementById('submitApplicationModal').classList.add('active');
+        }
+
+        window.showApplicationsRegistry = function() {
+            const content = document.getElementById('applicationsRegistryContent');
+            if (applications.length === 0) {
+                content.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                        <div style="font-size: 16px; font-weight: 500;">Нет заявлений</div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>№</th>
+                                <th>Тип</th>
+                                <th>ФИО</th>
+                                <th>Телефон</th>
+                                <th>Сумма пая</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${applications.map((app, i) => `
+                                <tr>
+                                    <td>${i + 1}</td>
+                                    <td>${app.type === 'join' ? 'На вступление' : app.type === 'leave' ? 'На выход' : 'На перевод'}</td>
+                                    <td>${app.name}</td>
+                                    <td>${app.phone || '—'}</td>
+                                    <td>${formatMoney(app.share)}</td>
+                                    <td>${app.status === 'approved' ? '✅ Одобрено' : app.status === 'rejected' ? '❌ Отклонено' : '⏳ На рассмотрении'}</td>
+                                    <td>
+                                        ${app.status === 'pending' ? `
+                                            <button onclick="approveApplication(${app.id})" style="padding:4px 8px;background:#4CAF50;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-right:4px">✅</button>
+                                            <button onclick="rejectApplication(${app.id})" style="padding:4px 8px;background:#F44336;color:#fff;border:none;border-radius:4px;cursor:pointer">❌</button>
+                                        ` : '—'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+            document.getElementById('applicationsRegistryModal').classList.add('active');
+        }
+
+        window.showCreateMeetingModal = function() {
+            document.getElementById('createMeetingModal').classList.add('active');
+        }
+
+        window.showCalendarEventModal = function() {
+            document.getElementById('calendarEventModal').classList.add('active');
+        }
+
+        window.showCreateFundModal = function() {
+            document.getElementById('createFundModal').classList.add('active');
+        }
+
+        window.showProfileModal = function() {
+            document.getElementById('profileModal').classList.add('active');
+        }
+
+        window.showBackupModal = function() {
+            document.getElementById('backupModal').classList.add('active');
+            updateYandexDiskStatus();
+        }
+
+        window.showZeroReportingModal = function() {
+            document.getElementById('zeroReportingModal').classList.add('active');
+        }
+
+        window.showAnalyticsModal = function() {
+            document.getElementById('analyticsModal').classList.add('active');
+        }
+
+        window.showFundsModal = function() {
+            const content = document.getElementById('fundsContent');
+            if (funds.length === 0) {
+                content.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">💰</div>
+                        <div style="font-size: 16px; font-weight: 500;">Фонды не созданы</div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="stats-grid">
+                        ${funds.map(fund => `
+                            <div class="stat-card">
+                                <div class="stat-value">${formatMoney(fund.amount)}</div>
+                                <div class="stat-label">${fund.name}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            document.getElementById('fundsModal').classList.add('active');
+        }
+
+        window.showMeetingsModal = function() {
+            document.getElementById('meetingsModal').classList.add('active');
+        }
+
+        window.showControlDashboard = function() {
+            document.getElementById('controlDashboardModal').classList.add('active');
+        }
+
+        window.showCertificatesRegistry = function() {
+            document.getElementById('certificatesRegistryModal').classList.add('active');
+        }
+
+        window.showMembersReport = function() {
+            const content = document.getElementById('membersReportContent');
+            content.innerHTML = `
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>ФИО</th>
+                            <th>Телефон</th>
+                            <th>Email</th>
+                            <th>Взнос (₽)</th>
+                            <th>Баланс (₽)</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${members.map((m, i) => `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td>${m.name}</td>
+                                <td>${m.phone || '—'}</td>
+                                <td>${m.email || '—'}</td>
+                                <td>${formatMoney(m.entranceFee)}</td>
+                                <td style="color: ${m.balance >= 0 ? 'var(--success-color)' : 'var(--danger-color)'}">${formatMoney(m.balance)}</td>
+                                <td>${m.status === 'active' ? '✅ Активен' : m.status === 'debt' ? '⚠️ Должник' : '⏳ Ожидание'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('membersReportModal').classList.add('active');
+        }
+
+        window.showPaymentsReport = function() {
+            const content = document.getElementById('paymentsReportContent');
+            if (payments.length === 0) {
+                content.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">💳</div>
+                        <div style="font-size: 16px; font-weight: 500;">Взносов нет</div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Пайщик</th>
+                                <th>Тип</th>
+                                <th>Сумма (₽)</th>
+                                <th>Назначение</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${payments.map(p => `
+                                <tr>
+                                    <td>${new Date(p.date).toLocaleDateString('ru-RU')}</td>
+                                    <td>${p.memberName}</td>
+                                    <td>${p.type === 'entrance' ? 'Вступительный' : p.type === 'share' ? 'Паевой' : p.type === 'member' ? 'Членский' : 'Дополнительный'}</td>
+                                    <td>${formatMoney(p.amount)}</td>
+                                    <td>${p.description || '—'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+            document.getElementById('paymentsReportModal').classList.add('active');
+        }
+
+        window.showDebtReport = function() {
+            const content = document.getElementById('debtReportContent');
+            const debtMembers = members.filter(m => m.balance < 0);
+            if (debtMembers.length === 0) {
+                content.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+                        <div style="font-size: 16px; font-weight: 500;">Задолженностей нет</div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Телефон</th>
+                                <th>Баланс (₽)</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${debtMembers.map(m => `
+                                <tr>
+                                    <td>${m.name}</td>
+                                    <td>${m.phone || '—'}</td>
+                                    <td style="color: var(--danger-color)">${formatMoney(m.balance)}</td>
+                                    <td>⚠️ Должник</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+            document.getElementById('debtReportModal').classList.add('active');
+        }
+
+        window.showFinancialReport = function() {
+            const totalIncome = payments.reduce((sum, p) => sum + p.amount, 0);
+            const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            
+            const content = document.getElementById('financialReportContent');
+            content.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card secondary">
+                        <div class="stat-value">${formatMoney(totalIncome)}</div>
+                        <div class="stat-label">Доходы</div>
+                    </div>
+                    <div class="stat-card danger">
+                        <div class="stat-value">${formatMoney(totalExpense)}</div>
+                        <div class="stat-label">Расходы</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${formatMoney(totalIncome - totalExpense)}</div>
+                        <div class="stat-label">Прибыль</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('financialReportModal').classList.add('active');
+        }
+
+        window.showCalendarReport = function() {
+            const content = document.getElementById('calendarReportContent');
+            if (calendarEvents.length === 0) {
+                content.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
+                        <div style="font-size: 16px; font-weight: 500;">Событий нет</div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Название</th>
+                                <th>Тип</th>
+                                <th>Описание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${calendarEvents.map(e => `
+                                <tr>
+                                    <td>${new Date(e.dateStart).toLocaleDateString('ru-RU')}</td>
+                                    <td>${e.title}</td>
+                                    <td>${e.type === 'meeting' ? 'Собрание' : e.type === 'deadline' ? 'Срок' : e.type === 'payment' ? 'Платёж' : 'Другое'}</td>
+                                    <td>${e.description || '—'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+            document.getElementById('calendarReportModal').classList.add('active');
+        }
+
+        window.showMeetingProtocol = function() {
+            document.getElementById('meetingProtocolModal').classList.add('active');
+        }
+
+        window.showAttendanceList = function() {
+            document.getElementById('attendanceListModal').classList.add('active');
+        }
+
+        window.showAccountingCertificateModal = function() {
+            document.getElementById('accountingCertificateModal').classList.add('active');
+        }
+
+        // ============================================
+        // ОБРАБОТЧИКИ ФОРМ
+        // ============================================
+        window.handleCreateMember = function(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('newMemberName').value.trim();
+            const phone = document.getElementById('newMemberPhone').value.trim();
+            const email = document.getElementById('newMemberEmail').value.trim();
+            const entranceFee = parseFloat(document.getElementById('newMemberFee').value) || 0;
+            const shareFee = parseFloat(document.getElementById('newMemberShare').value) || 0;
+            const birthDate = document.getElementById('newMemberBirthDate').value;
+            const address = document.getElementById('newMemberAddress').value.trim();
+
+            if (!name) {
+                showToast({ type: 'error', message: 'Введите ФИО пайщика' });
+                return;
+            }
+
+            const newMember = {
+                id: Date.now(),
+                name,
+                phone,
+                email,
+                entranceFee,
+                shareFee,
+                balance: entranceFee + shareFee,
+                status: 'active',
+                birthDate,
+                address
+            };
+
+            members.push(newMember);
+            localStorage.setItem('members', JSON.stringify(members));
+
+            closeModal('createMemberModal');
+            renderMembers();
+            updateStats();
+            populatePaymentMembers();
+            populateReturnPaymentMembers();
+
+            showToast({ type: 'success', message: `Пайщик "${name}" добавлен!` });
+
+            // Clear form
+            document.getElementById('newMemberName').value = '';
+            document.getElementById('newMemberPhone').value = '';
+            document.getElementById('newMemberEmail').value = '';
+            document.getElementById('newMemberFee').value = '1000';
+            document.getElementById('newMemberShare').value = '10000';
+            document.getElementById('newMemberBirthDate').value = '';
+            document.getElementById('newMemberAddress').value = '';
+        }
+
+        window.handleEditMemberSave = function() {
+            const memberId = parseInt(document.getElementById('editMemberId').value);
+            const name = document.getElementById('editMemberName').value.trim();
+            const phone = document.getElementById('editMemberPhone').value.trim();
+            const email = document.getElementById('editMemberEmail').value.trim();
+
+            if (!name) {
+                showToast({ type: 'error', message: 'Введите ФИО пайщика' });
+                return;
+            }
+
+            const member = members.find(m => m.id === memberId);
+            if (member) {
+                member.name = name;
+                member.phone = phone;
+                member.email = email;
+                localStorage.setItem('members', JSON.stringify(members));
+            }
+
+            closeModal('editMemberModal');
+            renderMembers();
+            showToast({ type: 'success', message: `Данные пайщика "${name}" обновлены!` });
+        }
+
+        window.handleCreatePayment = function(event) {
+            event.preventDefault();
+            
+            const memberId = document.getElementById('paymentMember').value;
+            const amount = parseFloat(document.getElementById('paymentAmount').value) || 0;
+            const type = document.getElementById('paymentType').value;
+            const date = document.getElementById('paymentDate').value;
+            const description = document.getElementById('paymentDescription').value.trim();
+
+            if (!memberId) {
+                showToast({ type: 'error', message: 'Выберите пайщика' });
+                return;
+            }
+
+            if (!amount) {
+                showToast({ type: 'error', message: 'Введите сумму' });
+                return;
+            }
+
+            const member = members.find(m => m.id == memberId);
+            if (member) {
+                member.balance += amount;
+                if (member.balance >= 0) member.status = 'active';
+                localStorage.setItem('members', JSON.stringify(members));
+            }
+
+            // Save payment
+            payments.push({
+                id: Date.now(),
+                memberId: parseInt(memberId),
+                memberName: member?.name || '',
+                amount,
+                type,
+                date,
+                description
+            });
+            localStorage.setItem('payments', JSON.stringify(payments));
+
+            closeModal('createPaymentModal');
+            renderMembers();
+            updateStats();
+            populatePaymentMembers();
+
+            showToast({ type: 'success', message: `Взнос ${formatMoney(amount)} внесён!` });
+
+            // Clear form
+            document.getElementById('paymentMember').value = '';
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentDescription').value = '';
+        }
+
+        window.handleReturnPayment = function(event) {
+            event.preventDefault();
+            
+            const memberId = document.getElementById('returnPaymentMember').value;
+            const amount = parseFloat(document.getElementById('returnPaymentAmount').value) || 0;
+            const reason = document.getElementById('returnPaymentReason').value.trim();
+
+            if (!memberId) {
+                showToast({ type: 'error', message: 'Выберите пайщика' });
+                return;
+            }
+
+            if (!amount) {
+                showToast({ type: 'error', message: 'Введите сумму' });
+                return;
+            }
+
+            const member = members.find(m => m.id == memberId);
+            if (member) {
+                member.balance -= amount;
+                localStorage.setItem('members', JSON.stringify(members));
+            }
+
+            closeModal('returnPaymentModal');
+            renderMembers();
+            updateStats();
+            populateReturnPaymentMembers();
+
+            showToast({ type: 'success', message: `Возврат ${formatMoney(amount)} оформлен!` });
+
+            // Clear form
+            document.getElementById('returnPaymentMember').value = '';
+            document.getElementById('returnPaymentAmount').value = '';
+            document.getElementById('returnPaymentReason').value = '';
+        }
+
+        window.handleCreateTransaction = function(event) {
+            event.preventDefault();
+            
+            const type = document.getElementById('transactionType').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value) || 0;
+            const debit = document.getElementById('transactionDebit').value.trim();
+            const credit = document.getElementById('transactionCredit').value.trim();
+            const description = document.getElementById('transactionDescription').value.trim();
+            const date = document.getElementById('transactionDate').value;
+
+            if (!amount) {
+                showToast({ type: 'error', message: 'Введите сумму' });
+                return;
+            }
+
+            transactions.push({
+                id: Date.now(),
+                type,
+                amount,
+                debit,
+                credit,
+                description,
+                date
+            });
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            closeModal('createTransactionModal');
+            showToast({ type: 'success', message: `Проводка на сумму ${formatMoney(amount)} создана!` });
+
+            // Clear form
+            document.getElementById('transactionAmount').value = '';
+            document.getElementById('transactionDebit').value = '';
+            document.getElementById('transactionCredit').value = '';
+            document.getElementById('transactionDescription').value = '';
+        }
+
+        window.generatePKO = function(event) {
+            event.preventDefault();
+            showToast({ type: 'success', message: 'ПКО сформирован! (PDF будет сгенерирован)' });
+            closeModal('pkoModal');
+        }
+
+        window.generateRKO = function(event) {
+            event.preventDefault();
+            showToast({ type: 'success', message: 'РКО сформирован! (PDF будет сгенерирован)' });
+            closeModal('rkoModal');
+        }
+
+        window.handlePaymentOrder = function(event) {
+            event.preventDefault();
+            showToast({ type: 'success', message: 'Платёжное поручение сформировано!' });
+            closeModal('paymentOrderModal');
+        }
+
+        window.handleInvoice = function(event) {
+            event.preventDefault();
+            showToast({ type: 'success', message: 'Счёт на оплату сформирован!' });
+            closeModal('invoiceModal');
+        }
+
+        window.handleActSverkaFull = function(event) {
+            event.preventDefault();
+            showToast({ type: 'success', message: 'Акт сверки сформирован!' });
+            closeModal('actSverkaModal');
+        }
+
+        window.handleUploadDocument = function(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('documentName').value.trim();
+            const type = document.getElementById('documentType').value;
+            const category = document.getElementById('documentCategory').value;
+
+            if (!name) {
+                showToast({ type: 'error', message: 'Введите название документа' });
+                return;
+            }
+
+            documents.push({
+                id: Date.now(),
+                name,
+                type,
+                category,
+                date: new Date().toISOString()
+            });
+            localStorage.setItem('documents', JSON.stringify(documents));
+
+            closeModal('uploadDocumentModal');
+            showToast({ type: 'success', message: `Документ "${name}" загружен!` });
+
+            // Clear form
+            document.getElementById('documentName').value = '';
+        }
+
+        window.handleSubmitApplication = function(event) {
+            event.preventDefault();
+            
+            const type = document.getElementById('applicationType').value;
+            const name = document.getElementById('applicationName').value.trim();
+            const phone = document.getElementById('applicationPhone').value.trim();
+            const email = document.getElementById('applicationEmail').value.trim();
+            const share = parseFloat(document.getElementById('applicationShare').value) || 0;
+
+            if (!name) {
+                showToast({ type: 'error', message: 'Введите ФИО' });
+                return;
+            }
+
+            applications.push({
+                id: Date.now(),
+                type,
+                name,
+                phone,
+                email,
+                share,
+                status: 'pending',
+                date: new Date().toISOString()
+            });
+            localStorage.setItem('applications', JSON.stringify(applications));
+
+            closeModal('submitApplicationModal');
+            showToast({ type: 'success', message: 'Заявление отправлено на рассмотрение!' });
+
+            // Clear form
+            document.getElementById('applicationName').value = '';
+            document.getElementById('applicationPhone').value = '';
+            document.getElementById('applicationEmail').value = '';
+        }
+
+        window.approveApplication = function(appId) {
+            const app = applications.find(a => a.id === appId);
+            if (app) {
+                app.status = 'approved';
+                localStorage.setItem('applications', JSON.stringify(applications));
+                showApplicationsRegistry();
+                showToast({ type: 'success', message: 'Заявление одобрено!' });
+            }
+        }
+
+        window.rejectApplication = function(appId) {
+            const app = applications.find(a => a.id === appId);
+            if (app) {
+                app.status = 'rejected';
+                localStorage.setItem('applications', JSON.stringify(applications));
+                showApplicationsRegistry();
+                showToast({ type: 'info', message: 'Заявление отклонено' });
+            }
+        }
+
+        window.handleCreateMeeting = function(event) {
+            event.preventDefault();
+            
+            const number = document.getElementById('meetingNumber').value.trim() || '1';
+            const date = document.getElementById('meetingDate').value;
+            const agenda = document.getElementById('meetingAgenda').value.trim();
+            const attendees = parseInt(document.getElementById('meetingAttendees').value) || 0;
+
+            meetings.push({
+                id: Date.now(),
+                number,
+                date,
+                agenda,
+                attendees,
+                createdAt: new Date().toISOString()
+            });
+            localStorage.setItem('meetings', JSON.stringify(meetings));
+
+            closeModal('createMeetingModal');
+            showToast({ type: 'success', message: `Протокол №${number} создан!` });
+
+            // Clear form
+            document.getElementById('meetingNumber').value = '';
+            document.getElementById('meetingDate').value = '';
+            document.getElementById('meetingAgenda').value = '';
+            document.getElementById('meetingAttendees').value = '';
+        }
+
+        window.addCalendarEvent = function() {
+            const title = document.getElementById('calendarEventTitle').value.trim();
+            const dateStart = document.getElementById('calendarEventDateStart').value;
+            const dateEnd = document.getElementById('calendarEventDateEnd').value;
+            const type = document.getElementById('calendarEventType').value;
+            const description = document.getElementById('calendarEventDescription').value.trim();
+
+            if (!title) {
+                showToast({ type: 'error', message: 'Введите название мероприятия' });
+                return;
+            }
+
+            calendarEvents.push({
+                id: Date.now(),
+                title,
+                dateStart,
+                dateEnd,
+                type,
+                description
+            });
+            localStorage.setItem('calendarEvents', JSON.stringify(calendarEvents));
+
+            closeModal('calendarEventModal');
+            showToast({ type: 'success', message: 'Мероприятие добавлено в календарь!' });
+
+            // Clear form
+            document.getElementById('calendarEventTitle').value = '';
+            document.getElementById('calendarEventDateStart').value = '';
+            document.getElementById('calendarEventDateEnd').value = '';
+            document.getElementById('calendarEventDescription').value = '';
+        }
+
+        window.handleCreateFund = function(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('fundName').value.trim();
+            const type = document.getElementById('fundType').value;
+            const amount = parseFloat(document.getElementById('fundAmount').value) || 0;
+
+            if (!name) {
+                showToast({ type: 'error', message: 'Введите название фонда' });
+                return;
+            }
+
+            funds.push({
+                id: Date.now(),
+                name,
+                type,
+                amount
+            });
+            localStorage.setItem('funds', JSON.stringify(funds));
+
+            closeModal('createFundModal');
+            showToast({ type: 'success', message: `Фонд "${name}" создан!` });
+
+            // Clear form
+            document.getElementById('fundName').value = '';
+            document.getElementById('fundAmount').value = '0';
+        }
+
+        window.saveProfile = function() {
+            closeModal('profileModal');
+            showToast({ type: 'success', message: 'Профиль сохранён!' });
+        }
+
+        // ============================================
+        // ОТЧЁТЫ (заглушки)
+        // ============================================
+        window.showOSVReport = function() {
+            document.getElementById('osvReportContent').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">📈 ОСВ формируется...</div>';
+            document.getElementById('osvReportModal').classList.add('active');
+        }
+
+        window.showBalanceReport = function() {
+            document.getElementById('balanceReportContent').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">⚖️ Баланс формируется...</div>';
+            document.getElementById('balanceReportModal').classList.add('active');
+        }
+
+        window.showProfitLossReport = function() {
+            document.getElementById('profitLossReportContent').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">📈 Отчёт о фин. результатах формируется...</div>';
+            document.getElementById('profitLossReportModal').classList.add('active');
+        }
+
+        window.showKUDiRReport = function() {
+            document.getElementById('kudirReportContent').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">📖 КУДиР формируется...</div>';
+            document.getElementById('kudirReportModal').classList.add('active');
+        }
+
+        window.showTargetUseReport = function() {
+            document.getElementById('targetUseReportContent').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">🎯 Отчёт формируется...</div>';
+            document.getElementById('targetUseReportModal').classList.add('active');
+        }
+
+        window.showRSVReport = function() {
+            document.getElementById('rsvReportContent').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">📊 РСВ формируется...</div>';
+            document.getElementById('rsvReportModal').classList.add('active');
+        }
+
+        window.showSZVSTAZHReport = function() {
+            document.getElementById('szvStazhReportContent').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">📊 СЗВ-СТАЖ формируется...</div>';
+            document.getElementById('szvStazhReportModal').classList.add('active');
+        }
+
+        window.show6NDFLReport = function() {
+            document.getElementById('6ndflReportContent').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-secondary)">📊 6-НДФЛ формируется...</div>';
+            document.getElementById('6ndflReportModal').classList.add('active');
+        }
+
+        window.generateUSNZero = function() { showToast({ type: 'info', message: 'Декларация УСН (нулевая) формируется...' }); closeModal('zeroReportingModal'); }
+        window.generateBalanceZero = function() { showToast({ type: 'info', message: 'Баланс (нулевой) формируется...' }); closeModal('zeroReportingModal'); }
+        window.generateSZVZero = function() { showToast({ type: 'info', message: 'СЗВ-СТАЖ (нулевой) формируется...' }); closeModal('zeroReportingModal'); }
+        window.generateRSVZero = function() { showToast({ type: 'info', message: 'РСВ (нулевой) формируется...' }); closeModal('zeroReportingModal'); }
+        window.generateSrednZero = function() { showToast({ type: 'info', message: 'Среднесписочная (нулевая) формируется...' }); closeModal('zeroReportingModal'); }
+        window.generateUSNDeclaration = function() { showToast({ type: 'info', message: 'Декларация УСН формируется...' }); closeModal('usnDeclarationModal'); }
+        window.generateAccountingCertificate = function() { showToast({ type: 'info', message: 'Бухгалтерская справка формируется...' }); closeModal('accountingCertificateModal'); }
+
+        // ============================================
+        // УТИЛИТЫ
+        // ============================================
+        window.formatMoney = function(amount) {
+            return new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: 'RUB',
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        window.showToast = function({ type, message, duration = 3000 }) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = {
+                success: '✓',
+                error: '✕',
+                warning: '⚠',
+                info: 'ℹ'
+            };
+
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type] || 'ℹ'}</span>
+                <span class="toast-message">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideInRight 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        window.closeModal = function(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        window.toggleDarkMode = function() {
+            const currentMode = document.body.style.filter;
+            if (currentMode === 'invert(1) hue-rotate(180deg)') {
+                document.body.style.filter = '';
+                localStorage.setItem('darkMode', 'false');
+                showToast({ type: 'info', message: '☀️ Светлая тема включена' });
+            } else {
+                document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+                localStorage.setItem('darkMode', 'true');
+                showToast({ type: 'info', message: '🌙 Тёмная тема включена' });
+            }
+
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+
+        // Apply saved dark mode
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+        }
+
+        window.showNotifications = function() {
+            showToast({ type: 'info', message: '🔔 Уведомления:\n\n• Обнаружены расхождения в данных\n• Начислен членский взнос 5 000 ₽\n• Напоминание: собрание 15.03.2026' });
+        }
+
+        window.showProfile = function() {
+            showToast({ type: 'info', message: '👤 Профиль:\n\nАдминистратор\nПредседатель кооператива' });
+        }
+
+        window.openMemberDetail = function(memberId) {
+            const member = members.find(m => m.id === memberId);
+            if (member) {
+                showToast({ type: 'info', message: `📇 ${member.name}\n\nБаланс: ${formatMoney(member.balance)}\nСтатус: ${member.status}` });
+            }
+        }
+
+        window.toggleFab = function() {
+            showToast({ type: 'info', message: '⚡ Быстрые действия:\n\nВыберите операцию из меню или используйте кнопки на дашборде' });
+        }
+
+        window.exportMembersToExcel = function() {
+            if (members.length === 0) {
+                showToast({ type: 'warning', message: 'Нет данных для экспорта' });
+                return;
+            }
+            
+            const ws = XLSX.utils.json_to_sheet(members);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Пайщики');
+            XLSX.writeFile(wb, 'reestr_payschikov.xlsx');
+            showToast({ type: 'success', message: 'Экспорт выполнен!' });
+        }
+
+        window.exportReportToExcel = function() {
+            showToast({ type: 'info', message: 'Экспорт отчёта...' });
+        }
+
+        // Yandex Disk functions (заглушки, реальные функции из yandex-disk-integration-v2.js)
+        window.updateYandexDiskStatus = function() {
+            const token = localStorage.getItem('yandexDiskToken');
+            const content = document.getElementById('yandexDiskStatus');
+            if (token) {
+                content.innerHTML = '<div style="color:var(--success-color);font-weight:600">✅ Яндекс.Диск подключён</div>';
+            } else {
+                content.innerHTML = '<div style="color:var(--text-secondary)">⚠️ Не подключён</div>';
+            }
+        }
+
+        window.connectYandexDisk = function() {
+            showToast({ type: 'info', message: 'Перенаправление на Яндекс.Диск...' });
+        }
+
+        window.createBackupYandex = function() {
+            showToast({ type: 'success', message: 'Резервная копия создана!' });
+        }
+
+        window.exportDataJSON = function() {
+            const data = { members, payments, transactions, documents, applications, meetings, funds, calendarEvents };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `koop_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast({ type: 'success', message: 'Экспорт выполнен!' });
+        }
+
+        window.importDataJSON = function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = event => {
+                        try {
+                            const data = JSON.parse(event.target.result);
+                            if (data.members) localStorage.setItem('members', JSON.stringify(data.members));
+                            if (data.payments) localStorage.setItem('payments', JSON.stringify(data.payments));
+                            if (data.transactions) localStorage.setItem('transactions', JSON.stringify(data.transactions));
+                            showToast({ type: 'success', message: 'Импорт выполнен! Обновите страницу.' });
+                        } catch (err) {
+                            showToast({ type: 'error', message: 'Ошибка импорта: ' + err.message });
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+    </script>
+</body>
+</html>

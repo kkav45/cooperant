@@ -1400,7 +1400,7 @@ async function autoSaveApplication(application) {
     }
 }
 
-// Функция для автоматического со��ранения удостоверения пайщика
+// Функция для автоматического со���ранения удостоверения пайщика
 async function autoSaveCertificate(certificate) {
     // Проверяем, доступен ли File System API
     if (!coopDirectoryHandle) {
@@ -2694,7 +2694,7 @@ async function loadAllApplicationsFromDirectory() {
             }
         }
 
-        console.log(`Загружено ${applications.length} заявлений из C:\\КООПЕРАНТ\\Applications`);
+        console.log(`��агружено ${applications.length} заявлений из C:\\КООПЕРАНТ\\Applications`);
     } catch (err) {
         console.warn('Не удалось загрузить заявления из директории:', err);
     }
@@ -11818,6 +11818,12 @@ window.applications = applications;
 window.meetings = meetings;
 window.certificates = certificates;
 window.cooperativeSettings = cooperativeSettings;
+
+// ==================== ЭКСПОРТ ФУНКЦИЙ ДЛЯ ONCLICK ====================
+window.deleteMember = deleteMember;
+window.editMember = editMember;
+window.editPayment = editPayment;
+window.deletePayment = deletePayment;
 
 console.log('✅ app.js загружен, данные экспортированы в window');
 console.log('📊 Пайщиков:', members.length);

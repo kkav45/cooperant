@@ -3,149 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Яндекс.Диск - Авторизация</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Яндекс.Диск - Обработка авторизации</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #fc0 0%, #f9a800 100%);
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-        
-        .icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-        
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: #000;
-        }
-        
-        .message {
-            font-size: 16px;
-            color: #666;
-            line-height: 1.5;
-            margin-bottom: 30px;
-        }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f0f0f0;
-            border-top-color: #fc0;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .status.success {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        
-        .status.error {
-            background: #ffebee;
-            color: #c62828;
-        }
-        
-        .button {
-            display: inline-block;
-            padding: 15px 30px;
-            background: #fc0;
-            color: #000;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.2s;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .button:hover {
-            background: #f9a800;
-            transform: translateY(-2px);
-        }
-        
-        .button:active {
-            transform: translateY(0);
-        }
-        
-        .debug-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f5f7fa;
-            border-radius: 8px;
-            font-size: 12px;
-            text-align: left;
-            display: none;
-        }
-        
-        .show-debug {
-            margin-top: 15px;
-            color: #999;
-            font-size: 14px;
-            cursor: pointer;
-            text-decoration: underline;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #fc0 0%, #f9a800 100%); padding: 20px; }
+        .container { background: white; border-radius: 20px; padding: 40px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .icon { font-size: 64px; margin-bottom: 20px; }
+        h1 { font-size: 24px; font-weight: 700; margin-bottom: 15px; color: #000; }
+        .message { font-size: 16px; color: #666; line-height: 1.5; margin-bottom: 30px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f0f0f0; border-top-color: #fc0; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .status { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .status.success { background: #e8f5e9; color: #2e7d32; }
+        .status.error { background: #ffebee; color: #c62828; }
+        .button { display: inline-block; padding: 15px 30px; background: #fc0; color: #000; text-decoration: none; border-radius: 12px; font-weight: 600; border: none; cursor: pointer; font-size: 16px; margin: 5px; }
+        .button:hover { background: #f9a800; }
+        .debug-info { margin-top: 20px; padding: 15px; background: #f5f7fa; border-radius: 8px; font-size: 12px; text-align: left; display: none; }
+        .show-debug { margin-top: 15px; color: #999; font-size: 14px; cursor: pointer; text-decoration: underline; }
+        .log { margin-top: 15px; padding: 10px; background: #1e1e1e; color: #0f0; border-radius: 8px; font-size: 11px; font-family: monospace; text-align: left; max-height: 200px; overflow-y: auto; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="icon">☁️</div>
-        
+
         <div id="loading">
             <div class="spinner"></div>
             <h1>Обработка авторизации...</h1>
             <p class="message">Пожалуйста, подождите</p>
         </div>
-        
+
         <div id="success" style="display: none;">
             <div class="status success">
                 <span style="font-size: 24px">✓</span>
                 <span>Авторизация успешна!</span>
             </div>
             <h1>Яндекс.Диск подключён</h1>
-            <p class="message">Теперь вы можете вернуться в приложение</p>
-            <button class="button" onclick="closeWindow()">Закрыть окно</button>
+            <p class="message">Токен сохранён. Возврат в приложение...</p>
+            <div class="spinner" style="margin: 20px auto;"></div>
+            <p class="message" style="font-size: 14px; color: #999;">Если автоматический возврат не сработал, нажмите кнопку ниже:</p>
+            <button class="button" onclick="returnToApp()">🏠 Вернуться в приложение</button>
         </div>
-        
+
         <div id="error" style="display: none;">
             <div class="status error">
                 <span style="font-size: 24px">✗</span>
@@ -155,129 +57,208 @@
             <p class="message" id="errorMessage">Не удалось получить токен доступа</p>
             <button class="button" onclick="retryAuth()">Попробовать снова</button>
         </div>
-        
+
         <div class="show-debug" onclick="toggleDebug()">Показать техническую информацию</div>
-        
         <div class="debug-info" id="debugInfo"></div>
+        <div class="log" id="log"></div>
     </div>
 
     <script>
-        // Основная логика обработки токена
+        const LOG = [];
+        function log(msg, type='info') {
+            const time = new Date().toLocaleTimeString();
+            LOG.push(`[${time}] ${msg}`);
+            console.log('[Yandex Callback]', msg);
+            const logEl = document.getElementById('log');
+            if (logEl) {
+                logEl.innerHTML += `<div style="color:${type==='error'?'#f44':'#0f0'}">[${time}] ${msg}</div>`;
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            log('DOM загружен');
             handleAuthCallback();
         });
 
         function handleAuthCallback() {
+            log('Начало обработки callback');
+            
             const hash = window.location.hash;
             const urlParams = new URLSearchParams(window.location.search);
-            
-            console.log('[Auth Callback] Hash:', hash);
-            console.log('[Auth Callback] Search:', window.location.search);
-            
-            // Пробуем получить токен из hash (response_type=token)
-            let token = null;
-            let error = null;
-            
-            if (hash && hash.includes('access_token')) {
-                // Формат: #access_token=xxx&token_type=bearer&expires_in=31536000
-                const hashParams = new URLSearchParams(hash.substring(1));
-                token = hashParams.get('access_token');
-                error = hashParams.get('error');
-            } else if (urlParams.get('access_token')) {
-                // Формат: ?access_token=xxx&token_type=bearer&expires_in=31536000
-                token = urlParams.get('access_token');
-                error = urlParams.get('error');
-            }
-            
+            const fullUrl = window.location.href;
+
+            log(`Full URL: ${fullUrl.substring(0, 100)}...`);
+            log(`Hash: ${hash || 'пусто'}`);
+            log(`Search: ${window.location.search || 'пусто'}`);
+
             // Показываем debug информацию
             showDebugInfo({
                 'URL': window.location.href,
-                'Hash': hash,
-                'Search': window.location.search,
-                'Token': token ? token.substring(0, 20) + '...' : 'Не найден',
-                'Error': error || 'Нет'
+                'Hash': hash || 'нет',
+                'Search': window.location.search || 'нет',
+                'Origin': window.location.origin,
+                'Pathname': window.location.pathname
             });
-            
+
+            // Пробуем получить токен из hash (response_type=token)
+            let token = null;
+            let error = null;
+
+            if (hash && hash.includes('access_token')) {
+                const hashParams = new URLSearchParams(hash.substring(1));
+                token = hashParams.get('access_token');
+                error = hashParams.get('error');
+                log(`Токен найден в hash: ${token ? token.substring(0, 20) + '...' : 'нет'}`);
+            } else if (urlParams.get('access_token')) {
+                token = urlParams.get('access_token');
+                error = urlParams.get('error');
+                log(`Токен найден в search: ${token ? token.substring(0, 20) + '...' : 'нет'}`);
+            } else {
+                log('Токен НЕ найден в URL', 'error');
+            }
+
             if (error) {
+                log(`Ошибка от Яндекс: ${error}`, 'error');
                 showError('Ошибка от Яндекс: ' + error);
                 return;
             }
-            
+
             if (!token) {
-                showError('Токен не получен. Проверьте настройки OAuth приложения.');
+                showError('Токен не получен. Проверьте настройки OAuth приложения в Яндекс Console.');
                 return;
             }
-            
+
             // Токен получен успешно
             processToken(token);
         }
-        
+
         function processToken(token) {
+            log('Обработка токена...');
+            
             // Сохраняем токен в localStorage
             localStorage.setItem('yandexDiskToken', token);
-            
+            log('Токен сохранён в localStorage');
+
+            // Также пробуем отправить родительскому окну
+            if (window.opener) {
+                log('Отправка токена родительскому окну...');
+                try {
+                    window.opener.postMessage({
+                        type: 'YANDEX_TOKEN',
+                        token: token
+                    }, '*');
+                    log('Токен отправлен успешно');
+                } catch(e) {
+                    log('Ошибка отправки: ' + e.message, 'error');
+                }
+            } else {
+                log('Родительское окно не найдено');
+            }
+
             // Показываем успех
             document.getElementById('loading').style.display = 'none';
             document.getElementById('success').style.display = 'block';
-            
-            // Если открыто в том же окне (не popup), перенаправляем назад
-            if (window.opener) {
-                // Отправляем токен родительскому окну
-                window.opener.postMessage({
-                    type: 'YANDEX_TOKEN',
-                    token: token
-                }, '*');
+            log('Показан экран успеха');
+
+            // Автоматическое перенаправление через 2 секунды
+            setTimeout(() => {
+                log('Автоматическое перенаправление через 2 сек...');
                 
-                // Закрываем через 2 секунды
-                setTimeout(() => {
-                    window.close();
-                }, 2000);
-            }
+                // Пробуем разные варианты возврата
+                const returnPath = sessionStorage.getItem('yandex_return_path');
+                const returnUrl = sessionStorage.getItem('yandex_return_url');
+                
+                log(`returnPath: ${returnPath}, returnUrl: ${returnUrl}`);
+                
+                // Определяем куда возвращаться
+                let targetUrl = 'start.html';
+                
+                if (returnPath && returnPath !== 'yandex-auth-callback.html') {
+                    targetUrl = returnPath;
+                } else if (returnUrl && returnUrl.includes('index-cabinet')) {
+                    targetUrl = returnUrl;
+                }
+                
+                log(`Перенаправление на: ${targetUrl}`);
+                
+                // Перенаправляем
+                try {
+                    window.location.replace(targetUrl);
+                } catch(e) {
+                    window.location.href = targetUrl;
+                }
+            }, 2000);
         }
-        
+
         function showError(message) {
+            log('Показ ошибки: ' + message, 'error');
             document.getElementById('loading').style.display = 'none';
             document.getElementById('error').style.display = 'block';
             document.getElementById('errorMessage').textContent = message;
         }
-        
+
         function closeWindow() {
+            log('Закрытие окна...');
+            
+            // Пытаемся закрыть если это popup
             if (window.opener) {
                 window.opener.postMessage({ type: 'YANDEX_CLOSE' }, '*');
+                window.close();
+            } else {
+                // Если открыто в том же окне - перенаправляем на главную
+                log('Окно не может закрыться само, перенаправление...');
+                window.location.href = 'start.html';
             }
-            window.close();
         }
-        
+
+        function returnToApp() {
+            log('Возврат в приложение...');
+            
+            // Определяем куда возвращаться
+            const returnPath = sessionStorage.getItem('yandex_return_path');
+            const returnUrl = sessionStorage.getItem('yandex_return_url');
+            
+            let targetUrl = 'start.html';
+            
+            if (returnPath && returnPath !== 'yandex-auth-callback.html') {
+                targetUrl = returnPath;
+            } else if (returnUrl && returnUrl.includes('index-cabinet')) {
+                targetUrl = returnUrl;
+            }
+            
+            log(`Перенаправление на: ${targetUrl}`);
+            window.location.href = targetUrl;
+        }
+
         function retryAuth() {
-            // Перезагружаем страницу для повторной авторизации
+            log('Повтор авторизации');
             window.location.href = window.location.pathname;
         }
-        
+
         function toggleDebug() {
             const debugEl = document.getElementById('debugInfo');
             debugEl.style.display = debugEl.style.display === 'block' ? 'none' : 'block';
         }
-        
+
         function showDebugInfo(info) {
             const debugEl = document.getElementById('debugInfo');
             let html = '<strong>Техническая информация:</strong><br><br>';
-            
             for (const [key, value] of Object.entries(info)) {
                 html += `<strong>${key}:</strong> ${value}<br>`;
             }
-            
             debugEl.innerHTML = html;
         }
-        
-        // Обработка сообщений от родительского окна
+
+        // Обработка сообщений
         window.addEventListener('message', function(event) {
+            log(`Получено сообщение: ${JSON.stringify(event.data)}`);
             if (event.data && event.data.type === 'YANDEX_REQUEST_TOKEN') {
                 const hash = window.location.hash;
                 if (hash && hash.includes('access_token')) {
-                    window.opener.postMessage({
-                        type: 'YANDEX_TOKEN',
-                        hash: hash
-                    }, '*');
+                    const hashParams = new URLSearchParams(hash.substring(1));
+                    const token = hashParams.get('access_token');
+                    window.opener.postMessage({ type: 'YANDEX_TOKEN', token: token }, '*');
                 }
             }
         });

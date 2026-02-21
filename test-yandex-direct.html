@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Яндекс OAuth - Прямой</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #f5f7fa; }
+        .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { font-size: 24px; margin-bottom: 16px; }
+        .btn { display: inline-block; padding: 12px 24px; background: #fc0; color: #000; text-decoration: none; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; font-size: 16px; margin: 5px; }
+        .btn:hover { background: #f9a800; }
+        .log { background: #1e1e1e; color: #fff; padding: 16px; border-radius: 8px; font-family: monospace; font-size: 13px; max-height: 400px; overflow-y: auto; margin-top: 20px; }
+        code { background: #f5f7fa; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+        .status { padding: 12px; border-radius: 8px; margin: 16px 0; }
+        .status.success { background: #e8f5e9; color: #2e7d32; }
+        .status.error { background: #ffebee; color: #c62828; }
+        .status.info { background: #e3f2fd; color: #1976d2; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧪 Тест Яндекс OAuth - Прямой</h1>
+        <p>Этот тест использует тот же окно для авторизации (не popup).</p>
+        
+        <div id="status" class="status info">
+            <strong>Статус:</strong> <span id="statusText">Проверка...</span>
+        </div>
+
+        <div><strong>Client ID:</strong> <code id="clientId">...</code></div>
+        <div><strong>Redirect URI:</strong> <code id="redirectUri">...</code></div>
+        <div><strong>Scope:</strong> <code>disk:app_folder</code></div>
+        <div><strong>Token:</strong> <code id="tokenStatus">Не получен</code></div>
+
+        <h2>Действия</h2>
+        <button class="btn" onclick="startAuth()">🔐 Авторизация (в этом окне)</button>
+        <button class="btn" onclick="clearToken()" style="background: #f44336; color: white;">🚪 Очистить токен</button>
+        <button class="btn" onclick="testAPI()" style="background: #4caf50; color: white;">📊 Тест API</button>
+        <button class="btn" onclick="goToApp()" style="background: #2196f3; color: white;">🏠 В приложение</button>
+
+        <h2>Лог</h2>
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            CLIENT_ID: '3772de21483443aba93e1889bd7ca4dc',
+            REDIRECT_URI: 'https://kkav45.github.io/cooperant/yandex-auth-callback.html',
+            SCOPE: 'cloud_api:disk.app_folder'  // Правильный scope для Яндекс.Диска
+        };
+
+        const STATE = Math.random().toString(36).substring(2);
+
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const item = document.createElement('div');
+            item.style.color = type === 'error' ? '#f44336' : type === 'success' ? '#4caf50' : '#2196f3';
+            item.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logEl.appendChild(item);
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log('[OAuth Test]', message);
+        }
+
+        function checkStatus() {
+            const token = localStorage.getItem('yandexDiskToken');
+            const tokenStatus = document.getElementById('tokenStatus');
+            const statusText = document.getElementById('statusText');
+            const statusDiv = document.getElementById('status');
+            
+            if (token) {
+                tokenStatus.textContent = '✅ Получен (' + token.substring(0, 20) + '...)';
+                tokenStatus.style.color = '#4caf50';
+                statusDiv.className = 'status success';
+                statusText.textContent = 'Токен получен!';
+                log('✅ Токен найден в localStorage', 'success');
+            } else {
+                tokenStatus.textContent = '❌ Не получен';
+                tokenStatus.style.color = '#f44336';
+                statusDiv.className = 'status info';
+                statusText.textContent = 'Требуется авторизация';
+                log('❌ Токен не найден', 'error');
+            }
+
+            // Проверка URL параметров
+            const urlParams = new URLSearchParams(window.location.search);
+            const hash = window.location.hash;
+            
+            if (urlParams.get('access_token')) {
+                log('✅ Токен найден в URL parameters', 'success');
+                handleToken(urlParams.get('access_token'));
+            } else if (hash && hash.includes('access_token')) {
+                log('✅ Токен найден в hash', 'success');
+                const hashParams = new URLSearchParams(hash.substring(1));
+                handleToken(hashParams.get('access_token'));
+            }
+        }
+
+        function handleToken(token) {
+            localStorage.setItem('yandexDiskToken', token);
+            log('✅ Токен сохранён в localStorage', 'success');
+            checkStatus();
+            
+            // Очищаем URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Показываем успех
+            alert('✅ Авторизация успешна!\n\nТокен сохранён.\nТеперь вы можете работать с Яндекс.Диском в приложении.');
+        }
+
+        function startAuth() {
+            log('🚀 Начало авторизации...', 'info');
+            
+            const authUrl = `https://oauth.yandex.ru/authorize?` +
+                `response_type=token&` +
+                `client_id=${CONFIG.CLIENT_ID}&` +
+                `redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&` +
+                `scope=${encodeURIComponent(CONFIG.SCOPE)}&` +
+                `state=${STATE}`;
+
+            log(`📍 URL: ${authUrl.substring(0, 150)}...`, 'info');
+            
+            // Сохраняем куда вернуться
+            sessionStorage.setItem('oauth_return_to', window.location.href);
+            
+            // Открываем в том же окне
+            log('🔄 Переход на авторизацию...', 'info');
+            window.location.href = authUrl;
+        }
+
+        function clearToken() {
+            localStorage.removeItem('yandexDiskToken');
+            localStorage.removeItem('yandexCooperativFolderId');
+            log('🗑️ Токен очищен', 'success');
+            checkStatus();
+        }
+
+        async function testAPI() {
+            const token = localStorage.getItem('yandexDiskToken');
+            
+            if (!token) {
+                log('❌ Сначала получите токен', 'error');
+                alert('Сначала нажмите "Авторизация" и получите токен!');
+                return;
+            }
+
+            log('📊 Тестирование API...', 'info');
+
+            try {
+                const response = await fetch('https://cloud-api.yandex.net/v1/disk/resources?path=app-folder:/', {
+                    headers: {
+                        'Authorization': `OAuth ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ API работает!', 'success');
+                    log(`📁 Папка: ${data.name}`, 'success');
+                    alert(`✅ API работает!\n\nПапка: ${data.name}\nПуть: ${data.path}`);
+                } else {
+                    const error = await response.json();
+                    log(`❌ Ошибка API: ${error.message || response.status}`, 'error');
+                    alert(`❌ Ошибка API: ${error.message || response.status}`);
+                }
+            } catch (err) {
+                log(`❌ Ошибка запроса: ${err.message}`, 'error');
+                alert(`❌ Ошибка: ${err.message}`);
+            }
+        }
+
+        function goToApp() {
+            log('🏠 Переход в приложение...', 'info');
+            const token = localStorage.getItem('yandexDiskToken');
+            if (!token) {
+                alert('Сначала авторизуйтесь!');
+                return;
+            }
+            window.location.href = 'start.html';
+        }
+
+        // Отображение конфигурации
+        document.getElementById('clientId').textContent = CONFIG.CLIENT_ID;
+        document.getElementById('redirectUri').textContent = CONFIG.REDIRECT_URI;
+
+        // Проверка при загрузке
+        checkStatus();
+    </script>
+</body>
+</html>

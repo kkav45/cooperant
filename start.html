@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2196F3">
+    <title>КООПЕРАНТ | Выбор роли</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Google Fonts: Roboto (кириллица) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap&subset=cyrillic" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --primary-dark: #1976D2;
+            --primary-light: #BBDEFB;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --danger-color: #F44336;
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
+            --radius: 20px;
+            --radius-sm: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .logo {
+            font-size: 64px;
+            margin-bottom: 12px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        /* Role Cards */
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .role-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+        }
+
+        .role-card.member::before {
+            background: linear-gradient(90deg, var(--success-color), #388E3C);
+        }
+
+        .role-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .role-card:active {
+            transform: translateY(-2px);
+        }
+
+        .role-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .role-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .role-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .role-features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .role-features li {
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 4px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .role-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .role-btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .role-card .role-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+        }
+
+        .role-card.member .role-btn {
+            background: linear-gradient(135deg, var(--success-color), #388E3C);
+        }
+
+        .role-btn:hover {
+            transform: scale(1.02);
+        }
+
+        /* Info Block */
+        .info-block {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .info-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .info-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .info-text strong {
+            color: var(--text-primary);
+        }
+
+        /* Settings */
+        .settings-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .settings-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            max-width: 400px;
+            width: 90%;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalSlideUp 0.3s ease;
+        }
+
+        @keyframes modalSlideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .modal-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: #f5f7fa;
+            color: var(--text-primary);
+        }
+
+        .modal-btn:hover {
+            transform: scale(1.02);
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            min-width: 300px;
+            padding: 16px 20px;
+            border-radius: var(--radius-sm);
+            background: var(--card-bg);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            background: #e8f5e9;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .toast.error {
+            background: #ffebee;
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .toast.info {
+            background: #e3f2fd;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .toast-icon {
+            font-size: 20px;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .roles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .logo {
+                font-size: 48px;
+            }
+
+            .title {
+                font-size: 20px;
+            }
+
+            .subtitle {
+                font-size: 12px;
+            }
+
+            .role-card {
+                padding: 20px;
+            }
+
+            .role-icon {
+                font-size: 40px;
+                margin-bottom: 12px;
+            }
+
+            .role-title {
+                font-size: 16px;
+            }
+
+            .role-description {
+                font-size: 12px;
+            }
+
+            .role-features {
+                margin-bottom: 16px;
+            }
+
+            .role-features li {
+                font-size: 11px;
+            }
+
+            .info-block {
+                padding: 12px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-bar {
+                top: auto;
+                bottom: 10px;
+                right: 50%;
+                transform: translateX(50%);
+            }
+
+            .modal {
+                padding: 20px;
+            }
+
+            .modal-title {
+                font-size: 18px;
+            }
+
+            .modal-description {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px 8px;
+            }
+
+            .logo {
+                font-size: 40px;
+            }
+
+            .title {
+                font-size: 18px;
+            }
+
+            .role-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121212;
+                --card-bg: #1e1e1e;
+                --text-primary: #ffffff;
+                --text-secondary: #b0b0b0;
+                --border-color: #333333;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Settings Bar -->
+    <div class="settings-bar">
+        <button class="settings-btn" onclick="toggleDarkMode()" title="Тёмная тема">🌓</button>
+        <button class="settings-btn" onclick="showHelp()" title="Помощь">❓</button>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🏠</div>
+            <div class="title">КООПЕРАНТ</div>
+            <div class="subtitle">Информационная система учёта пайщиков кооператива</div>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="roles-grid">
+            <!-- Cooperative Role -->
+            <div class="role-card cooperative" onclick="selectRole('cooperative')">
+                <span class="role-icon">🏢</span>
+                <div class="role-title">Кабинет кооператива</div>
+                <div class="role-description">
+                    Для председателя и бухгалтера
+                </div>
+                <ul class="role-features">
+                    <li>Управление пайщиками</li>
+                    <li>Учёт взносов</li>
+                    <li>Бухгалтерия и отчёты</li>
+                    <li>Документооборот</li>
+                </ul>
+                <button class="role-btn">
+                    Войти
+                    <span>→</span>
+                </button>
+            </div>
+
+            <!-- Member Role -->
+            <div class="role-card member" onclick="selectRole('member')">
+                <span class="role-icon">👤</span>
+                <div class="role-title">Кабинет пайщика</div>
+                <div class="role-description">
+                    Для членов кооператива
+                </div>
+                <ul class="role-features">
+                    <li>Информация о членстве</li>
+                    <li>История взносов</li>
+                    <li>Документы</li>
+                    <li>Заявления</li>
+                </ul>
+                <button class="role-btn">
+                    Войти
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Info Block -->
+        <div class="info-block">
+            <div class="info-title">
+                💡 Информация
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-icon">🔒</span>
+                    <div class="info-text">
+                        <strong>Безопасность:</strong> Все данные хранятся локально на вашем устройстве и/или в облаке Яндекс.Диска
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">☁️</span>
+                    <div class="info-text">
+                        <strong>Синхронизация:</strong> Автоматическое резервное копирование каждые 30 секунд
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">📱</span>
+                    <div class="info-text">
+                        <strong>Доступность:</strong> Работает в Telegram, браузере и на мобильных устройствах
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">🆓</span>
+                    <div class="info-text">
+                        <strong>Бесплатно:</strong> Система полностью бесплатна для использования
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <div class="modal-icon">❓</div>
+            <div class="modal-title">Как выбрать роль?</div>
+            <div class="modal-description">
+                <p style="margin-bottom: 10px; font-size: 13px;">
+                    <strong>Кабинет кооператива</strong> — для председателя и бухгалтера. Полный доступ ко всем функциям.
+                </p>
+                <p style="font-size: 13px;">
+                    <strong>Кабинет пайщика</strong> — для членов кооператива. Просмотр информации о членстве и взносах.
+                </p>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="closeModal('helpModal')">
+                    Понятно
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ============================================
+        // TELEGRAM WEBAPP INIT
+        // ============================================
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Apply Telegram theme
+        function applyTelegramTheme() {
+            document.documentElement.style.setProperty('--primary-color', tg.themeParams.button_color || '#2196F3');
+            document.documentElement.style.setProperty('--bg-color', tg.themeParams.secondary_bg_color || '#f5f5f5');
+            document.documentElement.style.setProperty('--card-bg', tg.themeParams.bg_color || '#ffffff');
+            document.documentElement.style.setProperty('--text-primary', tg.themeParams.text_color || '#212121');
+            document.documentElement.style.setProperty('--text-secondary', tg.themeParams.hint_color || '#757575');
+        }
+
+        applyTelegramTheme();
+
+        tg.onEvent('themeChanged', () => {
+            applyTelegramTheme();
+        });
+
+        // ============================================
+        // ROLE SELECTION
+        // ============================================
+
+        function selectRole(role) {
+            // Haptic feedback
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+
+            // Save role
+            localStorage.setItem('selectedRole', role);
+
+            // Show toast
+            showToast({
+                type: 'success',
+                message: role === 'cooperative'
+                    ? '✅ Вход в кабинет кооператива...'
+                    : '✅ Вход в кабинет пайщика...'
+            });
+
+            // Redirect after delay
+            setTimeout(() => {
+                if (role === 'cooperative') {
+                    window.location.href = 'index-cabinet-v2.html?v=' + Date.now();
+                } else {
+                    window.location.href = 'member-cabinet2.html?v=' + Date.now();
+                }
+            }, 1000);
+        }
+
+        // ============================================
+        // MODAL FUNCTIONS
+        // ============================================
+
+        function showHelp() {
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+            document.getElementById('helpModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // ============================================
+        // UTILITIES
+        // ============================================
+
+        function toggleDarkMode() {
+            const currentMode = document.body.style.filter;
+            if (currentMode === 'invert(1) hue-rotate(180deg)') {
+                document.body.style.filter = '';
+                localStorage.setItem('darkMode', 'false');
+                showToast({ type: 'info', message: '☀️ Светлая тема включена' });
+            } else {
+                document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+                localStorage.setItem('darkMode', 'true');
+                showToast({ type: 'info', message: '🌙 Тёмная тема включена' });
+            }
+
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+
+        // Apply saved dark mode
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+        }
+
+        function showToast({ type, message, duration = 3000 }) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = {
+                success: '✓',
+                error: '✕',
+                info: 'ℹ'
+            };
+
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type] || 'ℹ'}</span>
+                <span class="toast-message">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideInRight 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // ============================================
+        // CHECK EXISTING ROLE
+        // ============================================
+
+        // Check if role was already selected
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedRole = localStorage.getItem('selectedRole');
+            const urlParams = new URLSearchParams(window.location.search);
+            const forceSelect = urlParams.get('select') === 'true';
+
+            if (savedRole && !forceSelect) {
+                // Show quick selection modal
+                setTimeout(() => {
+                    const modal = document.createElement('div');
+                    modal.className = 'modal-overlay active';
+                    modal.innerHTML = `
+                        <div class="modal">
+                            <div class="modal-icon">👋</div>
+                            <div class="modal-title">С возвращением!</div>
+                            <div class="modal-description">
+                                Последняя роль: <strong>${savedRole === 'cooperative' ? 'Кабинет кооператива' : 'Кабинет пайщика'}</strong>
+                            </div>
+                            <div class="modal-buttons">
+                                <button class="modal-btn primary" onclick="continueWithRole('${savedRole}')">
+                                    Продолжить
+                                </button>
+                                <button class="modal-btn secondary" onclick="changeRole()">
+                                    Другая роль
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                }, 500);
+            }
+        });
+
+        function continueWithRole(role) {
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+
+            showToast({
+                type: 'success',
+                message: role === 'cooperative'
+                    ? '✅ Вход в кабинет кооператива...'
+                    : '✅ Вход в кабинет пайщика...'
+            });
+
+            setTimeout(() => {
+                if (role === 'cooperative') {
+                    window.location.href = 'index-cabinet-v2.html?v=' + Date.now();
+                } else {
+                    window.location.href = 'member-cabinet2.html?v=' + Date.now();
+                }
+            }, 1000);
+        }
+
+        function changeRole() {
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+            document.querySelector('.modal-overlay')?.remove();
+        }
+    </script>
+</body>
+</html>
