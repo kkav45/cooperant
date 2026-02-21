@@ -87,17 +87,31 @@
             align-items: center;
             gap: 8px;
             font-size: 13px;
-            opacity: 0.9;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sync-status:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
         .sync-indicator {
             width: 8px;
             height: 8px;
             border-radius: 50%;
             background: var(--success-color);
+            flex-shrink: 0;
         }
         .sync-indicator.syncing {
             background: var(--warning-color);
             animation: pulse 1s infinite;
+        }
+        .sync-indicator.error {
+            background: var(--danger-color);
+        }
+        .sync-indicator.disconnected {
+            background: var(--text-secondary);
         }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -3585,13 +3599,52 @@
         // YANDEX DISK INTEGRATION - РЕАЛЬНЫЕ ФУНКЦИИ
         // ============================================
 
+        // Обновление статуса синхронизации
+        window.updateSyncStatus = function(status, message) {
+            const indicator = document.getElementById('syncIndicator');
+            const text = document.getElementById('syncText');
+            const statusContainer = document.querySelector('.sync-status');
+
+            if (!indicator || !text) return;
+
+            // Сброс классов
+            indicator.className = 'sync-indicator';
+
+            // Установка статуса
+            switch(status) {
+                case 'synced':
+                    indicator.style.background = 'var(--success-color)';
+                    text.textContent = message || '✅ Синхронизировано';
+                    text.style.color = '#4caf50';
+                    break;
+                case 'syncing':
+                    indicator.className = 'sync-indicator syncing';
+                    text.textContent = message || '🔄 Синхронизация...';
+                    text.style.color = '#ff9800';
+                    break;
+                case 'error':
+                    indicator.className = 'sync-indicator error';
+                    text.textContent = message || '❌ Ошибка синхронизации';
+                    text.style.color = '#f44336';
+                    break;
+                case 'disconnected':
+                    indicator.className = 'sync-indicator disconnected';
+                    text.textContent = message || '⛔ Нет синхронизации';
+                    text.style.color = '#999';
+                    break;
+                default:
+                    indicator.style.background = 'var(--success-color)';
+                    text.textContent = message || 'Синхронизировано';
+            }
+        }
+
         window.updateYandexDiskStatus = function() {
             const token = localStorage.getItem('yandexDiskToken');
             const folderId = localStorage.getItem('yandexCooperativFolderId');
             const content = document.getElementById('yandexDiskStatus');
-            
+
             if (!content) return;
-            
+
             if (token && folderId) {
                 content.innerHTML = `
                     <div style="margin-bottom:12px">
@@ -3604,18 +3657,45 @@
                         <button onclick="window.logoutYandexDisk()" class="btn btn-danger btn-sm" style="width:100%">🚪 Выйти</button>
                     </div>
                 `;
+
+                // Обновляем индикатор в хедере
+                window.updateSyncStatus('synced', '✅ Синхронизировано');
             } else if (token) {
                 content.innerHTML = `
                     <div style="color:var(--warning-color);font-weight:600;margin-bottom:8px">⚠️ Требуется настройка</div>
                     <button onclick="window.connectYandexDisk()" class="btn btn-primary btn-sm" style="width:100%">☁️ Подключить</button>
                 `;
+
+                window.updateSyncStatus('disconnected', '⛔ Нет синхронизации');
             } else {
                 content.innerHTML = `
                     <div style="color:var(--text-secondary);margin-bottom:12px">☁️ Подключите Яндекс.Диск для синхронизации</div>
                     <button onclick="window.connectYandexDisk()" class="btn btn-primary btn-sm" style="width:100%">🔐 Войти через Яндекс</button>
                 `;
+
+                window.updateSyncStatus('disconnected', '⛔ Нет синхронизации');
             }
         }
+
+        // Клик по индикатору синхронизации
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusContainer = document.querySelector('.sync-status');
+            if (statusContainer) {
+                statusContainer.addEventListener('click', function() {
+                    const token = localStorage.getItem('yandexDiskToken');
+                    if (token) {
+                        window.forceSyncYandex();
+                    } else {
+                        window.showBackupModal();
+                    }
+                });
+            }
+
+            // Обновление статуса при загрузке
+            setTimeout(() => {
+                window.updateYandexDiskStatus();
+            }, 500);
+        });
 
         window.connectYandexDisk = function() {
             // Используем функцию из yandex-disk-integration-v2.js
@@ -3630,10 +3710,15 @@
 
         window.createBackupYandexDisk = function() {
             if (typeof window.saveAllDataToYandex === 'function') {
+                // Показываем статус синхронизации
+                window.updateSyncStatus('syncing', '🔄 Создание резервной копии...');
+
                 window.saveAllDataToYandex().then(() => {
                     showToast({ type: 'success', message: '✅ Резервная копия создана на Яндекс.Диске!' });
+                    window.updateSyncStatus('synced', '✅ Синхронизировано');
                 }).catch(err => {
                     showToast({ type: 'error', message: '❌ Ошибка: ' + err.message });
+                    window.updateSyncStatus('error', '❌ Ошибка синхронизации');
                 });
             } else {
                 showToast({ type: 'warning', message: '⚠️ Функция ещё не загружена' });
@@ -3642,12 +3727,17 @@
 
         window.forceSyncYandex = function() {
             if (typeof window.loadAllDataFromYandex === 'function') {
+                // Показываем статус синхронизации
+                window.updateSyncStatus('syncing', '🔄 Синхронизация...');
+
                 window.loadAllDataFromYandex().then(() => {
                     showToast({ type: 'success', message: '✅ Синхронизация выполнена!' });
+                    window.updateSyncStatus('synced', '✅ Синхронизировано');
                     window.renderMembers();
                     window.updateStats();
                 }).catch(err => {
                     showToast({ type: 'error', message: '❌ Ошибка: ' + err.message });
+                    window.updateSyncStatus('error', '❌ Ошибка синхронизации');
                 });
             } else {
                 showToast({ type: 'warning', message: '⚠️ Функция ещё не загружена' });
